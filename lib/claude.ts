@@ -50,7 +50,7 @@ Rules:
 - how_to_edit_like_this needs EXACTLY four imperative editing steps reflecting the inferred workflow.
 - If evidence is uncertain, tuck the caveat inside the paragraph that is ambiguous — never add extra keys outside the schema.`;
 
-function stripJsonFence(text: string): string {
+export function stripJsonFence(text: string): string {
   const trimmed = text.trim();
   if (trimmed.startsWith("```")) {
     return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();

@@ -7,6 +7,7 @@ import { ColorPalette } from "./ColorPalette";
 import { MusicCard } from "./MusicCard";
 import { WhyItWorks } from "./WhyItWorks";
 import { formatShareSummary } from "@/lib/share";
+import { EditMyFootagePanel } from "./EditMyFootagePanel";
 
 type Props = {
   data: AnalyzeSuccess;
@@ -172,6 +173,8 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
           ))}
         </ol>
       </section>
+
+      <EditMyFootagePanel analysis={data} />
 
       <div className="mt-14 flex flex-col items-end gap-3">
         <button

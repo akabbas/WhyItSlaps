@@ -4,7 +4,7 @@ import React from "react";
 
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 
-import { filenameFromContentDisposition } from "@/lib/clientDownload";
+import { arrayBufferToMp4Download, saveVideoBlobToDevice } from "@/lib/clientDownload";
 
 import { InputScreen } from "@/components/InputScreen";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -110,17 +110,13 @@ export default function HomePage() {
 
       const fallback = guessFilename(target);
       const disposition = res.headers.get("Content-Disposition");
-      const filename = filenameFromContentDisposition(disposition, fallback);
-
-      const blob = await res.blob();
-
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(a.href), 2800);
+      const buf = await res.arrayBuffer();
+      const prepared = arrayBufferToMp4Download(buf, disposition, fallback);
+      if (!prepared.ok) {
+        setError(prepared.message);
+        return;
+      }
+      await saveVideoBlobToDevice(prepared.blob, prepared.filename);
     } catch (unexpected) {
       setError(unexpected instanceof Error ? unexpected.message : "Browser could not finish the download.");
     } finally {
