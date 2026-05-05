@@ -128,6 +128,15 @@ function coerceEditPlan(parsed: unknown): EditPlan {
   };
 }
 
+/** Matches analyze (`lib/claude.ts`): shared `ANTHROPIC_MODEL`, optional `ANTHROPIC_EDITPLAN_MODEL` for this route only. */
+function resolveEditPlanModel(): string {
+  const editOnly = process.env.ANTHROPIC_EDITPLAN_MODEL?.trim();
+  if (editOnly) return editOnly;
+  const shared = process.env.ANTHROPIC_MODEL?.trim();
+  if (shared) return shared;
+  return "claude-sonnet-4-5";
+}
+
 function formatClipsForPrompt(
   clips: EditPlanRequestBody["clips"],
 ): string {
@@ -243,7 +252,7 @@ export async function POST(req: Request) {
   let textOut = "";
   try {
     const resp = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: resolveEditPlanModel(),
       max_tokens: 8192,
       temperature: 0.35,
       system: EDITPLAN_SYSTEM,
