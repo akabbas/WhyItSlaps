@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body::selection {
+  background: #f5f0e844;
+}
+
+.grain-screen {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  mix-blend-mode: soft-light;
+  opacity: 0.42;
+  filter: url(#vcGrain);
+  background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 45%);
+}
