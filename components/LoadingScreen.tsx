@@ -42,6 +42,8 @@ export function LoadingScreen({ active, phase = "analyze" }: Props) {
 
   if (!active) return null;
 
+  const pct = Math.round(((idx + 1) / (messages.length + 1)) * 100);
+
   return (
     <div className="fixed inset-0 z-40 grid place-items-center bg-[#090909]/94 backdrop-blur-[2px]" aria-busy="true" aria-live="polite">
       <div className="flex max-w-lg flex-col items-center gap-9 px-6 text-center">
@@ -55,6 +57,17 @@ export function LoadingScreen({ active, phase = "analyze" }: Props) {
         >
           {messages[idx]}
         </p>
+        <div className="w-64 space-y-2">
+          <div className="h-[2px] w-full bg-white/10">
+            <div
+              className="h-full bg-paper transition-[width] duration-700 ease-out"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="text-right font-mono text-[10px] tracking-[0.16em] text-white/30">
+            {pct}%
+          </p>
+        </div>
       </div>
     </div>
   );
