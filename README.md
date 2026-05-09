@@ -50,3 +50,4 @@ npm run build && npm run start
 - Temp artifacts go to `/tmp/vc-{uuid}` (analyze) or `/tmp/vc-dl-{uuid}` (download only) and are wiped in a `finally` block.
 - The original spec mentioned both `/tmp/{uuid}.mp4` and `/tmp/{uuid}/frames…`; a single `.mp4` file cannot coexist with a directory of the **same name** on Unix, so the server uses **`/tmp/vc-{uuid}/source.mp4` + `./frames/frame_%03d.jpg` + `./audio.mp3`** instead—same semantics, collision-free.
 - `next.config.mjs` raises `experimental.serverActions.bodySizeLimit`; the analyze route body is tiny (URL JSON) but leaves headroom if you evolve the POST shape.
+- **Hosting / production limits** (Vercel, Instagram cookies, timeouts, binaries): see **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
