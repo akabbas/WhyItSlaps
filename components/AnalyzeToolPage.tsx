@@ -4,12 +4,15 @@ import Link from "next/link";
 import React from "react";
 
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
+import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
 
 import { arrayBufferToMp4Download, saveVideoBlobToDevice } from "@/lib/clientDownload";
 
 import { InputScreen } from "@/components/InputScreen";
+import type { AppMode } from "@/components/InputScreen";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
+import { MusicResultsScreen } from "@/components/MusicResultsScreen";
 
 const STORAGE_KEY = "whyitslaps:last-result";
 /** Extension injector may write after first paint; poll briefly without delaying normal cache read. */
@@ -50,15 +53,16 @@ function parsePayload(json: string): { result: AnalyzeSuccess; url: string } | n
 }
 
 export function AnalyzeToolPage() {
+  const [mode, setMode] = React.useState<AppMode>("video");
   const [url, setUrl] = React.useState("");
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
-  /** null = idle; otherwise which long-running UX to show under the splash */
-  const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "download">(null);
+  const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "music" | "download">(null);
   const busy = loadingPhase !== null;
 
   const [error, setError] = React.useState<string | null>(null);
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
   const [result, setResult] = React.useState<AnalyzeSuccess | null>(null);
+  const [musicResult, setMusicResult] = React.useState<MusicAnalyzeSuccess | null>(null);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -208,6 +212,40 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    if (mode === "music") {
+      setLoadingPhase("music");
+      try {
+        const res = await fetch(new URL("/api/analyze-music", window.location.origin), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: target }),
+        });
+        const text = await res.text();
+        let payload: MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
+        try {
+          payload = JSON.parse(text) as MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
+        } catch {
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        if ("ok" in payload && payload.ok) {
+          setMusicResult(payload as MusicAnalyzeSuccess);
+          return;
+        }
+        const err = payload as MusicAnalyzeErrorBody;
+        if (err.retrySuggested) setAnalysisRetryHint(true);
+        setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+      } catch (unexpected) {
+        setError(
+          networkErrorHint(
+            unexpected instanceof Error ? unexpected.message : "Unknown network error.",
+          ),
+        );
+      } finally {
+        setLoadingPhase(null);
+      }
+      return;
+    }
+
     setLoadingPhase("analyze");
 
     try {
@@ -247,10 +285,11 @@ export function AnalyzeToolPage() {
     } finally {
       setLoadingPhase(null);
     }
-  }, [url]);
+  }, [url, mode]);
 
   const handleReset = React.useCallback(() => {
     setResult(null);
+    setMusicResult(null);
     setError(null);
     setAnalysisRetryHint(false);
     setStoredSourceUrl("");
@@ -258,6 +297,23 @@ export function AnalyzeToolPage() {
       window.sessionStorage.removeItem(STORAGE_KEY);
     }
   }, []);
+
+  if (musicResult) {
+    return (
+      <>
+        <div className="absolute right-4 top-4 z-20 md:right-8">
+          <Link
+            href="/welcome"
+            className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 underline-offset-4 hover:text-paper"
+          >
+            About
+          </Link>
+        </div>
+        <LoadingScreen active={busy} phase="music" />
+        <MusicResultsScreen data={musicResult} onReset={handleReset} />
+      </>
+    );
+  }
 
   if (result) {
     return (
@@ -299,12 +355,19 @@ export function AnalyzeToolPage() {
         value={url}
         disabled={busy}
         retryAnalysisHint={analysisRetryHint}
+        mode={mode}
         onChange={(next) => {
           setUrl(next);
           if (error) setError(null);
         }}
         onAnalyze={runAnalyze}
         onDownload={() => void triggerDownloadForUrl(url)}
+        onModeChange={(next) => {
+          setMode(next);
+          setUrl("");
+          setError(null);
+          setAnalysisRetryHint(false);
+        }}
         onRetryAnalysis={runAnalyze}
       />
     </main>

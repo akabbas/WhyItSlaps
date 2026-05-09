@@ -2,11 +2,16 @@
 
 import React from "react";
 
-export type PlatformGlyph = "YT" | "IG" | "TT" | "X";
+export type AppMode = "video" | "music";
+export type PlatformGlyph = "YT" | "IG" | "TT" | "X" | "SP";
 
-function inferPlatform(raw: string): PlatformGlyph | null {
+function inferPlatform(raw: string, mode: AppMode): PlatformGlyph | null {
   try {
     const host = new URL(raw).hostname.replace(/^www\./, "");
+    if (mode === "music") {
+      if (host.includes("spotify.com")) return "SP";
+      return null;
+    }
     if (host.includes("youtube.com") || host === "youtu.be") return "YT";
     if (host.includes("instagram.com")) return "IG";
     if (host.includes("tiktok.com")) return "TT";
@@ -22,9 +27,11 @@ type Props = {
   disabled?: boolean;
   error?: string | null;
   retryAnalysisHint?: boolean;
+  mode?: AppMode;
   onChange: (value: string) => void;
   onAnalyze: () => void;
   onDownload: () => void;
+  onModeChange?: (mode: AppMode) => void;
   onRetryAnalysis?: () => void;
 };
 
@@ -33,21 +40,52 @@ export function InputScreen({
   disabled,
   error,
   retryAnalysisHint,
+  mode = "video",
   onChange,
   onAnalyze,
   onDownload,
+  onModeChange,
   onRetryAnalysis,
 }: Props) {
-  const plat = inferPlatform(value.trim());
+  const plat = inferPlatform(value.trim(), mode);
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
+  const isMusic = mode === "music";
 
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col items-center justify-center gap-10 px-4 py-10 text-center md:gap-14">
       <div className="space-y-3">
         <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">WHYITSLAPS</h1>
         <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
-          short-form critique · serif taste · monospace rigor paste a reel / short / tiktok / x clip under a minute grab your palette + edit read
+          {isMusic
+            ? "sonic critique · paste a spotify track link · find out why it slaps"
+            : "short-form critique · serif taste · monospace rigor paste a reel / short / tiktok / x clip under a minute grab your palette + edit read"}
         </p>
+        {onModeChange && (
+          <div className="flex justify-center pt-1">
+            <div className="flex border border-white/18">
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onModeChange("video")}
+                className={`px-5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
+                  !isMusic ? "bg-paper text-black" : "bg-transparent text-white/45 hover:text-white/70"
+                }`}
+              >
+                VIDEO
+              </button>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onModeChange("music")}
+                className={`px-5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
+                  isMusic ? "bg-paper text-black" : "bg-transparent text-white/45 hover:text-white/70"
+                }`}
+              >
+                MUSIC
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <form
@@ -63,7 +101,7 @@ export function InputScreen({
             value={value}
             disabled={disabled}
             spellCheck={false}
-            placeholder="https://youtube.com/watch?v=paste-here…"
+            placeholder={isMusic ? "https://open.spotify.com/track/…" : "https://youtube.com/watch?v=paste-here…"}
             onChange={(event) => onChange(event.target.value)}
           />
 
@@ -79,23 +117,26 @@ export function InputScreen({
             >
               ANALYZE
             </button>
-            <button
-              disabled={disabled || !looksLikeUrl}
-              type="button"
-              className="h-14 min-h-14 flex-1 border-t border-white/35 bg-black px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:bg-black/55 disabled:text-white/45 md:border-t-0 md:border-r-0 md:min-w-[9.5rem]"
-              onClick={() => {
-                if (!looksLikeUrl || disabled) return;
-                onDownload();
-              }}
-            >
-              DOWNLOAD
-            </button>
+            {!isMusic && (
+              <button
+                disabled={disabled || !looksLikeUrl}
+                type="button"
+                className="h-14 min-h-14 flex-1 border-t border-white/35 bg-black px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:bg-black/55 disabled:text-white/45 md:border-t-0 md:border-r-0 md:min-w-[9.5rem]"
+                onClick={() => {
+                  if (!looksLikeUrl || disabled) return;
+                  onDownload();
+                }}
+              >
+                DOWNLOAD
+              </button>
+            )}
           </div>
         </div>
 
         <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/52">
-          supports youtube · instagram · tiktok · x · max 60s · 720p cap · download saves the server grab (Instagram may need Safari/Chrome
-          cookies)
+          {isMusic
+            ? "supports spotify track links · paste open.spotify.com/track/… URLs"
+            : "supports youtube · instagram · tiktok · x · max 60s · 720p cap · download saves the server grab (Instagram may need Safari/Chrome cookies)"}
         </p>
         <p className="mt-2 text-left font-mono text-[10px] tracking-[0.12em] text-white/38">
           Saved result opening instead of this screen? Add <span className="text-white/55">?fresh=1</span> to the URL or use
