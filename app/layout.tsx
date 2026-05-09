@@ -18,9 +18,9 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WhyItSlaps — microfilm aesthetic analyzer",
+  title: "WhyItSlaps — video & music aesthetic analyzer",
   description:
-    "Frame-sample short videos from YouTube, Instagram, TikTok, or X. Extract palette, BPM hints, and a structured visual critique — short-form taste, monospace rigor.",
+    "VIDEO: short-form links (YouTube, Instagram, TikTok, X) → palette, vision critique, optional track ID, edit plan. MUSIC: Spotify tracks → audio features + sonic breakdown.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

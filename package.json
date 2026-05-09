@@ -2,7 +2,7 @@
   "name": "whyitslaps",
   "version": "0.1.0",
   "private": true,
-  "description": "Short-form video aesthetic analyzer: palette, scores, cinematography & edit critique via vision API; optional ACRCloud track ID; Next.js + yt-dlp + ffmpeg.",
+  "description": "Video & music analyzer: short-form video critique (palette, vision API, ACRCloud, edit plan) + Spotify track analysis (audio features + structured breakdown). Next.js, yt-dlp, ffmpeg, Anthropic, Spotify.",
   "whyitslaps": {
     "anthropic_env_var": "ANTHROPIC_API_KEY",
     "paste_key_in_file_not_here": ".env.local (create/edit in repo root)"

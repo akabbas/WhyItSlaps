@@ -2,6 +2,8 @@
 
 This app is straightforward on a **developer machine** with Homebrew-installed tools and a logged-in browser. In **hosted production** (especially serverless), several of those assumptions break. This file lists the main limits so expectations stay aligned with how the code actually works.
 
+**MUSIC mode** (`POST /api/analyze-music`) does **not** shell out to yt-dlp/ffmpeg; it needs **`SPOTIFY_CLIENT_ID`** / **`SPOTIFY_CLIENT_SECRET`**, outbound HTTPS to Spotify + Anthropic, and whatever **`maxDuration`** your host allows for that route (60s in code).
+
 ---
 
 ## 1. CLI tools are not npm dependencies

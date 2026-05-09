@@ -1,6 +1,6 @@
 # WhyItSlaps — technical reference
 
-Deep dive into how the app is wired: runtime stack, HTTP APIs, media pipeline, and client state. For setup and env vars, see the root [README](../README.md). For deployment limits (Vercel, Instagram, binaries), see [BOTTLENECKS.md](../BOTTLENECKS.md).
+Runtime stack, HTTP APIs, media pipeline, and client state. Root **[README](../README.md)** for onboarding. **[BOTTLENECKS.md](../BOTTLENECKS.md)** for hosting limits.
 
 ---
 
@@ -10,33 +10,33 @@ Deep dive into how the app is wired: runtime stack, HTTP APIs, media pipeline, a
 |-------|------------|
 | Framework | Next.js 14 (App Router), React 18 |
 | Language | TypeScript (strict) |
-| Styling | Tailwind CSS, custom grain overlay (`app/layout.tsx` + `globals.css`) |
+| Styling | Tailwind CSS, grain overlay (`app/layout.tsx`, `globals.css`) |
 | Video acquisition | **yt-dlp** (CLI) — `lib/download.ts` |
-| Transcode / frames / audio strip | **ffmpeg** + **ffprobe** (CLI) — `lib/frames.ts` |
-| Vision critique | Anthropic **Messages API** (images + system prompt) — `lib/claude.ts` |
-| Track fingerprinting | **ACRCloud** Identify API — `lib/music.ts` |
-| Palette | **node-vibrant** on sampled frame — `lib/palette.ts` |
-| Edit plan | Same Anthropic client, separate system prompt — `app/api/editplan/route.ts` |
-| Optional browser assist | Chrome **extension** (`extension/`) posts captured CDN MP4 to analyze-upload |
+| Transcode / frames / clip-audio strip | **ffmpeg** + **ffprobe** — `lib/frames.ts` |
+| Video vision critique | Anthropic Messages API — `lib/claude.ts` |
+| Clip soundtrack fingerprint | **ACRCloud** — `lib/music.ts` (used on **video** pipeline only) |
+| Music-mode data | **Spotify Web API** — `lib/spotify.ts` |
+| Music-mode critique | Anthropic Messages API — `lib/claude-music.ts` |
+| Palette | **node-vibrant** — `lib/palette.ts` |
+| Edit plan | Anthropic — `app/api/editplan/route.ts` |
+| Optional browser assist | Chrome **extension** → `analyze-upload` |
 
-Node dependencies of note: `@anthropic-ai/sdk`, `node-vibrant`, `uuid`. Downloads are implemented with subprocesses, not the `@distube/ytdl-core` package (present in `package.json` but not on the analyze path today).
+Node deps of note: `@anthropic-ai/sdk`, `node-vibrant`, `uuid`. Video download uses **subprocesses**, not `@distube/ytdl-core` (still in `package.json` but not on these code paths).
 
 ---
 
 ## User-visible flow
 
-1. **Home (`/`)** — `AnalyzeToolPage`: URL input, **Analyze** (full pipeline) or **Download** (fetch capped MP4 only via `/api/download`).
-2. **`/welcome`** — Short marketing copy; links to `/` and `/?fresh=1`.
-3. **`/analyze`** — Redirects to `/` (legacy URLs).
-4. **Results** — `ResultsScreen`: vibe, tags, scores, **MusicCard** (ACR result or empty), palette, cinematography / grade / edit copy, Why It Works, How To Edit Like This, share-to-clipboard, **Edit My Footage** panel.
+1. **`/`** — `AnalyzeToolPage` + `InputScreen`: **VIDEO** vs **MUSIC** toggle.
+2. **VIDEO:** **Analyze** → `/api/analyze` (URL) or extension upload → `/api/analyze-upload`; **Download** → `/api/download` only.
+3. **MUSIC:** **Analyze** → `/api/analyze-music` (Spotify track URL JSON).
+4. **`/welcome`**, **`/analyze`** → redirect `/`.
 
-There is **no separate “music mode” vs “video mode” toggle** in the UI today. **Music** means *identified soundtrack* (when ACRCloud returns a match). A dedicated **music-first** analyzer (paste a track URL, no video pipeline) is **not implemented**; it remains roadmap material (see [CONCEPT.md](../CONCEPT.md)).
+Results: **`ResultsScreen`** (video) vs **`MusicResultsScreen`** (music).
 
 ---
 
-## Analyze pipeline (URL)
-
-End-to-end behavior for `POST /api/analyze`:
+## VIDEO pipeline (`POST /api/analyze`)
 
 ```mermaid
 flowchart LR
@@ -45,21 +45,26 @@ flowchart LR
   C --> D[node-vibrant palette]
   C --> E[ACRCloud on mp3]
   C --> F[subset of JPEGs to base64]
-  F --> G[Anthropic vision JSON critique]
-  D --> H[AnalyzeSuccess response]
+  F --> G[Anthropic vision JSON]
+  D --> H[AnalyzeSuccess]
   E --> H
   G --> H
 ```
 
-Details:
+- **Duration / resolution:** `--match-filter "duration <= 60"`, **720p** cap — `lib/download.ts`.
+- **Keyframes:** ~every **4s**; vision uses up to **14** frames (`framesToBase64Jpegs(..., 14)` in analyze routes).
+- **Workspace:** `/tmp/vc-*` or `vc-upload-*`; wiped after response.
 
-- **Duration / size:** yt-dlp uses `--match-filter "duration <= 60"` and format cap **720p** (`lib/download.ts`).
-- **Keyframes:** One JPEG every **4 seconds** (`ffmpeg` `-vf fps=1/4`), stored under `workDir/frames/`.
-- **Vision batch:** `framesToBase64Jpegs` subsamples to up to **14** frames (`app/api/analyze/route.ts`) / **16** in helper default (`lib/frames.ts`) — callers pass the limit explicitly in analyze routes.
-- **Audio for music ID:** First **10 seconds** to `audio.mp3`, sent to ACRCloud. Failure → `music: null`; analysis continues.
-- **Workspace:** `/tmp/vc-{uuid}` deleted in `finally` after the response.
+---
 
-Upload path (`POST /api/analyze-upload`) skips yt-dlp: multipart field **`video`** (file), max **100 MB**, then the same extract → palette → music → vision steps.
+## MUSIC pipeline (`POST /api/analyze-music`)
+
+1. Parse **Spotify track ID** from URL (`extractSpotifyTrackId`).
+2. **Client-credentials** token; fetch track + **audio features** (`lib/spotify.ts`).
+3. **`analyzeMusicWithClaude(track, features)`** → structured JSON per `types/music-analysis.ts`.
+4. `maxDuration = 60` on this route (lighter than video).
+
+No ffmpeg/yt-dlp on this path.
 
 ---
 
@@ -67,12 +72,13 @@ Upload path (`POST /api/analyze-upload`) skips yt-dlp: multipart field **`video`
 
 | Method | Path | Role |
 |--------|------|------|
-| `POST` | `/api/analyze` | JSON `{ url }` → full analysis (download + pipeline). |
-| `POST` | `/api/analyze-upload` | `multipart/form-data` field **`video`** → same pipeline without yt-dlp. |
-| `POST` | `/api/download` | JSON `{ url }` → `video/mp4` attachment (yt-dlp + optional transcode for QuickTime-friendly output — see `lib/transcodeDownload.ts`). |
-| `POST` | `/api/editplan` | JSON with reference analysis + user clip list + target duration → structured edit plan (`types/editplan.ts`). |
+| `POST` | `/api/analyze` | JSON `{ url }` — full **video** pipeline (`maxDuration` 300). |
+| `POST` | `/api/analyze-upload` | Multipart **`video`** — same pipeline, no yt-dlp (`max duration` 300). |
+| `POST` | `/api/analyze-music` | JSON `{ url }` — Spotify track analysis (`maxDuration` 60). |
+| `POST` | `/api/download` | JSON `{ url }` → `video/mp4` (`maxDuration` 300). |
+| `POST` | `/api/editplan` | Reference **video** analysis + user clips → edit plan (`maxDuration` 300). |
 
-All four routes use `export const runtime = "nodejs"` and `maxDuration = 300` where defined — **hosting must actually allow** that ceiling (see BOTTLENECKS).
+Long `maxDuration` values require a host that actually honors them (see BOTTLENECKS).
 
 ---
 
@@ -80,28 +86,25 @@ All four routes use `export const runtime = "nodejs"` and `maxDuration = 300` wh
 
 | Variable | Used by |
 |----------|---------|
-| `ANTHROPIC_API_KEY` | Vision + edit plan |
-| `ANTHROPIC_MODEL` | Vision (`lib/claude.ts`); edit plan falls back here if `ANTHROPIC_EDITPLAN_MODEL` unset |
-| `ANTHROPIC_EDITPLAN_MODEL` | Optional override **only** for `/api/editplan` |
-| `ACRCLOUD_HOST`, `ACRCLOUD_ACCESS_KEY`, `ACRCLOUD_ACCESS_SECRET` | `lib/music.ts` |
+| `ANTHROPIC_API_KEY` | Vision, music critique, edit plan |
+| `ANTHROPIC_MODEL` | Defaults in `lib/claude.ts` and `lib/claude-music.ts`; edit plan may use `ANTHROPIC_EDITPLAN_MODEL` |
+| `ANTHROPIC_EDITPLAN_MODEL` | Optional — `/api/editplan` only |
+| `ACRCLOUD_*` | **Video** path clip fingerprinting — `lib/music.ts` |
+| `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` | **Music** mode — `lib/spotify.ts` |
 
 ---
 
 ## Client persistence
 
-- **Last result cache:** `sessionStorage` key `whyitslaps:last-result` — envelope `{ v: 1, result, url }` (`AnalyzeToolPage`).
-- **Fresh session:** `/?fresh=1` or `/?new=1` clears cache and normalizes the URL.
-- **Extension handoff:** Extension can write `whyitslaps_result` in `sessionStorage`; the app polls briefly on load to pick it up.
+- **Video:** `sessionStorage` `whyitslaps:last-result` — envelope `{ v: 1, result, url }`.
+- **Fresh:** `/?fresh=1` clears video cache (and extension handoff key `whyitslaps_result` polling).
+- **Music:** in-memory for the session unless extended — no `last-result` envelope for music yet (`AnalyzeToolPage`).
 
 ---
 
 ## Chrome extension (optional)
 
-Path: `extension/` (Manifest v3-style background + content scripts).
-
-- Observes Instagram CDN requests and stores a candidate **MP4 URL** per tab.
-- Can **fetch** that URL (with Instagram-oriented headers) and **`POST`** bytes to `analyze-upload` (default `http://localhost:3000/api/analyze-upload`; configurable via message `analyzeUploadUrl`).
-- Useful when pasting a Reel URL through the server fails but the browser already has a direct media URL.
+`extension/` — IG CDN MP4 capture → `POST .../api/analyze-upload` (configurable base URL).
 
 ---
 
@@ -109,14 +112,13 @@ Path: `extension/` (Manifest v3-style background + content scripts).
 
 | Area | Files |
 |------|--------|
-| Entry UI | `app/page.tsx`, `components/AnalyzeToolPage.tsx`, `components/InputScreen.tsx` |
-| Results | `components/ResultsScreen.tsx`, `components/MusicCard.tsx`, `components/EditMyFootagePanel.tsx`, … |
-| Types | `types/analysis.ts`, `types/editplan.ts` |
-| Share text | `lib/share.ts` |
-| Download helper | `lib/download.ts`, `lib/clientDownload.ts` |
+| Entry | `app/page.tsx`, `components/AnalyzeToolPage.tsx`, `components/InputScreen.tsx` |
+| Video results | `components/ResultsScreen.tsx`, `components/MusicCard.tsx`, … |
+| Music results | `components/MusicResultsScreen.tsx` |
+| Types | `types/analysis.ts`, `types/music-analysis.ts`, `types/editplan.ts` |
 
 ---
 
 ## Loading UX
 
-`LoadingScreen` rotates copy for **analyze** vs **download** phases (`components/LoadingScreen.tsx`). Analyze messages are illustrative only; they do not reflect exact sub-step timing (download, ffmpeg, ACR, vision run in sequence on the server).
+`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`download`** — rotating copy is illustrative, not step-accurate.
