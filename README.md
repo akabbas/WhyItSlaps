@@ -1,6 +1,6 @@
-# VibeCheck
+# WhyItSlaps
 
-Next.js App Router analyzer that yt-dlp’s a ≤60 s clip (≤720 p), samples JPEG keyframes (~4 s cadence), fingerprints the opening 10 s audio with **ACRCloud**, extracts a Vibrant-derived palette from the middle-ish frame, then asks **Claude Sonnet with vision** (default **`claude-3-5-sonnet-20241022`**) for a JSON critique. Optionally set **`ANTHROPIC_MODEL`** in `.env.local` if your workspace uses another model ID from [Models](https://docs.anthropic.com/en/docs/about-claude/models).
+Next.js App Router analyzer that yt-dlp’s a ≤60 s clip (≤720 p), samples JPEG keyframes (~4 s cadence), fingerprints the opening 10 s audio with **ACRCloud**, extracts a Vibrant-derived palette from the middle-ish frame, then asks **Claude Sonnet with vision** (default **`claude-sonnet-4-20250514`**) for a JSON critique. Optionally set **`ANTHROPIC_MODEL`** in `.env.local` if your workspace uses another model ID from [Models](https://docs.anthropic.com/en/docs/about-claude/models).
 
 ## Prerequisites (local machine running `next dev` / Node API)
 
@@ -18,14 +18,14 @@ Create `.env.local` beside `package.json` (never commit it):
 
 ```
 ANTHROPIC_API_KEY=
-# Optional override (default used if omitted): ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+# Optional override (default used if omitted): ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ACRCLOUD_HOST=identify-eu-west-1.acrcloud.com
 ACRCLOUD_ACCESS_KEY=
 ACRCLOUD_ACCESS_SECRET=
 ```
 
 - `ANTHROPIC_API_KEY`: Anthropic Console key with Messages API access.
-- `ANTHROPIC_MODEL`: Optional. Defaults to **`claude-3-5-sonnet-20241022`** (vision-capable).
+- `ANTHROPIC_MODEL`: Optional. Defaults to **`claude-sonnet-4-20250514`** (vision-capable).
 - `ACRCLOUD_HOST`: The region host shown in your ACRCloud Identify project (**no** trailing slash path).
 - `ACRCLOUD_ACCESS_KEY` / `ACRCLOUD_ACCESS_SECRET`: Identify credentials exactly as documented at [ACRCloud Identify API](https://docs.acrcloud.com/reference/identification-api/identification-api.md) (multipart `/v1/identify` signing).
 

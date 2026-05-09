@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { appendFile, mkdir, rm } from "fs/promises";
+import { mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 
-import { downloadVideo } from "@/lib/download";
 import { extractArtifacts, framesToBase64Jpegs } from "@/lib/frames";
 import { analyzeMusic } from "@/lib/music";
 import { paletteFromMiddleFrame } from "@/lib/palette";
@@ -14,66 +13,66 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-/** Local temp workspace (macOS/Linux). yt-dlp + ffmpeg artifacts land here — deleted after respond. */
-const ROOT_TMP = "/tmp";
+const MAX_FILE_BYTES = 100 * 1024 * 1024;
+/** Extra slack for multipart boundaries and small fields when comparing Content-Length. */
+const MULTIPART_LENGTH_SLACK = 1024 * 1024;
 
-const AGENT_DEBUG_LOG = "/Users/ammrabbasher/WhyItSlaps/.cursor/debug-44a2c1.log";
-
-async function agentServerLog(data: Record<string, unknown>) {
-  if (process.env.NODE_ENV !== "development") return;
-  try {
-    await appendFile(
-      AGENT_DEBUG_LOG,
-      JSON.stringify({ sessionId: "44a2c1", timestamp: Date.now(), ...data }) + "\n",
-    );
-  } catch {
-    /* ignore */
-  }
+function payloadTooLarge(): NextResponse {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Video file exceeds the 100 MB limit.",
+    } satisfies AnalyzeErrorBody,
+    { status: 413 },
+  );
 }
 
 export async function POST(req: Request) {
-  // #region agent log
-  await agentServerLog({
-    hypothesisId: "H6",
-    location: "api/analyze/route.ts:POST:entry",
-    message: "POST /api/analyze reached",
-    data: {},
-  });
-  // #endregion
-  let body: { url?: string } = {};
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const n = Number(contentLength);
+    if (Number.isFinite(n) && n > MAX_FILE_BYTES + MULTIPART_LENGTH_SLACK) {
+      return payloadTooLarge();
+    }
+  }
 
+  let form: FormData;
   try {
-    body = (await req.json()) as { url?: string };
+    form = await req.formData();
   } catch {
     return NextResponse.json(
       {
         ok: false,
-        error: "Malformed JSON.",
+        error: "Malformed multipart body.",
         retrySuggested: false,
       } satisfies AnalyzeErrorBody,
       { status: 400 },
     );
   }
 
-  const urlRaw = typeof body.url === "string" ? body.url.trim() : "";
-  if (!urlRaw || !/^https?:\/\//i.test(urlRaw)) {
+  const video = form.get("video");
+  if (!(video instanceof File)) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Provide a valid HTTP(S) link.",
+        error: 'Expected multipart field "video" with a file.',
       } satisfies AnalyzeErrorBody,
       { status: 400 },
     );
   }
 
+  if (video.size > MAX_FILE_BYTES) {
+    return payloadTooLarge();
+  }
+
   const runId = uuidv4();
-  const workDir = join(ROOT_TMP, `vc-${runId}`);
+  const workDir = join("/tmp", `vc-upload-${runId}`);
   const videoPath = join(workDir, "source.mp4");
 
-  await mkdir(workDir, { recursive: true });
-
   try {
-    await downloadVideo(urlRaw, videoPath);
+    await mkdir(workDir, { recursive: true });
+    const buf = Buffer.from(await video.arrayBuffer());
+    await writeFile(videoPath, buf);
 
     let durationSeconds = 0;
     let frames: string[] = [];
@@ -89,7 +88,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Could not decode the downloaded clip.",
+          error: "Could not decode the uploaded clip.",
           hint,
           stage: "frames",
         } satisfies AnalyzeErrorBody,
@@ -165,39 +164,14 @@ export async function POST(req: Request) {
       video_duration_seconds: Number(durationSeconds.toFixed(2)),
     };
 
-    // #region agent log
-    await agentServerLog({
-      hypothesisId: "H6",
-      location: "api/analyze:success",
-      message: "returning 200",
-      data: { keyframe_count: payload.keyframe_count },
-    });
-    // #endregion
-
     return NextResponse.json(payload, { status: 200 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-
-    // #region agent log
-    await agentServerLog({
-      hypothesisId: "H-dl",
-      location: "api/analyze:download-catch",
-      message: "download pipeline caught",
-      data: { errMsg: message.slice(0, 500) },
-    });
-    // #endregion
-
     return NextResponse.json(
       {
         ok: false,
-        error:
-          message.includes("Instagram download requires")
-            ? message.split("Details:")[0].trim()
-            : message.length && (message.includes("yt-dlp") || /http|403|blocked|sign in|private/i.test(message))
-              ? "Download blocked or URL unsupported — try another public clip."
-              : "Download failed.",
+        error: "Could not save or process the upload.",
         hint: message || undefined,
-        stage: "download",
       } satisfies AnalyzeErrorBody,
       { status: 422 },
     );

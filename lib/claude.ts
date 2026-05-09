@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { ContentBlockParam } from "@anthropic-ai/sdk/resources";
 import type { ClaudeAnalysis, ClaudeAnalysisScores } from "@/types/analysis";
 
-export const SYSTEM_PROMPT = `You are VibeCheck — a senior creative director judging short-form aesthetics (TikTok, Reels, Shorts).
+export const SYSTEM_PROMPT = `You are WhyItSlaps — a senior creative director judging short-form aesthetics (TikTok, Reels, Shorts).
 
 You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
 
@@ -143,7 +143,7 @@ export async function analyzeWithClaude(base64Keyframes: string[]): Promise<Clau
   const anthropic = new Anthropic({ apiKey });
 
   const model =
-    process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5";
+    process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-6";
 
   const preamble =
     base64Keyframes.length <= 1

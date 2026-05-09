@@ -45,7 +45,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-6xl px-4 pb-24 pt-8 md:px-8">
       <nav className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-5">
-        <span className="font-serif text-lg tracking-[0.55em] text-paper">VIBECHECK</span>
+        <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">WHYITSLAPS</span>
         <div className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3">
           {videoSourceUrl?.trim() && typeof onDownloadVideo === "function" ? (
             <button

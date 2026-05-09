@@ -26,7 +26,7 @@ function newRow(patch?: Partial<Omit<ClipRow, "id">>): ClipRow {
 
 function formatPlanForClipboard(plan: EditPlan): string {
   const lines: string[] = [];
-  lines.push("YOUR EDIT PLAN — VibeCheck");
+  lines.push("YOUR EDIT PLAN — WhyItSlaps");
   lines.push("");
   lines.push(plan.edit_overview);
   lines.push("");
@@ -235,7 +235,7 @@ export function EditMyFootagePanel({ analysis }: Props) {
           <div className="space-y-3 border border-white/10 bg-black/30 p-4 font-mono text-[12px] leading-relaxed text-white/74">
             <p className="text-[10px] uppercase tracking-[0.26em] text-paper">What this does</p>
             <p>
-              VibeCheck does not upload your rushes or render a finished video yet. You describe clips you{" "}
+              WhyItSlaps does not upload your rushes or render a finished video yet. You describe clips you{" "}
               <span className="text-white">already shot</span> (or rough ideas for what you&apos;ll grab). The edit plan mirrors the{" "}
               <span className="text-white">reference pacing, grade direction, rhythm, and structure</span> from the breakdown above —
               actionable steps inside Premiere Pro or DaVinci Resolve. Use it alongside the{" "}

@@ -18,17 +18,22 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VibeCheck — microfilm aesthetic analyzer",
-  description: "Frame-sample short videos from YouTube, Instagram, TikTok, or X. Extract palette, BPM hints, Claude Sonnet critiques.",
+  title: "WhyItSlaps — microfilm aesthetic analyzer",
+  description:
+    "Frame-sample short videos from YouTube, Instagram, TikTok, or X. Extract palette, BPM hints, Claude Sonnet critiques — short-form taste, monospace rigor.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSerif.variable} ${ibmMono.variable} bg-[#0A0A0A] font-mono text-white antialiased`}>
+      <body
+        className={`${dmSerif.variable} ${ibmMono.variable} bg-[#0A0A0A] font-mono text-white antialiased`}
+        style={{ backgroundColor: "#0A0A0A", color: "#ffffff" }}
+      >
         <GrainDefs />
         <div className="grain-screen" aria-hidden />
-        <div className="relative z-10 min-h-screen">{children}</div>
+        {/* isolate keeps grain blend from swallowing page content in some browsers */}
+        <div className="relative isolate z-10 min-h-screen">{children}</div>
       </body>
     </html>
   );

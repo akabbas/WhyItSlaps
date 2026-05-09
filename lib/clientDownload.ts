@@ -53,7 +53,7 @@ export function bufferLooksLikeMp4(buf: ArrayBuffer): boolean {
 }
 
 function ensureEndsWithMp4(name: string): string {
-  const t = name.trim() || "vibecheck-clip.mp4";
+  const t = name.trim() || "whyitslaps-clip.mp4";
   return t.toLowerCase().endsWith(".mp4") ? t : `${t.replace(/\.[^./\\]+$/, "")}.mp4`;
 }
 

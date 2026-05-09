@@ -134,7 +134,7 @@ function resolveEditPlanModel(): string {
   if (editOnly) return editOnly;
   const shared = process.env.ANTHROPIC_MODEL?.trim();
   if (shared) return shared;
-  return "claude-sonnet-4-5";
+  return "claude-sonnet-4-6";
 }
 
 function formatClipsForPrompt(

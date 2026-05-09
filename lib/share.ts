@@ -5,7 +5,7 @@ export function formatShareSummary(data: AnalyzeSuccess): string {
   const chips = c.aesthetic_tags.join(", ");
 
   const lines = [
-    "VibeCheck breakdown",
+    "WhyItSlaps breakdown",
     `— ${c.vibe_summary}`,
     "",
     `Tags: ${chips}`,

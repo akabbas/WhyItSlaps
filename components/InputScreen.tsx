@@ -44,7 +44,7 @@ export function InputScreen({
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col items-center justify-center gap-10 px-4 py-10 text-center md:gap-14">
       <div className="space-y-3">
-        <h1 className="font-serif text-4xl uppercase tracking-[0.65em] text-paper md:text-[3rem] md:tracking-[0.75em]">VIBECHECK</h1>
+        <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">WHYITSLAPS</h1>
         <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
           short-form critique · serif taste · monospace rigor paste a reel / short / tiktok / x clip under a minute grab your palette + edit read
         </p>
@@ -96,6 +96,10 @@ export function InputScreen({
         <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/52">
           supports youtube · instagram · tiktok · x · max 60s · 720p cap · download saves the server grab (Instagram may need Safari/Chrome
           cookies)
+        </p>
+        <p className="mt-2 text-left font-mono text-[10px] tracking-[0.12em] text-white/38">
+          Saved result opening instead of this screen? Add <span className="text-white/55">?fresh=1</span> to the URL or use
+          “← new video” on the results page.
         </p>
 
         {(error ?? "").trim() ? (

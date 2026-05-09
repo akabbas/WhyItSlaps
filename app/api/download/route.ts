@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { NextResponse } from "next/server";
 
 import { downloadVideo } from "@/lib/download";
+import { transcodeToQuickTimeMp4 } from "@/lib/transcodeDownload";
 import type { AnalyzeErrorBody } from "@/types/analysis";
 
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 const ROOT_TMP = "/tmp";
 
 function asciiFilename(name: string): string {
-  return name.replace(/[^\w.\-()+]/g, "_").slice(0, 120) || "vibecheck-clip.mp4";
+  return name.replace(/[^\w.\-()+]/g, "_").slice(0, 120) || "whyitslaps-clip.mp4";
 }
 
 /** Human-ish filename derived from hostname + suffix (still only ASCII for Content-Disposition). */
@@ -23,7 +24,7 @@ function deriveFilename(rawUrl: string): string {
     const host = new URL(rawUrl).hostname.replace(/^www\./, "").replace(/[^a-z0-9]/gi, "-");
     return asciiFilename(`${host || "video"}-${Date.now().toString(36)}.mp4`);
   } catch {
-    return asciiFilename(`vibecheck-${Date.now().toString(36)}.mp4`);
+    return asciiFilename(`whyitslaps-${Date.now().toString(36)}.mp4`);
   }
 }
 
@@ -57,12 +58,14 @@ export async function POST(req: Request) {
   const runId = uuidv4();
   const workDir = join(ROOT_TMP, `vc-dl-${runId}`);
   const videoPath = join(workDir, "download.mp4");
+  const quickTimePath = join(workDir, "quicktime.mp4");
   await mkdir(workDir, { recursive: true });
 
   try {
     await downloadVideo(urlRaw, videoPath);
+    await transcodeToQuickTimeMp4(videoPath, quickTimePath);
 
-    const buffer = await readFile(videoPath);
+    const buffer = await readFile(quickTimePath);
     const fname = deriveFilename(urlRaw);
 
     return new NextResponse(buffer, {

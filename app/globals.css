@@ -19,7 +19,7 @@ body::selection {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   mix-blend-mode: soft-light;
   opacity: 0.42;
   filter: url(#vcGrain);

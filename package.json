@@ -1,19 +1,20 @@
 {
-  "name": "vibecheck",
+  "name": "whyitslaps",
   "version": "0.1.0",
   "private": true,
-  "vibecheck": {
+  "whyitslaps": {
     "anthropic_env_var": "ANTHROPIC_API_KEY",
     "paste_key_in_file_not_here": ".env.local (create/edit in repo root)"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3000 --hostname 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 3000",
     "lint": "next lint"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@distube/ytdl-core": "^4.16.12",
     "next": "14.2.29",
     "node-vibrant": "^4.0.3",
     "react": "^18.3.1",
