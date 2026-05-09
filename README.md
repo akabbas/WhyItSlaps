@@ -1,8 +1,27 @@
 # WhyItSlaps
 
-Next.js App Router app that analyzes **short-form video**: it grabs a **≤60s**, **≤720p** clip (via **yt-dlp**), samples **keyframes every ~4s** and the **first ~10s of audio**, builds a **color palette** (**node-vibrant**), fingerprints audio with **ACRCloud** when configured, and returns a structured critique from a **vision-capable model** via **Anthropic’s Messages API**.
+**WhyItSlaps** is a web app that explains *why* a short video hits: pacing, color grade, cinematography, edit style, palette, and concrete “how to recreate this” notes—plus **track identification** when the soundtrack is recognized.
 
-**Docs:** **[How it works & behavior →](./CONCEPT.md)** · **[Technical architecture →](./techstack/README.md)** · **[Production limits (Vercel, IG, binaries) →](./BOTTLENECKS.md)**
+---
+
+## How it works
+
+1. **You paste a link** to a public short (YouTube, Instagram, TikTok, or X) on the home page **`/`**, or you use the **Chrome extension** / **upload API** when a direct video file works better than a URL.
+2. **The server grabs a capped clip** (about **60 seconds** max, **720p** cap on the download path) and writes temporary files under `/tmp`.
+3. **ffmpeg** turns the clip into **still frames** (roughly one JPEG every **4 seconds**) and a short **MP3** slice (**~10 seconds**) for audio ID.
+4. **node-vibrant** reads a representative frame for a **dominant palette**. **ACRCloud** (if configured) tries to **name the song** from that MP3; if it can’t, you still get the full visual critique.
+5. A **vision model** (Anthropic Messages API) reads a batch of those frames and returns **strict JSON**: vibe summary, tags, scores (0–100), cinematography / grade / edit sections, “why it works,” and editing tips.
+6. **Results** render on one page: you can **copy a text summary**, **download the source MP4** (when the analysis was URL-based), or open **Edit my footage** to generate a **shot list** tailored to your own clips (`/api/editplan`).
+
+**Download-only:** the **Download** button skips steps 4–6 and just saves the capped MP4 through your browser.
+
+For product positioning and roadmap, see **[CONCEPT.md](./CONCEPT.md)**. For sequence diagrams, env vars, and API detail, see **[techstack/README.md](./techstack/README.md)**. For hosting limits (Instagram cookies on servers, Vercel timeouts, missing `yt-dlp`), see **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
+
+---
+
+## Stack in one paragraph
+
+Next.js 14 (App Router) + TypeScript + Tailwind. Video acquisition uses **yt-dlp**; processing uses **ffmpeg** / **ffprobe**; color from **node-vibrant**; audio fingerprinting from **ACRCloud**; critique JSON from **Anthropic’s Messages API**.
 
 ---
 

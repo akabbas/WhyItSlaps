@@ -4,6 +4,15 @@
 
 WhyItSlaps takes a **short video** (URL, upload, or browser-captured media), samples it, and returns a **structured aesthetic breakdown**—palette, scores, cinematography, grade, edit read, recreation tips—plus **soundtrack identification** when ACRCloud finds a match.
 
+### How it works (same as README)
+
+1. Paste a supported URL on **`/`** (or upload / extension).
+2. Server downloads a capped clip and extracts frames + short audio.
+3. Palette + optional ACRCloud track ID; vision model fills JSON critique.
+4. One results page: share text, download MP4 (URL flows), optional edit plan.
+
+For the **full numbered walkthrough**, see the [README](./README.md#how-it-works). For **implementation detail**, stay in this doc’s later sections and **[techstack/README.md](./techstack/README.md)**.
+
 Design system: dark editorial **`#0A0A0A`**, **`paper`** accent (`#F5F0E8`), **DM Serif Display** + **IBM Plex Mono**, sharp corners, grain overlay, minimal chrome.
 
 For **how it’s implemented**, see **[techstack/README.md](./techstack/README.md)**. For **local setup**, **[README.md](./README.md)**. For **production gotchas**, **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
