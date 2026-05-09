@@ -5,7 +5,7 @@ export type ScoreKey =
   | "subject_framing"
   | "overall_vibe";
 
-/** Claude vision JSON-only response (scores use these five dimensions; no music_sync). */
+/** Vision critique JSON-only response (scores use these five dimensions; no music_sync). */
 export interface ClaudeAnalysisScores {
   color_harmony: number;
   edit_pacing: number;

@@ -20,7 +20,7 @@ const ibmMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "WhyItSlaps — microfilm aesthetic analyzer",
   description:
-    "Frame-sample short videos from YouTube, Instagram, TikTok, or X. Extract palette, BPM hints, Claude Sonnet critiques — short-form taste, monospace rigor.",
+    "Frame-sample short videos from YouTube, Instagram, TikTok, or X. Extract palette, BPM hints, and a structured visual critique — short-form taste, monospace rigor.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

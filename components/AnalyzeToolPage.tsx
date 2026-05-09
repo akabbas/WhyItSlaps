@@ -16,18 +16,6 @@ const STORAGE_KEY = "whyitslaps:last-result";
 const EXT_RESULT_POLL_MS = 50;
 const EXT_RESULT_MAX_ATTEMPTS = 30;
 
-/** Dev-only: persist debug NDJSON via /api/debug-agent (works when Cursor ingest is offline). */
-function agentClientLog(payload: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  const h = window.location.hostname;
-  if (h !== "localhost" && h !== "127.0.0.1") return;
-  void fetch("/api/debug-agent", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId: "44a2c1", timestamp: Date.now(), ...payload }),
-  }).catch(() => {});
-}
-
 function networkErrorHint(original: string): string {
   if (!/load failed|failed to fetch|networkerror|network error/i.test(original)) return original;
   return `${original} — Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
@@ -69,7 +57,7 @@ export function AnalyzeToolPage() {
   const busy = loadingPhase !== null;
 
   const [error, setError] = React.useState<string | null>(null);
-  const [claudeRetryHint, setClaudeRetryHint] = React.useState(false);
+  const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
   const [result, setResult] = React.useState<AnalyzeSuccess | null>(null);
 
   React.useEffect(() => {
@@ -201,17 +189,6 @@ export function AnalyzeToolPage() {
       }
       await saveVideoBlobToDevice(prepared.blob, prepared.filename);
     } catch (unexpected) {
-      // #region agent log
-      agentClientLog({
-        hypothesisId: "H3",
-        location: "AnalyzeToolPage.tsx:triggerDownloadForUrl:catch",
-        message: "download flow threw",
-        data: {
-          name: unexpected instanceof Error ? unexpected.name : "unknown",
-          errMsg: unexpected instanceof Error ? unexpected.message : String(unexpected),
-        },
-      });
-      // #endregion
       setError(
         networkErrorHint(
           unexpected instanceof Error ? unexpected.message : "Browser could not finish the download.",
@@ -224,7 +201,7 @@ export function AnalyzeToolPage() {
 
   const runAnalyze = React.useCallback(async () => {
     setError(null);
-    setClaudeRetryHint(false);
+    setAnalysisRetryHint(false);
     const target = url.trim();
     if (!target) {
       setError("paste a full https link first.");
@@ -240,38 +217,11 @@ export function AnalyzeToolPage() {
         body: JSON.stringify({ url: target }),
       });
 
-      const ct = res.headers.get("content-type");
-      const text = await res.text();
-      // #region agent log
-      agentClientLog({
-        hypothesisId: "H1-H4",
-        location: "AnalyzeToolPage.tsx:runAnalyze:afterFetch",
-        message: "analyze fetch completed",
-        data: {
-          status: res.status,
-          ok: res.ok,
-          contentType: ct,
-          bodyLen: text.length,
-          bodyPreview: text.slice(0, 500),
-        },
-      });
-      // #endregion
-
       let payload: AnalyzeSuccess | AnalyzeErrorBody;
       try {
-        payload = JSON.parse(text) as AnalyzeSuccess | AnalyzeErrorBody;
-      } catch (parseErr) {
-        // #region agent log
-        agentClientLog({
-          hypothesisId: "H1",
-          location: "AnalyzeToolPage.tsx:runAnalyze:jsonParse",
-          message: "JSON.parse failed on /api/analyze body",
-          data: {
-            parseMsg: parseErr instanceof Error ? parseErr.message : String(parseErr),
-          },
-        });
-        // #endregion
-        throw parseErr;
+        payload = (await res.json()) as AnalyzeSuccess | AnalyzeErrorBody;
+      } catch {
+        throw new Error("Invalid response from server.");
       }
 
       if ("ok" in payload && payload.ok) {
@@ -283,23 +233,12 @@ export function AnalyzeToolPage() {
       const err = payload as AnalyzeErrorBody;
 
       if (err.retrySuggested) {
-        setClaudeRetryHint(true);
+        setAnalysisRetryHint(true);
       }
 
       const glue = err.hint ? `${err.error} — ${err.hint}` : err.error;
       setError(glue);
     } catch (unexpected) {
-      // #region agent log
-      agentClientLog({
-        hypothesisId: "H2",
-        location: "AnalyzeToolPage.tsx:runAnalyze:catch",
-        message: "runAnalyze threw",
-        data: {
-          name: unexpected instanceof Error ? unexpected.name : "unknown",
-          errMsg: unexpected instanceof Error ? unexpected.message : String(unexpected),
-        },
-      });
-      // #endregion
       setError(
         networkErrorHint(
           unexpected instanceof Error ? unexpected.message : "Unknown network error.",
@@ -313,7 +252,7 @@ export function AnalyzeToolPage() {
   const handleReset = React.useCallback(() => {
     setResult(null);
     setError(null);
-    setClaudeRetryHint(false);
+    setAnalysisRetryHint(false);
     setStoredSourceUrl("");
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(STORAGE_KEY);
@@ -359,14 +298,14 @@ export function AnalyzeToolPage() {
         error={error}
         value={url}
         disabled={busy}
-        retryClaudeHint={claudeRetryHint}
+        retryAnalysisHint={analysisRetryHint}
         onChange={(next) => {
           setUrl(next);
           if (error) setError(null);
         }}
         onAnalyze={runAnalyze}
         onDownload={() => void triggerDownloadForUrl(url)}
-        onRetryClaude={runAnalyze}
+        onRetryAnalysis={runAnalyze}
       />
     </main>
   );

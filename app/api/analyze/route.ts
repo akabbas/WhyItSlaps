@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appendFile, mkdir, rm } from "fs/promises";
+import { mkdir, rm } from "fs/promises";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 
@@ -17,29 +17,7 @@ export const dynamic = "force-dynamic";
 /** Local temp workspace (macOS/Linux). yt-dlp + ffmpeg artifacts land here — deleted after respond. */
 const ROOT_TMP = "/tmp";
 
-const AGENT_DEBUG_LOG = "/Users/ammrabbasher/WhyItSlaps/.cursor/debug-44a2c1.log";
-
-async function agentServerLog(data: Record<string, unknown>) {
-  if (process.env.NODE_ENV !== "development") return;
-  try {
-    await appendFile(
-      AGENT_DEBUG_LOG,
-      JSON.stringify({ sessionId: "44a2c1", timestamp: Date.now(), ...data }) + "\n",
-    );
-  } catch {
-    /* ignore */
-  }
-}
-
 export async function POST(req: Request) {
-  // #region agent log
-  await agentServerLog({
-    hypothesisId: "H6",
-    location: "api/analyze/route.ts:POST:entry",
-    message: "POST /api/analyze reached",
-    data: {},
-  });
-  // #endregion
   let body: { url?: string } = {};
 
   try {
@@ -147,7 +125,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Claude could not finalize the critique.",
+          error: "Vision analysis could not be completed.",
           hint,
           stage: "claude",
           retrySuggested: true,
@@ -165,27 +143,9 @@ export async function POST(req: Request) {
       video_duration_seconds: Number(durationSeconds.toFixed(2)),
     };
 
-    // #region agent log
-    await agentServerLog({
-      hypothesisId: "H6",
-      location: "api/analyze:success",
-      message: "returning 200",
-      data: { keyframe_count: payload.keyframe_count },
-    });
-    // #endregion
-
     return NextResponse.json(payload, { status: 200 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-
-    // #region agent log
-    await agentServerLog({
-      hypothesisId: "H-dl",
-      location: "api/analyze:download-catch",
-      message: "download pipeline caught",
-      data: { errMsg: message.slice(0, 500) },
-    });
-    // #endregion
 
     return NextResponse.json(
       {

@@ -1,6 +1,6 @@
 # Current app summary
 
-WhyItSlaps analyzes video URLs and explains why they look good — color grade, edit style, cinematography, music, and a shot-by-shot recreation guide. Built with Next.js 14, TypeScript, Tailwind, Claude API, yt-dlp, ffmpeg, ACRCloud, and node-vibrant.
+WhyItSlaps analyzes video URLs and explains why they look good — color grade, edit style, cinematography, music, and a shot-by-shot recreation guide. Built with Next.js 14, TypeScript, Tailwind, Anthropic’s Messages API (vision), yt-dlp, ffmpeg, ACRCloud, and node-vibrant.
 
 Design system: dark editorial aesthetic, `#0A0A0A` background, `paper` (#F5F0E8) accent, DM Serif Display + IBM Plex Mono fonts, sharp corners everywhere, no pills, no gradients.
 
@@ -16,7 +16,7 @@ Design system: dark editorial aesthetic, `#0A0A0A` background, `paper` (#F5F0E8)
 
 ## What It Is
 
-WhyItSlaps is an AI-powered aesthetic analysis tool for curious artists and casual enthusiasts. You paste a video URL and the app tells you **why it slaps** — not the metadata, not the view count, but the actual creative and cinematic elements that make it feel infectious, chic, or tasteful. It teaches you how to edit like the video you just analyzed.
+WhyItSlaps is an aesthetic analysis tool for curious artists and casual enthusiasts. You paste a video URL and the app tells you **why it slaps** — not the metadata, not the view count, but the actual creative and cinematic elements that make it feel infectious, chic, or tasteful. It teaches you how to edit like the video you just analyzed.
 
 The goal is to decode taste in a way that's friendly and accessible — not academic, not intimidating. Some videos have no captions, no text, no explanation — and they're just *sick*. WhyItSlaps tells you why.
 
@@ -28,7 +28,7 @@ The goal is to decode taste in a way that's friendly and accessible — not acad
 
 - Paste any URL from YouTube, Instagram, TikTok, or Twitter/X
 - App downloads the video via yt-dlp, extracts keyframes via ffmpeg
-- Sends keyframes to Claude (claude-sonnet-4-20250514) for visual analysis
+- Sends keyframes to a vision model (Anthropic Messages API) for structured visual analysis
 - Returns:
   - Vibe summary (written like a creative director, not a robot)
   - Aesthetic tags + target audience
@@ -68,7 +68,7 @@ The goal is to decode taste in a way that's friendly and accessible — not acad
 | Framework | Next.js 14 (App Router) |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| AI | Anthropic Claude API — claude-sonnet-4-20250514 |
+| Models | Anthropic Messages API (vision-capable) |
 | Video download | yt-dlp (CLI) |
 | Frame extraction | ffmpeg (CLI) |
 | Music ID | ACRCloud HTTP API |
@@ -104,7 +104,7 @@ Same concept as video analysis but for songs. User pastes a Spotify, SoundCloud,
 - Target listener / niche audience
 - "How to produce like this" — DAW-specific tips
 
-**Additional data source to add:** Spotify Audio Features API (energy, danceability, valence, acousticness, key, tempo) for quantitative layer on top of Claude's qualitative analysis.
+**Additional data source to add:** Spotify Audio Features API (energy, danceability, valence, acousticness, key, tempo) for quantitative layer on top of qualitative visual analysis.
 
 **Stack additions needed:**
 
@@ -116,9 +116,9 @@ Same concept as video analysis but for songs. User pastes a Spotify, SoundCloud,
 
 ---
 
-### AI Video Generation Prompt Export
+### Generative video prompt export
 
-After a WhyItSlaps analysis, add a "Generate With AI" section that auto-writes optimized prompts for:
+After a WhyItSlaps analysis, add a "Generate" section that auto-writes optimized prompts for:
 
 - **Runway Gen-4** — cinematic, moody, film-grain style
 - **Kling 2.0** — slow cinematic shots, strong motion
@@ -155,6 +155,6 @@ After a WhyItSlaps analysis, add a "Generate With AI" section that auto-writes o
 ## Notes
 
 - ACRCloud free tier: 100 recognitions/day — sufficient for MVP/personal use
-- Claude API cost: ~$0.02–0.05 per video analysis — negligible for personal/MVP scale
+- Vision API usage: modest per-request cost — fine for personal/MVP scale (see your Anthropic usage dashboard)
 - yt-dlp + ffmpeg: fully free, no API cost
 - Music mode should NOT be built until video mode is fully stable and deployed

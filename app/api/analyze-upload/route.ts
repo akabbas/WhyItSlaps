@@ -146,7 +146,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Claude could not finalize the critique.",
+          error: "Vision analysis could not be completed.",
           hint,
           stage: "claude",
           retrySuggested: true,

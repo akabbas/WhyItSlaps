@@ -261,7 +261,7 @@ export async function POST(req: Request) {
     for (const block of resp.content) {
       if (block.type === "text") textOut += block.text;
     }
-    if (!textOut.trim()) throw new Error("Claude returned no text.");
+    if (!textOut.trim()) throw new Error("Model returned no text.");
   } catch (e) {
     const hint = e instanceof Error ? e.message : String(e);
     const err: EditPlanResponse = {

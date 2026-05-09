@@ -21,22 +21,22 @@ type Props = {
   value: string;
   disabled?: boolean;
   error?: string | null;
-  retryClaudeHint?: boolean;
+  retryAnalysisHint?: boolean;
   onChange: (value: string) => void;
   onAnalyze: () => void;
   onDownload: () => void;
-  onRetryClaude?: () => void;
+  onRetryAnalysis?: () => void;
 };
 
 export function InputScreen({
   value,
   disabled,
   error,
-  retryClaudeHint,
+  retryAnalysisHint,
   onChange,
   onAnalyze,
   onDownload,
-  onRetryClaude,
+  onRetryAnalysis,
 }: Props) {
   const plat = inferPlatform(value.trim());
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
@@ -106,14 +106,14 @@ export function InputScreen({
           <p className="mt-4 text-left font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{error}</p>
         ) : null}
 
-        {retryClaudeHint && typeof onRetryClaude === "function" ? (
+        {retryAnalysisHint && typeof onRetryAnalysis === "function" ? (
           <button
             type="button"
             className="mt-4 bg-transparent px-2 py-1 font-mono text-[11px] uppercase tracking-[0.25em] text-white underline underline-offset-4 hover:text-paper disabled:opacity-40"
-            onClick={() => onRetryClaude()}
+            onClick={() => onRetryAnalysis()}
             disabled={disabled}
           >
-            retry Claude call
+            Retry analysis
           </button>
         ) : null}
       </form>

@@ -65,7 +65,7 @@ function clampScore(n: unknown): number {
 }
 
 export function coerceAnalysis(parsed: unknown): ClaudeAnalysis {
-  if (!parsed || typeof parsed !== "object") throw new Error("Claude payload was empty.");
+  if (!parsed || typeof parsed !== "object") throw new Error("Model payload was empty.");
 
   const p = parsed as Record<string, unknown>;
   const rawScores = p.scores && typeof p.scores === "object" ? (p.scores as Record<string, unknown>) : {};
@@ -173,19 +173,19 @@ export async function analyzeWithClaude(base64Keyframes: string[]): Promise<Clau
     if (block.type === "text") textOut += block.text;
   }
 
-  if (!textOut.trim()) throw new Error("Claude returned no text.");
+  if (!textOut.trim()) throw new Error("Model returned no text.");
 
   let parsedJson: unknown;
   try {
     parsedJson = JSON.parse(stripJsonFence(textOut));
   } catch {
-    throw new Error("Claude output was not valid JSON.");
+    throw new Error("Model output was not valid JSON.");
   }
 
   try {
     return coerceAnalysis(parsedJson);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    throw new Error(`Unable to coerce Claude payload: ${msg}`);
+    throw new Error(`Unable to coerce model payload: ${msg}`);
   }
 }
