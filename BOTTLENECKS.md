@@ -84,3 +84,7 @@ A project still wired to an **old Git repo** or an **old production branch** wil
 | Egress / Meta blocking | Usually milder | Datacenter IPs can be blocked or throttled |
 
 Use this doc when debugging “works on my machine, broken in production”—especially **Instagram Reels** and **timeouts**.
+
+---
+
+**See also:** [techstack/README.md](./techstack/README.md) for the full pipeline and API map (helps separate *host limits* from *application logic*).

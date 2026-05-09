@@ -1,160 +1,110 @@
-# Current app summary
+# WhyItSlaps — product summary & roadmap
 
-WhyItSlaps analyzes video URLs and explains why they look good — color grade, edit style, cinematography, music, and a shot-by-shot recreation guide. Built with Next.js 14, TypeScript, Tailwind, Anthropic’s Messages API (vision), yt-dlp, ffmpeg, ACRCloud, and node-vibrant.
+## One-liner
 
-Design system: dark editorial aesthetic, `#0A0A0A` background, `paper` (#F5F0E8) accent, DM Serif Display + IBM Plex Mono fonts, sharp corners everywhere, no pills, no gradients.
+WhyItSlaps takes a **short video** (URL, upload, or browser-captured media), samples it, and returns a **structured aesthetic breakdown**—palette, scores, cinematography, grade, edit read, recreation tips—plus **soundtrack identification** when ACRCloud finds a match.
 
-## What is already built and working
+Design system: dark editorial **`#0A0A0A`**, **`paper`** accent (`#F5F0E8`), **DM Serif Display** + **IBM Plex Mono**, sharp corners, grain overlay, minimal chrome.
 
-- Video analysis via `/api/analyze`
-- Edit plan generation via `/api/editplan`
-- Full results UI in `ResultsScreen.tsx`
-- Edit My Footage panel in `EditMyFootagePanel.tsx`
-- Music/Video mode toggle placeholder in `InputScreen.tsx`
-
-# WhyItSlaps — Concept & Roadmap
-
-## What It Is
-
-WhyItSlaps is an aesthetic analysis tool for curious artists and casual enthusiasts. You paste a video URL and the app tells you **why it slaps** — not the metadata, not the view count, but the actual creative and cinematic elements that make it feel infectious, chic, or tasteful. It teaches you how to edit like the video you just analyzed.
-
-The goal is to decode taste in a way that's friendly and accessible — not academic, not intimidating. Some videos have no captions, no text, no explanation — and they're just *sick*. WhyItSlaps tells you why.
+For **how it’s implemented**, see **[techstack/README.md](./techstack/README.md)**. For **local setup**, **[README.md](./README.md)**. For **production gotchas**, **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
 
 ---
 
-## Core Features (Built)
+## How the product behaves today
 
-### 1. Video Aesthetic Analysis
+### Primary flow: video analysis
 
-- Paste any URL from YouTube, Instagram, TikTok, or Twitter/X
-- App downloads the video via yt-dlp, extracts keyframes via ffmpeg
-- Sends keyframes to a vision model (Anthropic Messages API) for structured visual analysis
-- Returns:
-  - Vibe summary (written like a creative director, not a robot)
-  - Aesthetic tags + target audience
-  - Cinematography breakdown (shot types, camera movement, framing, depth of field)
-  - Color grade breakdown (shadows, highlights, saturation, signature color, film stock comparison)
-  - Edit style (pacing, cut pattern, transitions)
-  - "Why It Works" — specific elements and why each one makes the video feel good
-  - "How To Recreate It" — actionable step-by-step tips
-  - Aesthetic scores out of 10 (color harmony, edit pacing, motion feel, subject framing, overall vibe)
-  - Dominant color palette (6 swatches from node-vibrant)
-  - Music identification via ACRCloud (title, artist, BPM, genres, Spotify link)
+1. User pastes a supported **HTTPS video link** on **`/`** (YouTube, Instagram, TikTok, X/Twitter) — max length enforced at download (**≤60s**), resolution capped (**720p**) on the yt-dlp path.
+2. **Analyze** runs the full pipeline: grab → keyframes + audio snippet → palette → optional track ID → vision model → JSON UI.
+3. **Download** (same screen) only fetches a capped **MP4** via `/api/download` (no vision bill).
+4. **`/welcome`** is a lightweight explainer; **`/analyze`** redirects to **`/`**.
 
-### 2. Edit My Footage Like This
+**Music in the product today** is **not** a separate “mode.” It is **ACRCloud fingerprinting** on the first ~10s of extracted audio, surfaced in **MusicCard** (title, artist, BPM, genres, Spotify link when present). If keys are missing or identify fails, **`music` is `null`** and the rest of the critique still shows.
 
-- After analysis, user can enter their own clips (label, duration, description)
-- Set a target duration and optional notes
-- App generates a shot-by-shot edit plan tailored to match the reference video's aesthetic
-- Returns:
-  - Edit overview
-  - Full sequence with per-clip instructions (in point, hold duration, transitions, color grade, texture overlay)
-  - Global color grade settings
-  - Music direction (BPM, genre, search terms, sync notes)
-  - Software-specific setup steps for both Premiere Pro and DaVinci Resolve
-  - Pro tips for nailing the aesthetic
+### Other entry paths
 
-### 3. Mode Toggle (Placeholder)
+- **`POST /api/analyze-upload`** — multipart **video** file (e.g. extension or custom client), **100 MB** cap, same analysis pipeline **without** yt-dlp.
+- **Chrome extension** (`extension/`) — captures Instagram CDN **MP4** URLs from the tab and can upload them to **`analyze-upload`** when server-side IG download is blocked.
 
-- VIDEO mode (active, fully functional)
-- MUSIC mode (UI placeholder, coming soon)
+### After results
+
+- **Share** copies a text summary (clipboard).
+- **Edit My Footage** collects user-described clips + target duration, calls **`/api/editplan`**, returns a shot list, grade notes, NLE setup hints, and **music direction** for the *edit* (tempo, mood, search terms—not a second ACR pass).
+
+### Video vs music (clarity)
+
+| | **Shipped** | **Not shipped yet** |
+|---|-------------|---------------------|
+| **Video** | Full URL / upload / extension-assisted analysis | — |
+| **Music** | Track **ID** next to video results (ACRCloud) | Dedicated **music-only** analysis (paste Spotify / audio URL, song-centric UI, no video pipeline) |
+| **UI toggle** | None — single **video-first** entry | A future **music mode** would need new routes, types, and results screen (see Roadmap) |
+
+Scores in the UI are **0–100** integers per dimension, not “out of 10.”
 
 ---
 
-## Tech Stack
+## Built feature list
+
+- **`/api/analyze`** — URL JSON → `AnalyzeSuccess` / error body (`types/analysis.ts`).
+- **`/api/analyze-upload`** — multipart video → same shape.
+- **`/api/download`** — URL → MP4 attachment (with client-side compatibility handling where applicable).
+- **`/api/editplan`** — reference analysis + user clips → `EditPlan` JSON (`types/editplan.ts`).
+- **Results UI** — `ResultsScreen` + panels (scores, palette, music card, copy blocks, edit panel).
+- **Session persistence** — last result in `sessionStorage`; **`?fresh=1`** clears.
+- **Extension** — optional IG CDN capture → upload API.
+
+---
+
+## Tech stack (product view)
 
 | Layer | Tool |
 |-------|------|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| Models | Anthropic Messages API (vision-capable) |
-| Video download | yt-dlp (CLI) |
-| Frame extraction | ffmpeg (CLI) |
-| Music ID | ACRCloud HTTP API |
-| Color extraction | node-vibrant |
-| Fonts | DM Serif Display + IBM Plex Mono |
+| App | Next.js 14 App Router, TypeScript, Tailwind |
+| Vision + edit copy | Anthropic Messages API |
+| Download | yt-dlp |
+| Frames / audio | ffmpeg, ffprobe |
+| Track ID | ACRCloud Identify |
+| Palette | node-vibrant |
 
 ---
 
-## Design System
+## Design system (short)
 
-- Background: `#0A0A0A` with film grain overlay
-- Accent color: `paper` = `#F5F0E8`
-- Typography: DM Serif Display for display/quotes, IBM Plex Mono for everything else
-- Cards: `border border-white/12`, `bg-black/20–55`
-- Accent rails: `border-l-2 border-paper pl-4`
-- Buttons: sharp corners, no pills, mono uppercase tracking
-- Dark editorial aesthetic — think film zine, not SaaS dashboard
+- Background `#0A0A0A` + film grain; accent **`paper`** `#F5F0E8`.
+- Cards: `border-white/12`, muted fills; accent rail `border-l-2 border-paper`.
+- Typography: serif for pull quotes / hero, mono for UI and metadata.
 
 ---
 
-## Planned Features
+## Roadmap
 
-### Music Analysis Mode (Next Major Feature)
+### Dedicated music analysis mode
 
-Same concept as video analysis but for songs. User pastes a Spotify, SoundCloud, or YouTube link and gets:
+Goal: paste a **music** link (Spotify, YouTube audio, etc.) and get song-centric analysis without running the full video pipeline.
 
-- Song structure breakdown (why the arrangement works)
-- Production style analysis (what makes the mix feel expensive or intimate)
-- Sonic texture description (layers, space, specific sounds)
-- Emotional arc (how energy builds and releases)
-- Genre-bending elements (what makes it feel fresh)
-- Why it's infectious (the specific hook or moment)
-- Target listener / niche audience
-- "How to produce like this" — DAW-specific tips
+Planned building blocks (illustrative):
 
-**Additional data source to add:** Spotify Audio Features API (energy, danceability, valence, acousticness, key, tempo) for quantitative layer on top of qualitative visual analysis.
-
-**Stack additions needed:**
-
-- Spotify Audio Features API (free with Spotify developer account)
-- Audio waveform visualization on frontend
-- New API route: `/api/analyze-music`
-- New types: `types/music-analysis.ts`
-- New component: `components/MusicResultsScreen.tsx`
-
----
+- New route e.g. `/api/analyze-music` + types + `MusicResultsScreen` (or equivalent).
+- Optional **Spotify Audio Features** (or similar) for quantitative layer beside qualitative prose.
+- **UI**: explicit **Video / Music** switch on the home flow once both paths exist.
 
 ### Generative video prompt export
 
-After a WhyItSlaps analysis, add a "Generate" section that auto-writes optimized prompts for:
+Post-analysis prompts tuned for tools like Runway / Kling, using tags, grade, and palette.
 
-- **Runway Gen-4** — cinematic, moody, film-grain style
-- **Kling 2.0** — slow cinematic shots, strong motion
-- Prompt is built directly from the analysis (color grade, motion style, aesthetic tags)
-- Include the dominant color palette keyframe as a reference image suggestion
+### Share / export
 
----
+- Richer share formats; optional PDF one-pager; durable share URLs (today: session-only).
 
-### Share / Export
+### Product ideas
 
-- Share results as a formatted text summary (partially built)
-- Export full analysis as a PDF one-pager
-- Shareable URL with result stored in sessionStorage
+- Slap library / saved analyses.
+- Batch compare (many clips → pattern report).
 
 ---
 
-## Domain
+## Domain & ops notes
 
-- Registered: `whyitslaps.com`
-- Registrar: Porkbun
-- Works for both video AND music — no need to change when music mode launches
-
----
-
-## Future Product Ideas
-
-- **WhyItSlaps for Music** — standalone or second mode in same app
-- **Chrome Extension** — analyze any video you're watching without leaving the tab
-- **"Slap Library"** — save and tag your analyzed videos into a personal inspiration board
-- **Batch analysis** — drop 10 videos, get a report on shared aesthetic patterns across them
-
----
-
-## Notes
-
-- ACRCloud free tier: 100 recognitions/day — sufficient for MVP/personal use
-- Vision API usage: modest per-request cost — fine for personal/MVP scale (see your Anthropic usage dashboard)
-- yt-dlp + ffmpeg: fully free, no API cost
-- Music mode should NOT be built until video mode is fully stable and deployed
+- **whyitslaps.com** (Porkbun) — branding fits both video-first today and future music mode.
+- ACRCloud free tier limits — see their console for Identify quotas.
+- Anthropic usage — vision + edit plan calls; monitor dashboard for cost.
