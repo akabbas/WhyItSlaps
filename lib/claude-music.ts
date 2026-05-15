@@ -161,7 +161,7 @@ function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
 
 export async function analyzeMusicWithClaude(
   track: SpotifyTrack,
-  features: SpotifyAudioFeatures,
+  features: SpotifyAudioFeatures | null,
 ): Promise<ClaudeMusicAnalysis> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
@@ -172,24 +172,16 @@ export async function analyzeMusicWithClaude(
   const durationMin = Math.floor(track.duration_ms / 60000);
   const durationSec = Math.round((track.duration_ms % 60000) / 1000);
 
+  const featuresBlock = features
+    ? `\nSpotify Audio Features:\n- Tempo: ${features.tempo_bpm} BPM\n- Key: ${features.key}\n- Energy: ${features.energy.toFixed(2)} / 1.0\n- Danceability: ${features.danceability.toFixed(2)} / 1.0\n- Valence (positivity): ${features.valence.toFixed(2)} / 1.0\n- Acousticness: ${features.acousticness.toFixed(2)} / 1.0\n- Instrumentalness: ${features.instrumentalness.toFixed(2)} / 1.0\n- Loudness: ${features.loudness_db.toFixed(1)} dBFS\n- Speechiness: ${features.speechiness.toFixed(2)} / 1.0\n- Time Signature: ${features.time_signature}/4`
+    : "";
+
   const inputText = `Analyze this track and return the full JSON breakdown:
 
 Title: ${track.title}
 Artist: ${track.artist}
 Album: ${track.album}${track.release_year ? ` (${track.release_year})` : ""}
-Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}
-
-Spotify Audio Features:
-- Tempo: ${features.tempo_bpm} BPM
-- Key: ${features.key}
-- Energy: ${features.energy.toFixed(2)} / 1.0
-- Danceability: ${features.danceability.toFixed(2)} / 1.0
-- Valence (positivity): ${features.valence.toFixed(2)} / 1.0
-- Acousticness: ${features.acousticness.toFixed(2)} / 1.0
-- Instrumentalness: ${features.instrumentalness.toFixed(2)} / 1.0
-- Loudness: ${features.loudness_db.toFixed(1)} dBFS
-- Speechiness: ${features.speechiness.toFixed(2)} / 1.0
-- Time Signature: ${features.time_signature}/4`;
+Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}${featuresBlock}`;
 
   const resp = await anthropic.messages.create({
     model,

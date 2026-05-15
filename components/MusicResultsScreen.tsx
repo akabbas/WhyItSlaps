@@ -146,12 +146,16 @@ export function MusicResultsScreen({ data, onReset }: Props) {
               <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
                 {formatDuration(track.duration_ms)}
               </span>
-              <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
-                {features.key}
-              </span>
-              <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
-                {features.tempo_bpm} BPM
-              </span>
+              {features && (
+                <>
+                  <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
+                    {features.key}
+                  </span>
+                  <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60">
+                    {features.tempo_bpm} BPM
+                  </span>
+                </>
+              )}
               {track.explicit && (
                 <span className="border border-white/12 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/40">
                   EXPLICIT
@@ -160,15 +164,17 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             </div>
           </div>
 
-          <div className="col-span-2 flex items-end justify-between border-t border-white/8 pt-4 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
-            <div className="text-right">
-              <div className="font-serif text-4xl leading-none text-paper">{features.tempo_bpm}</div>
-              <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">BPM</div>
+          {features && (
+            <div className="col-span-2 flex items-end justify-between border-t border-white/8 pt-4 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
+              <div className="text-right">
+                <div className="font-serif text-4xl leading-none text-paper">{features.tempo_bpm}</div>
+                <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">BPM</div>
+              </div>
+              <div className="border border-white/12 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white/60">
+                {features.key}
+              </div>
             </div>
-            <div className="border border-white/12 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white/60">
-              {features.key}
-            </div>
-          </div>
+          )}
         </section>
 
         {/* Vibe Summary */}
@@ -216,17 +222,19 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         </section>
 
         {/* Spotify Audio Features mini-bars */}
-        <section className="border border-white/12 bg-black/20 p-5">
-          <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-            Audio Features
-          </p>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <FeatureBar label="Energy" value={features.energy} />
-            <FeatureBar label="Danceability" value={features.danceability} />
-            <FeatureBar label="Valence" value={features.valence} />
-            <FeatureBar label="Acousticness" value={features.acousticness} />
-          </div>
-        </section>
+        {features && (
+          <section className="border border-white/12 bg-black/20 p-5">
+            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+              Audio Features
+            </p>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <FeatureBar label="Energy" value={features.energy} />
+              <FeatureBar label="Danceability" value={features.danceability} />
+              <FeatureBar label="Valence" value={features.valence} />
+              <FeatureBar label="Acousticness" value={features.acousticness} />
+            </div>
+          </section>
+        )}
 
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
