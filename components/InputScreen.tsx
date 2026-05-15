@@ -138,13 +138,10 @@ export function InputScreen({
             ? "supports spotify track links · paste open.spotify.com/track/… URLs"
             : "supports youtube · instagram · tiktok · x · max 60s · 720p cap · download saves the server grab (Instagram may need Safari/Chrome cookies)"}
         </p>
-        <p className="mt-2 text-left font-mono text-[10px] tracking-[0.12em] text-white/38">
-          Saved result opening instead of this screen? Add <span className="text-white/55">?fresh=1</span> to the URL or use
-          “← new video” on the results page.
-        </p>
-
-        {(error ?? "").trim() ? (
-          <p className="mt-4 text-left font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{error}</p>
+        {(error ?? “”).trim() ? (
+          <div className=”mt-8 border-l-2 border-paper/60 pl-4”>
+            <p className=”font-mono text-[12px] leading-relaxed tracking-wide text-white/90”>{error}</p>
+          </div>
         ) : null}
 
         {retryAnalysisHint && typeof onRetryAnalysis === "function" ? (
