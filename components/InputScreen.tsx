@@ -136,9 +136,9 @@ export function InputScreen({
         <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
           {isMusic ? "open.spotify.com/track/… links only" : "youtube · instagram · tiktok · x · max 60s"}
         </p>
-        {(error ?? “”).trim() ? (
-          <div className=”mt-8 border-l-2 border-paper/60 pl-4”>
-            <p className=”font-mono text-[12px] leading-relaxed tracking-wide text-white/90”>{error}</p>
+        {(error ?? "").trim() ? (
+          <div className="mt-8 border-l-2 border-paper/60 pl-4">
+            <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
           </div>
         ) : null}
 
