@@ -57,8 +57,8 @@ export function InputScreen({
         <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">WHYITSLAPS</h1>
         <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
           {isMusic
-            ? "sonic critique · paste a spotify track link · find out why it slaps"
-            : "short-form critique · serif taste · monospace rigor paste a reel / short / tiktok / x clip under a minute grab your palette + edit read"}
+            ? "paste a spotify track · find out why it slaps"
+            : "paste a reel · short · tiktok · x clip · under a minute"}
         </p>
         {onModeChange && (
           <div className="flex justify-center pt-1">
@@ -133,10 +133,8 @@ export function InputScreen({
           </div>
         </div>
 
-        <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/52">
-          {isMusic
-            ? "supports spotify track links · paste open.spotify.com/track/… URLs"
-            : "supports youtube · instagram · tiktok · x · max 60s · 720p cap · download saves the server grab (Instagram may need Safari/Chrome cookies)"}
+        <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+          {isMusic ? "open.spotify.com/track/… links only" : "youtube · instagram · tiktok · x · max 60s"}
         </p>
         {(error ?? “”).trim() ? (
           <div className=”mt-8 border-l-2 border-paper/60 pl-4”>
