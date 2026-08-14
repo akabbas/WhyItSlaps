@@ -3,7 +3,7 @@ import { mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 
-import { extractArtifacts, framesToBase64Jpegs } from "@/lib/frames";
+import { extractArtifacts, framesToBase64Jpegs, probeVideoDurationSeconds } from "@/lib/frames";
 import { analyzeMusic } from "@/lib/music";
 import { paletteFromMiddleFrame } from "@/lib/palette";
 import { analyzeWithClaude } from "@/lib/claude";
@@ -14,6 +14,8 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 const MAX_FILE_BYTES = 100 * 1024 * 1024;
+/** Match URL-analyze yt-dlp --match-filter "duration <= 60". */
+const MAX_DURATION_SECONDS = 60;
 /** Extra slack for multipart boundaries and small fields when comparing Content-Length. */
 const MULTIPART_LENGTH_SLACK = 1024 * 1024;
 
@@ -75,6 +77,33 @@ export async function POST(req: Request) {
     await writeFile(videoPath, buf);
 
     let durationSeconds = 0;
+    try {
+      durationSeconds = await probeVideoDurationSeconds(videoPath);
+    } catch (err) {
+      const hint = err instanceof Error ? err.message : String(err);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Could not read the uploaded clip duration.",
+          hint,
+          stage: "frames",
+        } satisfies AnalyzeErrorBody,
+        { status: 422 },
+      );
+    }
+
+    if (durationSeconds > MAX_DURATION_SECONDS) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "This clip is over 60 seconds — WhyItSlaps only analyzes clips under 1 minute. Grab a shorter cut and try again.",
+          stage: "frames",
+        } satisfies AnalyzeErrorBody,
+        { status: 422 },
+      );
+    }
+
     let frames: string[] = [];
     let audioPath = join(workDir, "audio.mp3");
 

@@ -38,7 +38,7 @@ export async function downloadVideo(url: string, outputMp4Path: string): Promise
   ];
 
   if (isInstagram(url)) {
-    // Try with Chrome cookies first (user must be logged into Instagram in Chrome)
+    // Local-only cookie fallback; cloud hosts usually cannot authenticate to Meta.
     try {
       await run("yt-dlp", [...baseArgs, "--cookies-from-browser", "chrome", url], "yt-dlp");
       return;
@@ -50,7 +50,7 @@ export async function downloadVideo(url: string, outputMp4Path: string): Promise
       return;
     } catch (err) {
       throw new Error(
-        `Instagram download requires you to be logged in. Make sure you're logged into Instagram in Chrome or Safari, then try again. Details: ${err instanceof Error ? err.message : String(err)}`,
+        `Instagram URL paste often fails in the cloud. Save the reel to your device, then upload the file here. Details: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

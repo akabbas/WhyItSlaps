@@ -33,6 +33,7 @@ type Props = {
   onDownload: () => void;
   onModeChange?: (mode: AppMode) => void;
   onRetryAnalysis?: () => void;
+  onUploadFile?: (file: File) => void;
 };
 
 export function InputScreen({
@@ -46,10 +47,13 @@ export function InputScreen({
   onDownload,
   onModeChange,
   onRetryAnalysis,
+  onUploadFile,
 }: Props) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const plat = inferPlatform(value.trim(), mode);
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
   const isMusic = mode === "music";
+  const isInstagramUrl = plat === "IG";
 
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col items-center justify-center gap-10 px-4 py-10 text-center md:gap-14">
@@ -58,7 +62,7 @@ export function InputScreen({
         <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
           {isMusic
             ? "paste a spotify track · find out why it slaps"
-            : "paste a reel · short · tiktok · x clip · under a minute"}
+            : "paste a tiktok · find out why it slaps"}
         </p>
         {onModeChange && (
           <div className="flex justify-center pt-1">
@@ -134,8 +138,45 @@ export function InputScreen({
         </div>
 
         <p className="mt-3 text-left font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-          {isMusic ? "open.spotify.com/track/… links only" : "youtube · instagram · tiktok · x · max 60s"}
+          {isMusic
+            ? "open.spotify.com/track/… links only"
+            : "tiktok · youtube · x · upload for instagram · max 60s"}
         </p>
+
+        {!isMusic && typeof onUploadFile === "function" ? (
+          <div className="mt-5 text-left">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*,.mp4,.mov,.webm,.m4v"
+              className="hidden"
+              disabled={disabled}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) onUploadFile(file);
+              }}
+            />
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => fileInputRef.current?.click()}
+              className="border border-white/25 bg-transparent px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Upload clip
+            </button>
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+              Instagram: save the reel, then upload the file
+            </p>
+          </div>
+        ) : null}
+
+        {isInstagramUrl ? (
+          <p className="mt-4 text-left font-mono text-[11px] leading-relaxed tracking-wide text-white/55">
+            Instagram links often fail here — save the reel and use Upload clip instead.
+          </p>
+        ) : null}
+
         {(error ?? "").trim() ? (
           <div className="mt-8 border-l-2 border-paper/60 pl-4">
             <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>

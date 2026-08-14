@@ -9,7 +9,7 @@ export default function WelcomePage() {
           WHYITSLAPS
         </h1>
         <p className="mx-auto max-w-lg font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
-          Decode why a short hits — palette, pacing, grade, and a straight-shooting critique. Paste a link on the home page and run analyze.
+          Paste a tiktok · short · spotify track · find out why it slaps.
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export default function WelcomePage() {
       </div>
 
       <p className="max-w-md font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-        YouTube · Instagram · TikTok · X · under ~60s
+        TikTok · YouTube · X · upload a reel · Spotify · under ~60s
       </p>
     </main>
   );

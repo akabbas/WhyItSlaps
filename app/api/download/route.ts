@@ -90,9 +90,11 @@ export async function POST(req: Request) {
         ok: false,
         error:
           message.includes("Instagram") || /cookies|Instagram/i.test(message)
-            ? "Could not fetch that reel — Instagram often needs Safari/Chrome cookies (same as Analyze)."
+            ? "Could not fetch that Instagram reel from a link. Save the reel, then upload the file."
             : "Download blocked or URL unsupported.",
-        hint: hintMsg,
+        hint: /instagram/i.test(message)
+          ? "Save the reel to your device, then use Upload clip on the home page."
+          : hintMsg,
         stage: "download",
       } satisfies AnalyzeErrorBody,
       { status: 422 },

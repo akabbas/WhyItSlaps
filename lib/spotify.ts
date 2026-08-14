@@ -68,7 +68,7 @@ interface RawAudioFeatures {
 
 export async function fetchSpotifyTrackData(
   trackId: string,
-): Promise<{ track: SpotifyTrack; features: SpotifyAudioFeatures }> {
+): Promise<{ track: SpotifyTrack; features: SpotifyAudioFeatures | null }> {
   const token = await getAccessToken();
 
   const [trackRes, featRes] = await Promise.all([
@@ -83,10 +83,9 @@ export async function fetchSpotifyTrackData(
   ]);
 
   if (!trackRes.ok) throw new Error(`Spotify track fetch failed (${trackRes.status}).`);
-  if (!featRes.ok) throw new Error(`Spotify audio features fetch failed (${featRes.status}).`);
 
   const raw = (await trackRes.json()) as RawSpotifyTrack;
-  const feat = (await featRes.json()) as RawAudioFeatures;
+  const feat = featRes.ok ? ((await featRes.json()) as RawAudioFeatures) : null;
 
   const artist = raw.artists?.map((a) => a.name).join(", ") ?? "Unknown";
   const images = raw.album?.images ?? [];
@@ -107,18 +106,20 @@ export async function fetchSpotifyTrackData(
     spotify_url: raw.external_urls?.spotify ?? `https://open.spotify.com/track/${trackId}`,
   };
 
-  const features: SpotifyAudioFeatures = {
-    tempo_bpm: Math.round(feat.tempo ?? 0),
-    key: formatKey(feat.key ?? -1, feat.mode ?? 1),
-    energy: feat.energy ?? 0,
-    danceability: feat.danceability ?? 0,
-    valence: feat.valence ?? 0,
-    acousticness: feat.acousticness ?? 0,
-    instrumentalness: feat.instrumentalness ?? 0,
-    loudness_db: feat.loudness ?? 0,
-    speechiness: feat.speechiness ?? 0,
-    time_signature: feat.time_signature ?? 4,
-  };
+  const features: SpotifyAudioFeatures | null = feat
+    ? {
+        tempo_bpm: Math.round(feat.tempo ?? 0),
+        key: formatKey(feat.key ?? -1, feat.mode ?? 1),
+        energy: feat.energy ?? 0,
+        danceability: feat.danceability ?? 0,
+        valence: feat.valence ?? 0,
+        acousticness: feat.acousticness ?? 0,
+        instrumentalness: feat.instrumentalness ?? 0,
+        loudness_db: feat.loudness ?? 0,
+        speechiness: feat.speechiness ?? 0,
+        time_signature: feat.time_signature ?? 4,
+      }
+    : null;
 
   return { track, features };
 }

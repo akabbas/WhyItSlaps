@@ -81,7 +81,7 @@ export interface ClaudeMusicAnalysis {
 export interface MusicAnalyzeSuccess {
   ok: true;
   track: SpotifyTrack;
-  features: SpotifyAudioFeatures;
+  features: SpotifyAudioFeatures | null;
   claude: ClaudeMusicAnalysis;
 }
 
