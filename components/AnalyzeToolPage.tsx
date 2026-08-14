@@ -7,6 +7,7 @@ import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
 
 import { arrayBufferToMp4Download, saveVideoBlobToDevice } from "@/lib/clientDownload";
+import { readAnalyzeResponse } from "@/lib/clientNdjson";
 
 import { InputScreen } from "@/components/InputScreen";
 import type { AppMode } from "@/components/InputScreen";
@@ -29,7 +30,7 @@ function networkErrorHint(original: string): string {
   if (onLocalhost) {
     return `${original} — Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
   }
-  return `${original} — The connection dropped while analyzing (common on long video jobs). Retry with a shorter clip under 60s, or try again.`;
+  return `${original} — The connection dropped while the server was still working (not a 60s clip limit). Retry once; if it keeps failing, try Upload clip with a short MP4.`;
 }
 
 type StoredEnvelopeV1 = { v: 1; result: AnalyzeSuccess; url: string };
@@ -263,12 +264,7 @@ export function AnalyzeToolPage() {
         body: JSON.stringify({ url: target }),
       });
 
-      let payload: AnalyzeSuccess | AnalyzeErrorBody;
-      try {
-        payload = (await res.json()) as AnalyzeSuccess | AnalyzeErrorBody;
-      } catch {
-        throw new Error("Invalid response from server.");
-      }
+      const payload = await readAnalyzeResponse(res);
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl(target);
@@ -315,12 +311,7 @@ export function AnalyzeToolPage() {
         body: form,
       });
 
-      let payload: AnalyzeSuccess | AnalyzeErrorBody;
-      try {
-        payload = (await res.json()) as AnalyzeSuccess | AnalyzeErrorBody;
-      } catch {
-        throw new Error("Invalid response from server.");
-      }
+      const payload = await readAnalyzeResponse(res);
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl("");
