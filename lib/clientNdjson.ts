@@ -31,7 +31,9 @@ export async function readAnalyzeResponse(
           continue;
         }
         if (obj.type === "ping") continue;
-        const { type: _type, status: _status, ...rest } = obj;
+        const rest = { ...obj };
+        delete rest.type;
+        delete rest.status;
         if (rest.ok === true || rest.ok === false) {
           finalPayload = rest as unknown as AnalyzeSuccess | AnalyzeErrorBody;
         }
