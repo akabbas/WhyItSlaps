@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { mkdir, rm } from "fs/promises";
+import { mkdir, rm, stat } from "fs/promises";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 
@@ -52,6 +52,18 @@ export async function POST(req: Request) {
 
   try {
     await downloadVideo(urlRaw, videoPath);
+
+    const videoExists = await stat(videoPath).then(() => true).catch(() => false);
+    if (!videoExists) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "This clip is over 60 seconds — WhyItSlaps only analyzes clips under 1 minute. Grab a shorter cut and try again.",
+          stage: "download",
+        } satisfies AnalyzeErrorBody,
+        { status: 422 },
+      );
+    }
 
     let durationSeconds = 0;
     let frames: string[] = [];
@@ -151,12 +163,14 @@ export async function POST(req: Request) {
       {
         ok: false,
         error:
-          message.includes("Instagram download requires")
-            ? message.split("Details:")[0].trim()
+          /instagram/i.test(message)
+            ? "Could not fetch that Instagram reel from a link."
             : message.length && (message.includes("yt-dlp") || /http|403|blocked|sign in|private/i.test(message))
               ? "Download blocked or URL unsupported — try another public clip."
               : "Download failed.",
-        hint: message || undefined,
+        hint: /instagram/i.test(message)
+          ? "Save the reel to your device, then use Upload clip on this page."
+          : message || undefined,
         stage: "download",
       } satisfies AnalyzeErrorBody,
       { status: 422 },

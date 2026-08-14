@@ -18,9 +18,9 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WhyItSlaps — video & music aesthetic analyzer",
+  title: "WhyItSlaps — find out why it slaps",
   description:
-    "VIDEO: short-form links (YouTube, Instagram, TikTok, X) → palette, vision critique, optional track ID, edit plan. MUSIC: Spotify tracks → audio features + sonic breakdown.",
+    "Paste a TikTok, short, or Spotify track and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

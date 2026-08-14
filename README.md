@@ -2,8 +2,10 @@
 
 **WhyItSlaps** is a web app with two modes on the home page **`/`**:
 
-- **VIDEO** — Why does this **short** hit? Paste a reel/short/TikTok/X link (or upload / use the extension). You get palette, pacing, grade, cinematography, edit read, recreation tips, **optional soundtrack ID** from the clip (ACRCloud), plus **Edit my footage** (shot list via `/api/editplan`).
+- **VIDEO** — Why does this **short** hit? Paste a TikTok / YouTube / X link, or **upload a clip** (Instagram: save the reel, then upload). You get palette, pacing, grade, cinematography, edit read, recreation tips, **optional soundtrack ID** from the clip (ACRCloud), plus **Edit my footage** (shot list via `/api/editplan`).
 - **MUSIC** — Why does this **track** hit? Paste a **Spotify track** URL. The app pulls metadata + **audio features** from Spotify, then a **language model** returns a structured sonic critique (`/api/analyze-music`).
+
+**Live site:** see [DEPLOY.md](DEPLOY.md) for Railway + Porkbun (`whyitslaps.com`). Website only — no Chrome extension for launch.
 
 ---
 
@@ -21,7 +23,7 @@ Short-form VIDEO analysis (palette, vision critique, optional ACRCloud track ID,
 
 ### VIDEO mode
 
-1. Choose **VIDEO** on **`/`** and paste a supported **HTTPS** link (YouTube, Instagram, TikTok, X), or use the **Chrome extension** / **`POST /api/analyze-upload`** when a direct file works better.
+1. Choose **VIDEO** on **`/`** and paste a supported **HTTPS** link (TikTok, YouTube, X), or use **Upload clip** / **`POST /api/analyze-upload`** (Instagram: save the reel first — URL paste often fails in the cloud).
 2. **Analyze** runs: capped grab (**≤60s**, **720p** on the yt-dlp path) → **ffmpeg** keyframes (~every **4s**) + **~10s MP3** for fingerprinting.
 3. **node-vibrant** → palette; **ACRCloud** (if configured) → **MusicCard** on the video results page; **Anthropic** vision API → strict JSON critique.
 4. **Results**: share text, download source MP4 (URL flows), **Edit my footage** for a tailored edit plan.

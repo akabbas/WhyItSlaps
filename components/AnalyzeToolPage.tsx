@@ -287,6 +287,53 @@ export function AnalyzeToolPage() {
     }
   }, [url, mode]);
 
+  const runUploadAnalyze = React.useCallback(async (file: File) => {
+    setError(null);
+    setAnalysisRetryHint(false);
+
+    if (!file.type.startsWith("video/") && !/\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
+      setError("Choose a video file (mp4, mov, webm).");
+      return;
+    }
+
+    setLoadingPhase("analyze");
+
+    try {
+      const form = new FormData();
+      form.append("video", file, file.name || "clip.mp4");
+
+      const res = await fetch(new URL("/api/analyze-upload", window.location.origin), {
+        method: "POST",
+        body: form,
+      });
+
+      let payload: AnalyzeSuccess | AnalyzeErrorBody;
+      try {
+        payload = (await res.json()) as AnalyzeSuccess | AnalyzeErrorBody;
+      } catch {
+        throw new Error("Invalid response from server.");
+      }
+
+      if ("ok" in payload && payload.ok) {
+        setStoredSourceUrl("");
+        setResult(payload);
+        return;
+      }
+
+      const err = payload as AnalyzeErrorBody;
+      if (err.retrySuggested) setAnalysisRetryHint(true);
+      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+    } catch (unexpected) {
+      setError(
+        networkErrorHint(
+          unexpected instanceof Error ? unexpected.message : "Unknown network error.",
+        ),
+      );
+    } finally {
+      setLoadingPhase(null);
+    }
+  }, []);
+
   const handleReset = React.useCallback(() => {
     setResult(null);
     setMusicResult(null);
@@ -369,6 +416,7 @@ export function AnalyzeToolPage() {
           setAnalysisRetryHint(false);
         }}
         onRetryAnalysis={runAnalyze}
+        onUploadFile={(file) => void runUploadAnalyze(file)}
       />
     </main>
   );
