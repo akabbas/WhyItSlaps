@@ -58,7 +58,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "This clip is over 60 seconds — WhyItSlaps only analyzes clips under 1 minute. Grab a shorter cut and try again.",
+          error:
+            "Download finished but no video file was written. The link may be blocked, expired, or over 60 seconds — try another URL or upload a clip under 1 minute.",
           stage: "download",
         } satisfies AnalyzeErrorBody,
         { status: 422 },

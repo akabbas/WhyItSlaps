@@ -17,7 +17,8 @@ function run(command: string, args: string[], label: string): Promise<void> {
   });
 }
 
-async function probeDurationSeconds(videoPath: string): Promise<number> {
+/** Probe container duration with ffprobe (seconds). */
+export async function probeVideoDurationSeconds(videoPath: string): Promise<number> {
   const args = [
     "-v",
     "error",
@@ -67,7 +68,7 @@ export async function extractArtifacts(
     "ffmpeg-audio",
   );
 
-  const durationSeconds = await probeDurationSeconds(videoPath);
+  const durationSeconds = await probeVideoDurationSeconds(videoPath);
 
   const files = await readdir(framesDir);
   const framePaths = files
