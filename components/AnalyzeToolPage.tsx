@@ -20,8 +20,16 @@ const EXT_RESULT_POLL_MS = 50;
 const EXT_RESULT_MAX_ATTEMPTS = 30;
 
 function networkErrorHint(original: string): string {
-  if (!/load failed|failed to fetch|networkerror|network error/i.test(original)) return original;
-  return `${original} — Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
+  if (!/load failed|failed to fetch|networkerror|network error|http2|ping_failed/i.test(original)) {
+    return original;
+  }
+  const onLocalhost =
+    typeof window !== "undefined" &&
+    /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+  if (onLocalhost) {
+    return `${original} — Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
+  }
+  return `${original} — The connection dropped while analyzing (common on long video jobs). Retry with a shorter clip under 60s, or try again.`;
 }
 
 type StoredEnvelopeV1 = { v: 1; result: AnalyzeSuccess; url: string };
