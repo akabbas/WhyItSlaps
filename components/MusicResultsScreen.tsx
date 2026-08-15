@@ -2,6 +2,8 @@
 
 import React from "react";
 import type { MusicAnalyzeSuccess, EnergyArcSegment, MusicScoreKey } from "@/types/music-analysis";
+import { ViewModeToggle } from "./ViewModeToggle";
+import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -57,10 +59,23 @@ function FeatureBar({ label, value }: { label: string; value: number }) {
   );
 }
 
+function BriefSectionCard({ label, text }: { label: string; text: string }) {
+  return (
+    <div className="border border-white/12 bg-black/20 p-4">
+      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">{label}</p>
+      <p className="mt-2 font-mono text-[11px] leading-relaxed text-white/75">{text}</p>
+    </div>
+  );
+}
+
 export function MusicResultsScreen({ data, onReset }: Props) {
   const { track, features, claude: c } = data;
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"ableton" | "logic" | "fl">("ableton");
+  const [viewMode, setViewMode] = React.useState<"brief" | "full">("brief");
+  const isBrief = viewMode === "brief";
+  const headline = musicBriefHeadline(c);
+  const sections = musicSectionSummaries(c);
 
   const handleShare = () => {
     const lines = [
@@ -117,6 +132,11 @@ export function MusicResultsScreen({ data, onReset }: Props) {
       </nav>
 
       <div className="mt-8 space-y-10">
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">music breakdown</p>
+          <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+        </div>
 
         {/* Track Hero */}
         <section className="grid grid-cols-[80px_1fr] gap-5 border border-white/12 bg-black/30 p-5 md:grid-cols-[96px_1fr_auto] md:items-center">
@@ -180,13 +200,18 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         {/* Vibe Summary */}
         <div className="border-l-2 border-paper pl-5">
           <p className="font-serif text-xl italic leading-relaxed text-paper md:text-2xl">
-            &ldquo;{c.vibe_summary}&rdquo;
+            &ldquo;{isBrief ? headline : c.vibe_summary}&rdquo;
           </p>
+          {!isBrief && headline !== c.vibe_summary ? (
+            <p className="mt-3 font-mono text-[10px] leading-relaxed tracking-wide text-white/40">
+              TL;DR — {headline}
+            </p>
+          ) : null}
         </div>
 
         {/* Aesthetic Tags */}
         <div className="flex flex-wrap gap-2">
-          {c.aesthetic_tags.map((tag, i) => (
+          {c.aesthetic_tags.slice(0, isBrief ? 6 : undefined).map((tag, i) => (
             <span
               key={`${tag}-${i}`}
               className={`border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em] ${
@@ -227,15 +252,27 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
               Audio Features
             </p>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />
               <FeatureBar label="Danceability" value={features.danceability} />
-              <FeatureBar label="Valence" value={features.valence} />
-              <FeatureBar label="Acousticness" value={features.acousticness} />
+              {!isBrief ? (
+                <>
+                  <FeatureBar label="Valence" value={features.valence} />
+                  <FeatureBar label="Acousticness" value={features.acousticness} />
+                </>
+              ) : null}
             </div>
           </section>
         )}
 
+        {isBrief ? (
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <BriefSectionCard label="arrangement" text={sections.arrangement} />
+            <BriefSectionCard label="mix" text={sections.mix} />
+            <BriefSectionCard label="sonic texture" text={sections.sonic} />
+          </section>
+        ) : (
+          <>
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
           <section className="border border-white/12 bg-black/20 p-5">
@@ -360,29 +397,6 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           </div>
         </section>
 
-        {/* Why It Slaps */}
-        <section className="space-y-4 border-t border-white/10 pt-8">
-          <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
-            WHY IT SLAPS
-          </h3>
-          <div className="grid gap-4">
-            {c.why_it_works.map((piece, idx) => (
-              <article
-                key={`${piece.title}-${idx}`}
-                className="border border-white/10 bg-white/[0.02] p-5"
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">
-                  {String(idx + 1).padStart(2, "0")}
-                </p>
-                <h4 className="mt-2 font-serif text-xl tracking-wide text-white">{piece.title}</h4>
-                <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">
-                  {piece.detail}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
         {/* How To Produce Like This */}
         {c.how_to_produce.length > 0 && (
           <section className="space-y-4 border-t border-white/10 pt-8">
@@ -426,6 +440,51 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             </div>
           </section>
         )}
+          </>
+        )}
+
+        {/* Why It Slaps */}
+        <section className="space-y-4 border-t border-white/10 pt-8">
+          <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
+            WHY IT SLAPS
+          </h3>
+          <div className={`grid gap-4 ${isBrief ? "md:grid-cols-2" : ""}`}>
+            {c.why_it_works.map((piece, idx) => (
+              <article
+                key={`${piece.title}-${idx}`}
+                className="border border-white/10 bg-white/[0.02] p-5"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">
+                  {String(idx + 1).padStart(2, "0")}
+                </p>
+                <h4 className="mt-2 font-serif text-xl tracking-wide text-white">{piece.title}</h4>
+                {!isBrief ? (
+                  <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">
+                    {piece.detail}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {isBrief && c.how_to_produce.length > 0 ? (
+          <section className="space-y-4 border border-white/10 bg-black/20 p-6">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.32em] text-paper">produce cheat sheet</h3>
+            <ol className="space-y-3">
+              {c.how_to_produce.map((step, idx) => (
+                <li
+                  key={idx}
+                  className="border-l-2 border-paper pl-4 font-mono text-[11px] leading-relaxed text-white/75"
+                >
+                  <span className="font-semibold text-paper">{step.title}</span>
+                  {" — "}
+                  {step.body.split(/(?<=[.!?])\s+/)[0]}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
 
         {/* Spotify CTA */}
         <div className="flex items-center gap-4 border border-[rgba(29,185,84,0.25)] bg-[rgba(29,185,84,0.05)] px-5 py-4">

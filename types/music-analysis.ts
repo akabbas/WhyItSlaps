@@ -57,7 +57,15 @@ export interface ProduceStep {
 }
 
 export interface ClaudeMusicAnalysis {
+  /** One punchy sentence — the TL;DR shown in brief mode. */
+  brief_summary: string;
   vibe_summary: string;
+  /** One line per dense section for brief mode. */
+  section_summaries?: {
+    arrangement: string;
+    mix: string;
+    sonic: string;
+  };
   aesthetic_tags: string[];
   target_listener: string;
   scores: MusicAnalysisScores;
