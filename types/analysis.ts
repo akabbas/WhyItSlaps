@@ -15,7 +15,15 @@ export interface ClaudeAnalysisScores {
 }
 
 export interface ClaudeAnalysis {
+  /** One punchy sentence — the TL;DR shown in brief mode. */
+  brief_summary: string;
   vibe_summary: string;
+  /** One line per dense section for brief mode. */
+  section_summaries?: {
+    cinematography: string;
+    color_grade: string;
+    edit_style: string;
+  };
   aesthetic_tags: string[];
   target_audience: string;
   scores: ClaudeAnalysisScores;
