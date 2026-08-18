@@ -1,12 +1,34 @@
 "use client";
 
 import React from "react";
-import type { MusicAnalyzeSuccess, EnergyArcSegment, MusicScoreKey } from "@/types/music-analysis";
+import type {
+  DawId,
+  DawStepsErrorBody,
+  DawStepsSuccess,
+  MusicAnalyzeSuccess,
+  EnergyArcSegment,
+  MusicScoreKey,
+  ProduceStep,
+} from "@/types/music-analysis";
 
 type Props = {
   data: MusicAnalyzeSuccess;
   onReset: () => void;
 };
+
+const PREFERRED_DAW_KEY = "whyitslaps-preferred-daw";
+
+const DAW_TABS: { id: DawId; label: string }[] = [
+  { id: "ableton", label: "ABLETON" },
+  { id: "logic", label: "LOGIC PRO" },
+  { id: "fl", label: "FL STUDIO" },
+];
+
+function readPreferredDaw(): DawId {
+  if (typeof window === "undefined") return "ableton";
+  const stored = window.localStorage.getItem(PREFERRED_DAW_KEY);
+  return stored === "logic" || stored === "fl" || stored === "ableton" ? stored : "ableton";
+}
 
 const SCORE_LABELS: Record<MusicScoreKey, string> = {
   hook_strength: "HOOK STRENGTH",
@@ -60,9 +82,84 @@ function FeatureBar({ label, value }: { label: string; value: number }) {
 export function MusicResultsScreen({ data, onReset }: Props) {
   const { track, features, claude: c } = data;
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"ableton" | "logic" | "fl">("ableton");
+  const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
+  const [stepsByDaw, setStepsByDaw] = React.useState<Partial<Record<DawId, ProduceStep[]>>>({
+    ableton: c.how_to_produce,
+  });
+  const [loadingDaw, setLoadingDaw] = React.useState<DawId | null>(null);
+  const [dawError, setDawError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const preferred = readPreferredDaw();
+    setActiveTab(preferred);
+  }, []);
+
+  const fetchDawSteps = React.useCallback(
+    async (daw: Exclude<DawId, "ableton">) => {
+      const referenceSteps = stepsByDaw.ableton ?? c.how_to_produce;
+      if (referenceSteps.length < 4) {
+        setDawError("Ableton reference steps are missing.");
+        return;
+      }
+
+      setLoadingDaw(daw);
+      setDawError(null);
+      try {
+        const res = await fetch("/api/analyze-music/daw-steps", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            daw,
+            track,
+            features,
+            production_context: {
+              vibe_summary: c.vibe_summary,
+              aesthetic_tags: c.aesthetic_tags,
+              arrangement: c.arrangement,
+              sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
+              reference_steps: referenceSteps,
+            },
+          }),
+        });
+        const payload = (await res.json()) as DawStepsSuccess | DawStepsErrorBody;
+        if (!res.ok || !payload.ok) {
+          const err = payload as DawStepsErrorBody;
+          throw new Error(err.hint ? `${err.error} — ${err.hint}` : err.error);
+        }
+        setStepsByDaw((prev) => ({ ...prev, [payload.daw]: payload.steps }));
+      } catch (err) {
+        setDawError(err instanceof Error ? err.message : "Could not load DAW steps.");
+      } finally {
+        setLoadingDaw(null);
+      }
+    },
+    [c, features, stepsByDaw.ableton, track],
+  );
+
+  const handleDawTab = React.useCallback(
+    (daw: DawId) => {
+      setActiveTab(daw);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(PREFERRED_DAW_KEY, daw);
+      }
+      if (daw !== "ableton" && !stepsByDaw[daw] && loadingDaw !== daw) {
+        void fetchDawSteps(daw);
+      }
+    },
+    [fetchDawSteps, loadingDaw, stepsByDaw],
+  );
+
+  React.useEffect(() => {
+    if (activeTab === "ableton") return;
+    if (stepsByDaw[activeTab] || loadingDaw === activeTab) return;
+    void fetchDawSteps(activeTab);
+  }, [activeTab, fetchDawSteps, loadingDaw, stepsByDaw]);
+
+  const activeSteps = stepsByDaw[activeTab] ?? (activeTab === "ableton" ? c.how_to_produce : []);
+  const activeDawLabel = DAW_TABS.find((tab) => tab.id === activeTab)?.label ?? "ABLETON";
 
   const handleShare = () => {
+    const produceSteps = activeSteps.length > 0 ? activeSteps : c.how_to_produce;
     const lines = [
       `WHYITSLAPS — MUSIC`,
       `${track.title} by ${track.artist}`,
@@ -76,6 +173,9 @@ export function MusicResultsScreen({ data, onReset }: Props) {
       ``,
       `WHY IT SLAPS:`,
       ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
+      ``,
+      `HOW TO PRODUCE (${activeDawLabel}):`,
+      ...produceSteps.map((step, i) => `  ${i + 1}. ${step.title} — ${step.body}`),
     ];
     const text = lines.join("\n");
 
@@ -391,38 +491,73 @@ export function MusicResultsScreen({ data, onReset }: Props) {
                 HOW TO PRODUCE LIKE THIS
               </h3>
               <div className="flex">
-                {(["ableton", "logic", "fl"] as const).map((tab) => (
+                {DAW_TABS.map((tab) => (
                   <button
-                    key={tab}
+                    key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab)}
-                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors ${
-                      activeTab === tab
+                    onClick={() => handleDawTab(tab.id)}
+                    disabled={loadingDaw === tab.id}
+                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
+                      activeTab === tab.id
                         ? "border-white/40 bg-white/[0.08] text-paper"
                         : "border-white/12 bg-transparent text-white/40 hover:text-white/70"
                     }`}
                   >
-                    {tab === "ableton" ? "ABLETON" : tab === "logic" ? "LOGIC PRO" : "FL STUDIO"}
+                    {tab.label}
                   </button>
                 ))}
               </div>
             </div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">
+              Stock plugins only for {activeDawLabel}
+              {activeTab !== "ableton" && !stepsByDaw[activeTab] && loadingDaw === activeTab
+                ? " · loading recipe"
+                : ""}
+            </p>
+            {dawError ? (
+              <div className="flex flex-wrap items-center gap-4 border border-white/12 bg-black/30 px-4 py-3">
+                <p className="font-mono text-[11px] text-white/65">{dawError}</p>
+                {activeTab !== "ableton" ? (
+                  <button
+                    type="button"
+                    onClick={() => void fetchDawSteps(activeTab)}
+                    className="bg-transparent font-mono text-[10px] uppercase tracking-[0.16em] text-paper underline-offset-4 hover:underline"
+                  >
+                    retry
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             <div className="space-y-3">
-              {c.how_to_produce.map((step, idx) => (
-                <div key={idx} className="border border-white/12 bg-black/30 p-5">
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-serif text-3xl leading-none text-white/12">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-paper">
-                      {step.title}
-                    </span>
+              {activeSteps.length > 0 ? (
+                activeSteps.map((step, idx) => (
+                  <div key={idx} className="border border-white/12 bg-black/30 p-5">
+                    <div className="flex items-baseline gap-4">
+                      <span className="font-serif text-3xl leading-none text-white/12">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
+                      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-paper">
+                        {step.title}
+                      </span>
+                    </div>
+                    <p className="mt-3 pl-10 font-mono text-[11px] leading-relaxed tracking-[0.03em] text-white/65">
+                      {step.body}
+                    </p>
                   </div>
-                  <p className="mt-3 pl-10 font-mono text-[11px] leading-relaxed tracking-[0.03em] text-white/65">
-                    {step.body}
-                  </p>
+                ))
+              ) : (
+                <div className="space-y-3">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <div
+                      key={idx}
+                      className="animate-pulse border border-white/12 bg-black/30 p-5"
+                    >
+                      <div className="h-4 w-40 bg-white/10" />
+                      <div className="mt-4 h-12 w-full bg-white/5" />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </section>
         )}

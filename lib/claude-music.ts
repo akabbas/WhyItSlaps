@@ -61,7 +61,7 @@ Rules:
 - arrangement.structure: concise shorthand of full song form (e.g., "Intro → V → Pre → Ch → V → Pre → Ch → Bridge → Ch × 2 → Outro").
 - mix_profile: each string is 1–2 sentences, specific to this production style inferred from the audio features provided.
 - why_it_works: EXACTLY 4 objects. Each must name a specific sonic or structural mechanism and explain the psychological or emotional effect it produces.
-- how_to_produce: EXACTLY 4 objects with concrete, DAW-agnostic production steps a producer could follow to recreate this sound.
+- how_to_produce: EXACTLY 4 objects with concrete Ableton Live production steps using stock devices only (Drum Rack, Operator, Simpler, EQ Eight, Glue Compressor, Saturator, Utility, etc.). Name real menu paths, device settings, and routing. Each step title is a short imperative phrase; each body is 2–4 sentences.
 - CRITICAL: Never use hyphens to join words in any text output. Write compound words as two separate words (e.g., "close mic" not "close-mic", "mid gain" not "mid-gain", "double tracked" not "double-tracked", "high passed" not "high-passed").`;
 
 const VALID_LEVELS = new Set(["low", "mid", "high", "peak"]);

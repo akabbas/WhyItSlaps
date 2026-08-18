@@ -56,6 +56,33 @@ export interface ProduceStep {
   body: string;
 }
 
+export type DawId = "ableton" | "logic" | "fl";
+
+export interface DawStepsRequestBody {
+  daw: Exclude<DawId, "ableton">;
+  track: SpotifyTrack;
+  features: SpotifyAudioFeatures | null;
+  production_context: {
+    vibe_summary: string;
+    aesthetic_tags: string[];
+    arrangement: ClaudeMusicAnalysis["arrangement"];
+    sonic_textures: Pick<SonicTexture, "name">[];
+    reference_steps: ProduceStep[];
+  };
+}
+
+export interface DawStepsSuccess {
+  ok: true;
+  daw: Exclude<DawId, "ableton">;
+  steps: ProduceStep[];
+}
+
+export interface DawStepsErrorBody {
+  ok: false;
+  error: string;
+  hint?: string;
+}
+
 export interface ClaudeMusicAnalysis {
   vibe_summary: string;
   aesthetic_tags: string[];
