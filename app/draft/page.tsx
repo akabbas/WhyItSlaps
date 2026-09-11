@@ -102,7 +102,7 @@ export default function DraftHubPage() {
 
       <footer className="mt-14 flex flex-wrap gap-6 border-t border-white/12 pt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
         <Link href="/" className="hover:text-paper">open tool</Link>
-        <Link href="/welcome" className="hover:text-paper">about</Link>
+        <Link href="/" className="hover:text-paper">home</Link>
         <span className="text-white/30">spec: docs/draft-history-social.md</span>
       </footer>
     </main>

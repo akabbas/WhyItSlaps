@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import React from "react";
 
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
@@ -347,14 +346,6 @@ export function AnalyzeToolPage() {
   if (musicResult) {
     return (
       <>
-        <div className="absolute right-4 top-4 z-20 md:right-8">
-          <Link
-            href="/welcome"
-            className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 underline-offset-4 hover:text-paper"
-          >
-            About
-          </Link>
-        </div>
         <LoadingScreen active={busy} phase="music" />
         <MusicResultsScreen data={musicResult} onReset={handleReset} />
       </>
@@ -364,14 +355,6 @@ export function AnalyzeToolPage() {
   if (result) {
     return (
       <>
-        <div className="absolute right-4 top-4 z-20 md:right-8">
-          <Link
-            href="/welcome"
-            className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 underline-offset-4 hover:text-paper"
-          >
-            About
-          </Link>
-        </div>
         <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "analyze"} />
         <ResultsScreen
           data={result}
@@ -387,14 +370,6 @@ export function AnalyzeToolPage() {
 
   return (
     <main className="relative">
-      <div className="absolute right-4 top-4 z-20 md:right-8">
-        <Link
-          href="/welcome"
-          className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 underline-offset-4 hover:text-paper"
-        >
-          About
-        </Link>
-      </div>
       <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "analyze"} />
       <InputScreen
         error={error}
