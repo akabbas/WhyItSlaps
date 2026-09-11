@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Experimental “Post this breakdown” block — not mounted on live result screens.
+ * See docs/share-graphics-experimental.md and /demo/share-graphics.
+ */
+
 import React from "react";
 import type { AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeSuccess } from "@/types/music-analysis";
