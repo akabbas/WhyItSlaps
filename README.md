@@ -52,7 +52,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind. **Video** path: **yt-dlp**, **f
 | **VIDEO** + **Analyze** | Full video pipeline → `ResultsScreen`. |
 | **VIDEO** + **Download** | `POST /api/download` → MP4 only. |
 | **MUSIC** + **Analyze** | `POST /api/analyze-music` → `MusicResultsScreen`. |
-| **`/welcome`** | Short intro; **`/?fresh=1`** clears cached **video** result. |
+| **`/?fresh=1`** | Clears cached **video** result in this browser tab. |
 | **Edit My Footage** | After **video** analysis → `/api/editplan`. |
 | **Extension** | IG CDN capture → `analyze-upload` when needed. |
 

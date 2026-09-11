@@ -32,7 +32,7 @@ Dark editorial **`#0A0A0A`**, **`paper`** `#F5F0E8`, **DM Serif Display** + **IB
 - **VIDEO:** `/api/analyze`, `/api/analyze-upload`, `/api/download`, `/api/editplan`; `ResultsScreen`; session cache `whyitslaps:last-result`.
 - **MUSIC:** `/api/analyze-music`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
-- **`/welcome`** — explainer; **`/analyze`** → redirect `/`.
+- **`/welcome`**, **`/analyze`** → redirect `/` (legacy URLs).
 
 ---
 
