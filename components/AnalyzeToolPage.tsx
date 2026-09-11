@@ -4,6 +4,7 @@ import React from "react";
 
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
+import type { IdentifyAudioErrorBody, IdentifyAudioSuccess } from "@/types/identify-audio";
 
 import { arrayBufferToMp3Download, arrayBufferToMp4Download, saveAudioBlobToDevice, saveVideoBlobToDevice } from "@/lib/clientDownload";
 import { readAnalyzeResponse } from "@/lib/clientNdjson";
@@ -65,8 +66,11 @@ export function AnalyzeToolPage() {
   const [url, setUrl] = React.useState("");
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
   const [storedMusicSourceUrl, setStoredMusicSourceUrl] = React.useState("");
-  const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "music" | "download">(null);
+  const [loadingPhase, setLoadingPhase] = React.useState<
+    null | "analyze" | "music" | "download" | "scan"
+  >(null);
   const busy = loadingPhase !== null;
+  const pendingMusicAutoAnalyzeUrl = React.useRef<string | null>(null);
 
   const [error, setError] = React.useState<string | null>(null);
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
@@ -83,12 +87,24 @@ export function AnalyzeToolPage() {
     const urlParam = params.get("url")?.trim();
     if (urlParam && /^https?:\/\//i.test(urlParam)) {
       setUrl(urlParam);
+      if (params.get("analyze") !== "0") {
+        pendingMusicAutoAnalyzeUrl.current = urlParam;
+      }
     }
     if (params.has("fresh") || params.has("new")) {
       window.sessionStorage.removeItem(STORAGE_KEY);
       window.sessionStorage.removeItem("whyitslaps_result");
       params.delete("fresh");
       params.delete("new");
+      const q = params.toString();
+      const path = `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`;
+      window.history.replaceState(null, "", path);
+    }
+
+    if (params.has("mode") || params.has("url") || params.has("analyze")) {
+      params.delete("mode");
+      params.delete("url");
+      params.delete("analyze");
       const q = params.toString();
       const path = `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`;
       window.history.replaceState(null, "", path);
@@ -277,6 +293,57 @@ export function AnalyzeToolPage() {
     [],
   );
 
+  const runMusicAnalyze = React.useCallback(async (targetUrl: string) => {
+    setError(null);
+    setAnalysisRetryHint(false);
+    const target = targetUrl.trim();
+    if (!target) {
+      setError("paste a full https link first.");
+      return;
+    }
+
+    setLoadingPhase("music");
+    try {
+      const res = await fetch(new URL("/api/analyze-music", window.location.origin), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: target }),
+      });
+      const text = await res.text();
+      let payload: MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
+      try {
+        payload = JSON.parse(text) as MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
+      } catch {
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      if ("ok" in payload && payload.ok) {
+        setStoredMusicSourceUrl(target);
+        setMusicResult(payload as MusicAnalyzeSuccess);
+        return;
+      }
+      const err = payload as MusicAnalyzeErrorBody;
+      if (err.retrySuggested) setAnalysisRetryHint(true);
+      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+    } catch (unexpected) {
+      setError(
+        networkErrorHint(
+          unexpected instanceof Error ? unexpected.message : "Unknown network error.",
+        ),
+      );
+    } finally {
+      setLoadingPhase(null);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const pending = pendingMusicAutoAnalyzeUrl.current;
+    if (!pending || busy || musicResult || result) return;
+    if (mode !== "music") return;
+    if (url.trim() !== pending) return;
+    pendingMusicAutoAnalyzeUrl.current = null;
+    void runMusicAnalyze(pending);
+  }, [mode, url, busy, musicResult, result, runMusicAnalyze]);
+
   const runAnalyze = React.useCallback(async () => {
     setError(null);
     setAnalysisRetryHint(false);
@@ -287,37 +354,7 @@ export function AnalyzeToolPage() {
     }
 
     if (mode === "music") {
-      setLoadingPhase("music");
-      try {
-        const res = await fetch(new URL("/api/analyze-music", window.location.origin), {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ url: target }),
-        });
-        const text = await res.text();
-        let payload: MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
-        try {
-          payload = JSON.parse(text) as MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
-        } catch {
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        if ("ok" in payload && payload.ok) {
-          setStoredMusicSourceUrl(target);
-          setMusicResult(payload as MusicAnalyzeSuccess);
-          return;
-        }
-        const err = payload as MusicAnalyzeErrorBody;
-        if (err.retrySuggested) setAnalysisRetryHint(true);
-        setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
-      } catch (unexpected) {
-        setError(
-          networkErrorHint(
-            unexpected instanceof Error ? unexpected.message : "Unknown network error.",
-          ),
-        );
-      } finally {
-        setLoadingPhase(null);
-      }
+      await runMusicAnalyze(target);
       return;
     }
 
@@ -355,7 +392,53 @@ export function AnalyzeToolPage() {
     } finally {
       setLoadingPhase(null);
     }
-  }, [url, mode]);
+  }, [url, mode, runMusicAnalyze]);
+
+  const runMusicScan = React.useCallback(
+    async (file: File) => {
+      setError(null);
+      setAnalysisRetryHint(false);
+      setLoadingPhase("scan");
+
+      try {
+        const form = new FormData();
+        form.append("clip", file, file.name || "clip.bin");
+        const res = await fetch(new URL("/api/identify-audio", window.location.origin), {
+          method: "POST",
+          body: form,
+        });
+        const payload = (await res.json()) as IdentifyAudioSuccess | IdentifyAudioErrorBody;
+        if (!res.ok || !payload.ok) {
+          const err = payload as IdentifyAudioErrorBody;
+          if (err.retrySuggested) setAnalysisRetryHint(true);
+          setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+          return;
+        }
+
+        const spotifyUrl = payload.spotify_url?.trim();
+        if (!spotifyUrl) {
+          const { title, artist } = payload.match;
+          setError(
+            `Found “${title}” by ${artist} — no Spotify link in the match. Paste a track URL to analyze.`,
+          );
+          return;
+        }
+
+        setUrl(spotifyUrl);
+        setLoadingPhase(null);
+        await runMusicAnalyze(spotifyUrl);
+      } catch (unexpected) {
+        setError(
+          networkErrorHint(
+            unexpected instanceof Error ? unexpected.message : "Scan failed.",
+          ),
+        );
+      } finally {
+        setLoadingPhase((phase) => (phase === "scan" ? null : phase));
+      }
+    },
+    [runMusicAnalyze],
+  );
 
   const runUploadAnalyze = React.useCallback(async (file: File) => {
     setError(null);
@@ -411,10 +494,19 @@ export function AnalyzeToolPage() {
     }
   }, []);
 
+  const loadingUiPhase =
+    loadingPhase === "download"
+      ? "download"
+      : loadingPhase === "music"
+        ? "music"
+        : loadingPhase === "scan"
+          ? "scan"
+          : "analyze";
+
   if (musicResult) {
     return (
       <>
-        <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "music"} />
+        <LoadingScreen active={busy} phase={loadingUiPhase} />
         <MusicResultsScreen
           data={musicResult}
           downloadError={error}
@@ -431,7 +523,7 @@ export function AnalyzeToolPage() {
   if (result) {
     return (
       <>
-        <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "analyze"} />
+        <LoadingScreen active={busy} phase={loadingUiPhase} />
         <ResultsScreen
           data={result}
           downloadError={error}
@@ -446,7 +538,7 @@ export function AnalyzeToolPage() {
 
   return (
     <main className="relative">
-      <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "analyze"} />
+      <LoadingScreen active={busy} phase={loadingUiPhase} />
       <InputScreen
         error={error}
         value={url}
@@ -469,6 +561,7 @@ export function AnalyzeToolPage() {
         }}
         onRetryAnalysis={runAnalyze}
         onUploadFile={(file) => void runUploadAnalyze(file)}
+        onUploadMusicScan={(file) => void runMusicScan(file)}
       />
     </main>
   );

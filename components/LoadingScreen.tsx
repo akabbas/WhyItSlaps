@@ -18,6 +18,12 @@ const MESSAGES_MUSIC = [
   "writing the breakdown",
 ] as const;
 
+const MESSAGES_SCAN = [
+  "extracting audio sample",
+  "fingerprinting track",
+  "searching catalog",
+] as const;
+
 const MESSAGES_DOWNLOAD = [
   "fetching clip from original source",
   "muxing stream to mp4 on disk",
@@ -26,18 +32,25 @@ const MESSAGES_DOWNLOAD = [
   "packaging preview for browser save…",
 ] as const;
 
-type Phase = "analyze" | "music" | "download";
+type Phase = "analyze" | "music" | "download" | "scan";
+
+function messagesForPhase(phase: Phase) {
+  if (phase === "download") return MESSAGES_DOWNLOAD;
+  if (phase === "music") return MESSAGES_MUSIC;
+  if (phase === "scan") return MESSAGES_SCAN;
+  return MESSAGES_ANALYZE;
+}
 
 type Props = { active: boolean; phase?: Phase };
 
 export function LoadingScreen({ active, phase = "analyze" }: Props) {
   const [idx, setIdx] = React.useState(0);
-  const messages = phase === "download" ? MESSAGES_DOWNLOAD : phase === "music" ? MESSAGES_MUSIC : MESSAGES_ANALYZE;
+  const messages = messagesForPhase(phase);
 
   React.useEffect(() => {
     if (!active) return undefined;
     setIdx(0);
-    const msgs = phase === "download" ? MESSAGES_DOWNLOAD : phase === "music" ? MESSAGES_MUSIC : MESSAGES_ANALYZE;
+    const msgs = messagesForPhase(phase);
     const id = window.setInterval(() => setIdx((n) => (n + 1) % msgs.length), 2000);
     return () => window.clearInterval(id);
   }, [active, phase]);

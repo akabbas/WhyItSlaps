@@ -34,6 +34,8 @@ type Props = {
   onModeChange?: (mode: AppMode) => void;
   onRetryAnalysis?: () => void;
   onUploadFile?: (file: File) => void;
+  /** Music mode: fingerprint upload via ACRCloud (Shazam-style). */
+  onUploadMusicScan?: (file: File) => void;
 };
 
 export function InputScreen({
@@ -48,8 +50,10 @@ export function InputScreen({
   onModeChange,
   onRetryAnalysis,
   onUploadFile,
+  onUploadMusicScan,
 }: Props) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const musicScanInputRef = React.useRef<HTMLInputElement>(null);
   const plat = inferPlatform(value.trim(), mode);
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
   const isMusic = mode === "music";
@@ -64,7 +68,7 @@ export function InputScreen({
           </h1>
           <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
             {isMusic
-              ? "paste a spotify track · find out why it slaps"
+              ? "paste a spotify link · or scan audio before you know the track"
               : "paste a tiktok · find out why it slaps"}
           </p>
         </div>
@@ -156,9 +160,37 @@ export function InputScreen({
           <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
               {isMusic
-                ? "open.spotify.com/track/… · download saves ~30s preview mp3 when Spotify provides one"
+                ? "open.spotify.com/track/… · scan uses first ~15s of audio · download saves ~30s preview mp3"
                 : "tiktok · youtube · x · upload for instagram · max 60s"}
             </p>
+
+            {isMusic && typeof onUploadMusicScan === "function" ? (
+              <div>
+                <input
+                  ref={musicScanInputRef}
+                  type="file"
+                  accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.webm"
+                  className="hidden"
+                  disabled={disabled}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) onUploadMusicScan(file);
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => musicScanInputRef.current?.click()}
+                  className="border border-white/25 bg-transparent px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Scan upload
+                </button>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+                  mp3 · m4a · short mp4 · max 25 mb · same engine as video soundtrack id
+                </p>
+              </div>
+            ) : null}
 
             {!isMusic && typeof onUploadFile === "function" ? (
               <div>

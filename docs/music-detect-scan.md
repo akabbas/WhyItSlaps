@@ -62,7 +62,8 @@ We already fingerprint clip audio via **ACRCloud Identify** (`lib/music.ts`) on 
 - [x] `identifyAudioBuffer()` shared helper
 - [x] `/api/identify-audio`
 - [x] `/draft/detect` upload UI
-- [ ] Wire **Scan** tab on home landing (optional fourth path next to paste URL)
+- [x] Home **Music** tab — **Scan upload** + scan → breakdown flow
+- [x] Deep link `/?mode=music&url=` auto-runs analyze (`analyze=0` to prefilled only)
 
 ### Phase 2
 
@@ -89,6 +90,27 @@ We already fingerprint clip audio via **ACRCloud Identify** (`lib/music.ts`) on 
 
 ---
 
+## Manual test cases (run before merge to `main`)
+
+**Env:** `ACRCLOUD_*` required for scan; `SPOTIFY_*` + `ANTHROPIC_API_KEY` for full breakdown after match.
+
+| # | Case | Steps | Expected |
+|---|------|--------|----------|
+| T1 | Config missing | `POST /api/identify-audio` with no ACR env | `503`, `stage: config` |
+| T2 | Bad upload | POST without `clip` field | `400` |
+| T3 | Home scan UI | `/` → **Music** → **Scan upload** visible | Button + hint copy |
+| T4 | Happy path scan | Upload known commercial mp3 (~15s+) | Scan loader → music loader → **MusicResultsScreen** |
+| T5 | No match | Upload silence / noise | Error with retry hint, stay on landing |
+| T6 | Match, no Spotify id | Obscure edit if available | Error names title/artist, suggests paste URL |
+| T7 | Deep link | Open `/?mode=music&url=<spotify track>` | URL bar cleaned; analyze starts without clicking **Analyze** |
+| T8 | Deep link opt-out | `/?mode=music&url=…&analyze=0` | URL prefilled; user must click **Analyze** |
+| T9 | Draft page | `/draft/detect` → match → **run full breakdown** | Same as T7/T4 |
+| T10 | Regression video | **Video** tab paste + upload clip | Unchanged behavior |
+
+**After all pass:** merge PR #14 to `main`, deploy Railway, smoke T4 + T7 on production.
+
+---
+
 ## Remaining work (PR #14 · develop separately from voice)
 
 **Ship blockers**
@@ -106,9 +128,9 @@ We already fingerprint clip audio via **ACRCloud Identify** (`lib/music.ts`) on 
 
 **Finish before calling it “done” on prod home**
 
-- [ ] **Scan** entry on landing (`InputScreen` / MUSIC tab or fourth path) — not only `/draft/detect`
+- [x] **Scan upload** on home **Music** tab (`Scan upload` → identify → analyze)
+- [x] **One-flow breakdown** from deep links (`/?mode=music&url=` auto-analyze; `analyze=0` to skip)
 - [ ] **Mic capture** (Phase 2): MediaRecorder ~15s, wave/countdown UX, same API
-- [ ] **One-flow breakdown** (Phase 3): after match, auto `POST /api/analyze-music` or `?url=` + auto-run analyze (today: extra click)
 - [ ] **Spotify fallback** (Phase 4): when ACR returns title/artist but no `spotify_id`, call search (reuse `/api/search-spotify` from voice branch after merge/rebase)
 - [ ] Error/empty states: file too large, ffmpeg failure, rate-limit messaging
 - [ ] Docs/README on main when merged; optional CONCEPT link from voice branch if both land
