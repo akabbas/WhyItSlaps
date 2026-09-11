@@ -39,6 +39,18 @@ export default function DraftHubPage() {
             view mock →
           </span>
         </Link>
+        <Link
+          href="/draft/voice"
+          className="group border border-white/15 p-6 transition hover:border-white/35 hover:bg-white/[0.03]"
+        >
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.24em] text-paper">Voice describe</h2>
+          <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
+            Speak a song, artist, or vibe — live transcript, then Spotify → full breakdown.
+          </p>
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+            try prototype →
+          </span>
+        </Link>
       </section>
 
       <section className="mt-14 space-y-6">

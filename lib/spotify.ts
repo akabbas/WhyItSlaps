@@ -40,6 +40,7 @@ async function getAccessToken(): Promise<string> {
 }
 
 interface RawSpotifyTrack {
+  id?: string;
   name: string;
   duration_ms: number;
   explicit: boolean;
@@ -124,4 +125,52 @@ export async function fetchSpotifyTrackData(
     : null;
 
   return { track, features };
+}
+
+export type SpotifySearchHit = {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  album_art_url: string | null;
+  spotify_url: string;
+};
+
+/** Resolve natural-language speech/text to candidate tracks. */
+export async function searchSpotifyTracks(query: string, limit = 5): Promise<SpotifySearchHit[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  const token = await getAccessToken();
+  const params = new URLSearchParams({
+    q,
+    type: "track",
+    limit: String(Math.min(Math.max(limit, 1), 10)),
+  });
+
+  const res = await fetch(`https://api.spotify.com/v1/search?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) throw new Error(`Spotify search failed (${res.status}).`);
+
+  const json = (await res.json()) as {
+    tracks?: { items?: RawSpotifyTrack[] };
+  };
+
+  const items = json.tracks?.items ?? [];
+  return items.map((raw) => {
+    const id = (raw as RawSpotifyTrack & { id?: string }).id ?? "";
+    const artist = raw.artists?.map((a) => a.name).join(", ") ?? "Unknown";
+    const images = raw.album?.images ?? [];
+    return {
+      id,
+      title: raw.name ?? "Unknown",
+      artist,
+      album: raw.album?.name ?? "",
+      album_art_url: images[0]?.url ?? null,
+      spotify_url: raw.external_urls?.spotify ?? (id ? `https://open.spotify.com/track/${id}` : ""),
+    };
+  }).filter((t) => t.id && t.spotify_url);
 }
