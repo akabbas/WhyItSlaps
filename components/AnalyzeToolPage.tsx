@@ -14,6 +14,8 @@ import type { AppMode } from "@/components/InputScreen";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { MusicResultsScreen } from "@/components/MusicResultsScreen";
+import { HistoryPanel } from "@/components/HistoryPanel";
+import { pushMusicHistory, pushVideoHistory, type AnalysisHistoryEntry } from "@/lib/analysis-history";
 
 const STORAGE_KEY = "whyitslaps:last-result";
 /** Extension injector may write after first paint; poll briefly without delaying normal cache read. */
@@ -76,6 +78,7 @@ export function AnalyzeToolPage() {
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
   const [result, setResult] = React.useState<AnalyzeSuccess | null>(null);
   const [musicResult, setMusicResult] = React.useState<MusicAnalyzeSuccess | null>(null);
+  const [historyRefreshToken, setHistoryRefreshToken] = React.useState(0);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -317,8 +320,11 @@ export function AnalyzeToolPage() {
         throw new Error(text || `HTTP ${res.status}`);
       }
       if ("ok" in payload && payload.ok) {
+        const musicPayload = payload as MusicAnalyzeSuccess;
         setStoredMusicSourceUrl(target);
-        setMusicResult(payload as MusicAnalyzeSuccess);
+        pushMusicHistory(musicPayload, target);
+        setHistoryRefreshToken((n) => n + 1);
+        setMusicResult(musicPayload);
         return;
       }
       const err = payload as MusicAnalyzeErrorBody;
@@ -347,6 +353,7 @@ export function AnalyzeToolPage() {
   const runAnalyze = React.useCallback(async () => {
     setError(null);
     setAnalysisRetryHint(false);
+    if (mode === "history") return;
     const target = url.trim();
     if (!target) {
       setError("paste a full https link first.");
@@ -371,6 +378,8 @@ export function AnalyzeToolPage() {
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl(target);
+        pushVideoHistory(payload, target);
+        setHistoryRefreshToken((n) => n + 1);
         setResult(payload);
         return;
       }
@@ -464,6 +473,8 @@ export function AnalyzeToolPage() {
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl("");
+        pushVideoHistory(payload, "");
+        setHistoryRefreshToken((n) => n + 1);
         setResult(payload);
         return;
       }
@@ -479,6 +490,25 @@ export function AnalyzeToolPage() {
       );
     } finally {
       setLoadingPhase(null);
+    }
+  }, []);
+
+
+  const openHistoryEntry = React.useCallback((entry: AnalysisHistoryEntry) => {
+    setError(null);
+    setAnalysisRetryHint(false);
+    if (entry.kind === "music" && entry.music) {
+      setResult(null);
+      setStoredSourceUrl("");
+      setStoredMusicSourceUrl(entry.sourceUrl);
+      setMusicResult(entry.music);
+      return;
+    }
+    if (entry.kind === "video" && entry.video) {
+      setMusicResult(null);
+      setStoredMusicSourceUrl("");
+      setStoredSourceUrl(entry.sourceUrl);
+      setResult(entry.video);
     }
   }, []);
 
@@ -555,13 +585,17 @@ export function AnalyzeToolPage() {
         }
         onModeChange={(next) => {
           setMode(next);
-          setUrl("");
+          if (next !== "history") setUrl("");
           setError(null);
           setAnalysisRetryHint(false);
+          if (next === "history") setHistoryRefreshToken((n) => n + 1);
         }}
         onRetryAnalysis={runAnalyze}
         onUploadFile={(file) => void runUploadAnalyze(file)}
         onUploadMusicScan={(file) => void runMusicScan(file)}
+        historyPanel={
+          <HistoryPanel refreshToken={historyRefreshToken} onOpen={openHistoryEntry} />
+        }
       />
     </main>
   );

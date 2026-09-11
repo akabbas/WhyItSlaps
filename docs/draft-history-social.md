@@ -1,84 +1,68 @@
 # Draft: History & social explore
 
-**Status:** UI prototype on branch `ammr/history-social-draft-e83e` — not wired to real data.
+**Status:** Phase 1 **shipped on home** — personal History tab uses `localStorage` (video + music). Community explore remains mock-only under `/draft/explore`.
 
-**Preview routes:**
+**Live UI:** `/` → **History** tab (chat-log of past analyses on this browser).
+
+**Preview / draft routes (explore still mock):**
 
 | Route | What it shows |
 |-------|----------------|
-| `/draft` | Hub — pros/cons, phased roadmap, links |
-| `/draft/history` | Personal history tab (mock local entries) |
+| `/` History tab | Real personal log (localStorage) |
+| `/draft` | Hub — pros/cons, phased roadmap |
+| `/draft/history` | Older mock layout (superseded by home History tab) |
 | `/draft/explore` | Opt-in public gallery (mock community feed) |
 
 ---
 
 ## Problem
 
-Today the tool only remembers the **last video** analysis in `sessionStorage`. Music results are not persisted. There is no way to revisit past work or discover what others are analyzing.
+Previously the tool only remembered the **last video** analysis in `sessionStorage`. Music results were not persisted. There was no way to revisit past work.
 
 ---
 
 ## Two ideas (different weight)
 
-### A. Personal history
+### A. Personal history — Phase 1 done
 
-“My past analyses” — private, on-device or account-backed.
+Private log on this device (no accounts yet).
 
 | Approach | Pros | Cons |
 |----------|------|------|
-| **localStorage list** | No auth, no server cost, ships fast | One browser only; ~5MB limit; lost on clear-site-data |
+| **localStorage list** ✅ | No auth, no server cost, ships fast | One browser only; ~5MB limit; lost on clear-site-data |
 | **Signed-in + DB** | Cross-device, backup, share-link foundation | Auth, storage, privacy policy, retention rules |
 
-**UI sketch:** tab or `/history` — rows with platform glyph, title/vibe line, tags, palette chips, date. Tap → reopen results (video or music).
+**UI:** Video | Music | **History** — rows like a chat log (title, vibe, tags/palette, date). Tap → reopen results without re-analyzing.
 
-### B. Social / shared explore
+**Implementation:** `lib/analysis-history.ts`, `components/HistoryPanel.tsx`, wired from `AnalyzeToolPage` on every successful video/music analyze (incl. upload + scan→analyze).
 
-“What’s everyone analyzing?” — discovery, network effects.
+### B. Social / shared explore — later
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Opt-in publish** (“Add to library”) | User control; safer legally | Needs persistence + moderation surface |
-| **Curated gallery** (admin picks) | No spam; editorial voice | Not truly “everyone”; manual work |
-| **Full social** (follows, comments) | Real network | Huge scope: abuse, ToS, moderation, notifications |
-
-**Safety defaults we’d want:**
-
-- Default **private** — analyze ≠ publish.
-- Publish is explicit per analysis.
-- Store critique JSON + metadata, not source video files.
-- Rate limits on analyze either way; publish is a separate, cheap action.
+Default **private**. Publish must be explicit. Do **not** auto-log everyone’s analyses into a public feed.
 
 ---
 
 ## Recommendation (light path)
 
 ```text
-Phase 1 — local history tab (video + music parity)
+Phase 1 — local history tab (video + music parity) ✅
 Phase 2 — optional accounts + cloud history
 Phase 3 — private share URLs (/share/abc)
 Phase 4 — opt-in “Slap library” gallery (no follows/comments yet)
 ```
 
-Skip auto-logging all anonymous traffic into a public feed. That’s the line between “cool discovery” and “creepy / legally messy.”
-
 ---
 
-## What this branch includes
+## Manual test cases (Phase 1)
 
-- Mock UI only — no localStorage wiring, no API, no auth.
-- Design exploration for layout, copy, and information hierarchy.
+| # | Case | Expected |
+|---|------|----------|
+| H1 | Home shows **History** tab | Third tab next to Video / Music |
+| H2 | Empty history | Copy explains private device log |
+| H3 | Successful music analyze | Entry appears in History |
+| H4 | Successful video analyze / upload | Entry appears in History |
+| H5 | Tap history row | Reopens Music or Video results |
+| H6 | Delete one / clear all | List updates; localStorage trimmed |
+| H7 | Hard refresh | History still present |
 
-## What this branch does *not* include
-
-- Database, Neon, user accounts
-- Real persistence from `AnalyzeToolPage`
-- Public share tokens or moderation tools
-
----
-
-## Open questions
-
-1. History cap — keep last 20? 50? Summaries only in list, full JSON on demand?
-2. Music album art in history rows — worth the bytes in localStorage?
-3. Explore — show username or anonymous “someone analyzed…”?
-4. Publish flow — checkbox on results screen vs separate “library” step?
+Merge to `main` after H1–H7 pass.
