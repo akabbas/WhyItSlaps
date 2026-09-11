@@ -22,6 +22,8 @@ const MESSAGES_DOWNLOAD = [
   "fetching clip from original source",
   "muxing stream to mp4 on disk",
   "packaging file for browser save…",
+  "fetching spotify preview mp3",
+  "packaging preview for browser save…",
 ] as const;
 
 type Phase = "analyze" | "music" | "download";

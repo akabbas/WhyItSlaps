@@ -135,30 +135,28 @@ export function InputScreen({
               >
                 Analyze
               </button>
-              {!isMusic && (
-                <button
-                  disabled={disabled || !looksLikeUrl}
-                  type="button"
-                  className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
-                    disabled || !looksLikeUrl
-                      ? "cursor-not-allowed bg-black/50 text-white/40"
-                      : "bg-[#141414] text-paper hover:bg-white/[0.08] hover:text-white"
-                  }`}
-                  onClick={() => {
-                    if (!looksLikeUrl || disabled) return;
-                    onDownload();
-                  }}
-                >
-                  Download
-                </button>
-              )}
+              <button
+                disabled={disabled || !looksLikeUrl}
+                type="button"
+                className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
+                  disabled || !looksLikeUrl
+                    ? "cursor-not-allowed bg-black/50 text-white/40"
+                    : "bg-[#141414] text-paper hover:bg-white/[0.08] hover:text-white"
+                }`}
+                onClick={() => {
+                  if (!looksLikeUrl || disabled) return;
+                  onDownload();
+                }}
+              >
+                Download
+              </button>
             </div>
           </div>
 
           <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
               {isMusic
-                ? "open.spotify.com/track/… links only"
+                ? "open.spotify.com/track/… · download saves ~30s preview mp3 when Spotify provides one"
                 : "tiktok · youtube · x · upload for instagram · max 60s"}
             </p>
 

@@ -5,7 +5,7 @@ import React from "react";
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
 
-import { arrayBufferToMp4Download, saveVideoBlobToDevice } from "@/lib/clientDownload";
+import { arrayBufferToMp3Download, arrayBufferToMp4Download, saveAudioBlobToDevice, saveVideoBlobToDevice } from "@/lib/clientDownload";
 import { readAnalyzeResponse } from "@/lib/clientNdjson";
 
 import { InputScreen } from "@/components/InputScreen";
@@ -64,6 +64,7 @@ export function AnalyzeToolPage() {
   const [mode, setMode] = React.useState<AppMode>("video");
   const [url, setUrl] = React.useState("");
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
+  const [storedMusicSourceUrl, setStoredMusicSourceUrl] = React.useState("");
   const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "music" | "download">(null);
   const busy = loadingPhase !== null;
 
@@ -211,6 +212,64 @@ export function AnalyzeToolPage() {
     }
   }, [guessFilename]);
 
+  const triggerDownloadForMusicUrl = React.useCallback(
+    async (targetUrl: string) => {
+      setError(null);
+
+      const target = targetUrl.trim();
+      if (!target) {
+        setError("No saved link — paste a Spotify track URL first.");
+        return;
+      }
+      if (!/^https?:\/\//i.test(target)) {
+        setError("Paste a full https Spotify track link first.");
+        return;
+      }
+
+      setLoadingPhase("download");
+
+      try {
+        const res = await fetch("/api/download-music", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: target }),
+        });
+
+        if (!res.ok) {
+          let msg = "";
+          try {
+            const errBody = (await res.json()) as MusicAnalyzeErrorBody;
+            msg = typeof errBody === "object" && errBody?.error ? errBody.error : `HTTP ${res.status}`;
+            if (typeof errBody === "object" && errBody.hint) msg = `${msg} — ${String(errBody.hint)}`;
+          } catch {
+            msg = await res.text().catch(() => "");
+            msg = msg || `Download failed (${res.status}).`;
+          }
+          setError(msg);
+          return;
+        }
+
+        const disposition = res.headers.get("Content-Disposition");
+        const buf = await res.arrayBuffer();
+        const prepared = arrayBufferToMp3Download(buf, disposition, "whyitslaps-preview.mp3");
+        if (!prepared.ok) {
+          setError(prepared.message);
+          return;
+        }
+        await saveAudioBlobToDevice(prepared.blob, prepared.filename);
+      } catch (unexpected) {
+        setError(
+          networkErrorHint(
+            unexpected instanceof Error ? unexpected.message : "Browser could not finish the download.",
+          ),
+        );
+      } finally {
+        setLoadingPhase(null);
+      }
+    },
+    [],
+  );
+
   const runAnalyze = React.useCallback(async () => {
     setError(null);
     setAnalysisRetryHint(false);
@@ -236,6 +295,7 @@ export function AnalyzeToolPage() {
           throw new Error(text || `HTTP ${res.status}`);
         }
         if ("ok" in payload && payload.ok) {
+          setStoredMusicSourceUrl(target);
           setMusicResult(payload as MusicAnalyzeSuccess);
           return;
         }
@@ -338,6 +398,7 @@ export function AnalyzeToolPage() {
     setError(null);
     setAnalysisRetryHint(false);
     setStoredSourceUrl("");
+    setStoredMusicSourceUrl("");
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(STORAGE_KEY);
     }
@@ -346,8 +407,16 @@ export function AnalyzeToolPage() {
   if (musicResult) {
     return (
       <>
-        <LoadingScreen active={busy} phase="music" />
-        <MusicResultsScreen data={musicResult} onReset={handleReset} />
+        <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "music"} />
+        <MusicResultsScreen
+          data={musicResult}
+          downloadError={error}
+          downloadBusy={loadingPhase === "download"}
+          onDownloadPreview={() =>
+            void triggerDownloadForMusicUrl(storedMusicSourceUrl || musicResult.track.spotify_url)
+          }
+          onReset={handleReset}
+        />
       </>
     );
   }
@@ -382,7 +451,9 @@ export function AnalyzeToolPage() {
           if (error) setError(null);
         }}
         onAnalyze={runAnalyze}
-        onDownload={() => void triggerDownloadForUrl(url)}
+        onDownload={() =>
+          void (mode === "music" ? triggerDownloadForMusicUrl(url) : triggerDownloadForUrl(url))
+        }
         onModeChange={(next) => {
           setMode(next);
           setUrl("");

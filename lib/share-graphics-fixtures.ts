@@ -70,6 +70,7 @@ export const DEMO_MUSIC_ANALYSIS: MusicAnalyzeSuccess = {
     duration_ms: 244000,
     explicit: false,
     spotify_url: "https://open.spotify.com/track/demo",
+    preview_url: null,
   },
   features: {
     tempo_bpm: 104,

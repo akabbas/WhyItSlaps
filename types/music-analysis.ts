@@ -8,6 +8,8 @@ export interface SpotifyTrack {
   duration_ms: number;
   explicit: boolean;
   spotify_url: string;
+  /** ~30s MP3 preview from Spotify; null when the label did not provide one. */
+  preview_url: string | null;
 }
 
 export interface SpotifyAudioFeatures {

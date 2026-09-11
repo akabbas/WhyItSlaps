@@ -17,6 +17,9 @@ import { MusicShareCard } from "./share-cards/MusicShareCard";
 
 type Props = {
   data: MusicAnalyzeSuccess;
+  downloadError?: string | null;
+  downloadBusy?: boolean;
+  onDownloadPreview?: () => void;
   onReset: () => void;
 };
 
@@ -92,7 +95,7 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
   );
 }
 
-export function MusicResultsScreen({ data, onReset }: Props) {
+export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownloadPreview, onReset }: Props) {
   const { track, features, claude: c } = data;
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
   const [shareCardOpen, setShareCardOpen] = React.useState(false);
@@ -217,6 +220,16 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           WHYITSLAPS
         </span>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {typeof onDownloadPreview === "function" ? (
+            <button
+              type="button"
+              disabled={!!downloadBusy}
+              onClick={() => onDownloadPreview()}
+              className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper disabled:opacity-40"
+            >
+              download preview mp3
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setShareCardOpen(true)}
@@ -240,6 +253,10 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           </button>
         </div>
       </nav>
+
+      {(downloadError ?? "").trim() ? (
+        <p className="mt-5 font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+      ) : null}
 
       <div className="mt-8 space-y-10">
 
