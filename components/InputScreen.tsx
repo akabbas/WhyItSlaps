@@ -106,9 +106,9 @@ export function InputScreen({
           }}
         >
           <div className="flex w-full flex-col sm:flex-row sm:items-stretch">
-            <div className="relative min-h-14 flex-1 border-b border-white/20 sm:border-b-0 sm:border-r sm:border-white/20">
+            <div className="relative flex h-14 flex-1 items-center border-b border-white/20 sm:border-b-0 sm:border-r sm:border-white/20">
               <input
-                className="h-14 w-full min-w-0 border-none bg-transparent py-3 pl-4 pr-12 font-mono text-[13px] text-white caret-paper outline-none placeholder:text-white/28"
+                className="h-full w-full min-w-0 border-none bg-transparent py-0 pl-4 pr-12 font-mono text-[13px] leading-none text-white caret-paper outline-none placeholder:text-white/28"
                 value={value}
                 disabled={disabled}
                 spellCheck={false}
@@ -116,18 +116,18 @@ export function InputScreen({
                 onChange={(event) => onChange(event.target.value)}
               />
               <span
-                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] tracking-[0.25em] text-white/54"
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] leading-none tracking-[0.25em] text-white/54"
                 aria-hidden
               >
                 {plat ?? "—"}
               </span>
             </div>
 
-            <div className="flex min-h-14 w-full shrink-0 border-t border-white/20 sm:w-auto sm:border-t-0">
+            <div className="flex h-14 w-full shrink-0 border-t border-white/20 sm:w-auto sm:border-t-0">
               <button
                 disabled={disabled || !looksLikeUrl}
                 type="submit"
-                className={`h-14 min-h-14 flex-1 px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none sm:border-r sm:border-white/20 ${
+                className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none sm:border-r sm:border-white/20 ${
                   disabled || !looksLikeUrl
                     ? "cursor-not-allowed bg-white/10 text-white/45"
                     : "bg-paper text-black hover:bg-white"
@@ -139,7 +139,7 @@ export function InputScreen({
                 <button
                   disabled={disabled || !looksLikeUrl}
                   type="button"
-                  className={`h-14 min-h-14 flex-1 px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
+                  className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
                     disabled || !looksLikeUrl
                       ? "cursor-not-allowed bg-black/50 text-white/40"
                       : "bg-[#141414] text-paper hover:bg-white/[0.08] hover:text-white"
