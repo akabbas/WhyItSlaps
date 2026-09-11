@@ -12,6 +12,7 @@ import { videoBriefHeadline, videoSectionSummaries } from "@/lib/brief";
 import { EditMyFootagePanel } from "./EditMyFootagePanel";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { VideoShareCard } from "./share-cards/VideoShareCard";
+import { ShareGraphicsSection } from "./share-graphics/ShareGraphicsSection";
 
 type Props = {
   data: AnalyzeSuccess;
@@ -250,6 +251,14 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
         </div>
         <p className="min-h-[1rem] font-mono text-[11px] tracking-wide text-white/86">{copyLabel}</p>
       </div>
+
+      <ShareGraphicsSection
+        mode="video"
+        data={data}
+        filenameBase={`video-${c.scores.overall_vibe}`}
+        shareTitle="WhyItSlaps video breakdown"
+        shareText={c.vibe_summary}
+      />
 
       <ShareCardPanel
         open={shareCardOpen}

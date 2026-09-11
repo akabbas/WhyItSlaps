@@ -1,17 +1,40 @@
 import { toPng } from "html-to-image";
 
 export type ShareCardFormat = "story" | "square";
+export type ShareGraphicTemplate = "story-card" | "square-card" | "overlay";
 
 export const SHARE_CARD_DIMENSIONS: Record<ShareCardFormat, { width: number; height: number }> = {
   story: { width: 1080, height: 1920 },
   square: { width: 1080, height: 1080 },
 };
 
+type ExportOptions = {
+  width: number;
+  height: number;
+  transparent?: boolean;
+};
+
 export async function exportElementToPng(
   element: HTMLElement,
-  format: ShareCardFormat = "story",
+  format: ShareCardFormat,
+): Promise<Blob>;
+export async function exportElementToPng(
+  element: HTMLElement,
+  options: ExportOptions,
+): Promise<Blob>;
+export async function exportElementToPng(
+  element: HTMLElement,
+  formatOrOptions: ShareCardFormat | ExportOptions,
 ): Promise<Blob> {
-  const { width, height } = SHARE_CARD_DIMENSIONS[format];
+  let width: number;
+  let height: number;
+  let transparent = false;
+
+  if (typeof formatOrOptions === "string") {
+    ({ width, height } = SHARE_CARD_DIMENSIONS[formatOrOptions]);
+  } else {
+    ({ width, height, transparent = false } = formatOrOptions);
+  }
 
   const dataUrl = await toPng(element, {
     width,
@@ -20,6 +43,7 @@ export async function exportElementToPng(
     cacheBust: true,
     skipFonts: false,
     includeQueryParams: true,
+    backgroundColor: transparent ? undefined : "#0A0A0A",
     style: {
       transform: "scale(1)",
       transformOrigin: "top left",

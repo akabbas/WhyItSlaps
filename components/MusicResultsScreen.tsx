@@ -14,6 +14,7 @@ import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
+import { ShareGraphicsSection } from "./share-graphics/ShareGraphicsSection";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -659,6 +660,14 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           </p>
           <p className="font-mono text-[12px] leading-relaxed text-white/70">{c.target_listener}</p>
         </div>
+
+        <ShareGraphicsSection
+          mode="music"
+          data={data}
+          filenameBase={`${track.artist}-${track.title}`}
+          shareTitle={`WhyItSlaps — ${track.title}`}
+          shareText={c.vibe_summary}
+        />
 
       </div>
 
