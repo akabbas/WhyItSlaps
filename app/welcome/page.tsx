@@ -13,28 +13,36 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      <div className="w-full max-w-md space-y-6 border border-white/12 bg-white/[0.03] px-6 py-8 text-left">
-        <div className="space-y-2">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-paper">Video</p>
-          <p className="font-mono text-[11px] leading-relaxed tracking-[0.06em] text-white/55">
-            TikTok, YouTube, Instagram, or X — vision critique, color palette, slap scores, and optional soundtrack match.
-          </p>
+      <div className="w-full max-w-md overflow-hidden border border-white/35 bg-black/30 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]">
+        <div className="grid grid-cols-2 border-b border-white/20 font-mono text-[10px] font-semibold uppercase tracking-[0.2em]">
+          <span className="bg-paper px-4 py-3 text-center text-black">Video</span>
+          <span className="border-l border-white/20 px-4 py-3 text-center text-white/45">Music</span>
         </div>
-        <div className="h-px bg-white/10" />
-        <div className="space-y-2">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-paper">Music</p>
-          <p className="font-mono text-[11px] leading-relaxed tracking-[0.06em] text-white/55">
-            Spotify track URLs — sonic breakdown from audio features and metadata.
-          </p>
-        </div>
-      </div>
 
-      <Link
-        href="/"
-        className="inline-flex h-14 min-h-14 items-center justify-center border border-white/35 bg-white px-10 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-paper"
-      >
-        Try it
-      </Link>
+        <div className="space-y-6 px-6 py-8">
+          <div className="space-y-2">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-paper">Video</p>
+            <p className="font-mono text-[11px] leading-relaxed tracking-[0.06em] text-white/55">
+              TikTok, YouTube, Instagram, or X — vision critique, color palette, slap scores, and optional soundtrack
+              match.
+            </p>
+          </div>
+          <div className="h-px bg-white/10" />
+          <div className="space-y-2">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-paper">Music</p>
+            <p className="font-mono text-[11px] leading-relaxed tracking-[0.06em] text-white/55">
+              Spotify track URLs — sonic breakdown from audio features and metadata.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/"
+          className="flex h-14 min-h-14 w-full items-center justify-center border-t border-white/20 bg-paper font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-white"
+        >
+          Try it
+        </Link>
+      </div>
 
       <p className="max-w-md font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
         TikTok · YouTube · X · upload a reel · Spotify · under ~60s
