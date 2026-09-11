@@ -52,6 +52,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind. **Video** path: **yt-dlp**, **f
 | **VIDEO** + **Analyze** | Full video pipeline → `ResultsScreen`. |
 | **VIDEO** + **Download** | `POST /api/download` → MP4 only. |
 | **MUSIC** + **Analyze** | `POST /api/analyze-music` → `MusicResultsScreen`. |
+| **MUSIC** + **Download** | `POST /api/download-music` → ~30s Spotify **preview** MP3 (when available). |
 | Legacy **`/welcome`** | Permanent redirect to **`/`** (no separate page). |
 | **`/?fresh=1`** | Clears cached **video** result in this browser tab. |
 | **Edit My Footage** | After **video** analysis → `/api/editplan`. |
