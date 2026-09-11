@@ -77,6 +77,13 @@ export function AnalyzeToolPage() {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "music") {
+      setMode("music");
+    }
+    const urlParam = params.get("url")?.trim();
+    if (urlParam && /^https?:\/\//i.test(urlParam)) {
+      setUrl(urlParam);
+    }
     if (params.has("fresh") || params.has("new")) {
       window.sessionStorage.removeItem(STORAGE_KEY);
       window.sessionStorage.removeItem("whyitslaps_result");
