@@ -4,13 +4,15 @@ type Item = { title: string; detail: string };
 
 type Props = {
   items: Item[];
+  /** Brief mode: titles only, no detail paragraphs. */
+  compact?: boolean;
 };
 
-export function WhyItWorks({ items }: Props) {
+export function WhyItWorks({ items, compact = false }: Props) {
   return (
     <section className="space-y-6 border-t border-white/10 pt-8">
       <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">WHY IT WORKS</h3>
-      <div className="grid gap-4 md:gap-5">
+      <div className={`grid gap-4 ${compact ? "md:grid-cols-2" : "md:gap-5"}`}>
         {items.map((piece, idx) => (
           <article
             key={`${piece.title}-${idx}`}
@@ -19,7 +21,9 @@ export function WhyItWorks({ items }: Props) {
           >
             <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">{String(idx + 1).padStart(2, "0")}</p>
             <h4 className="mt-2 font-serif text-xl tracking-wide text-white">{piece.title}</h4>
-            <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">{piece.detail}</p>
+            {!compact ? (
+              <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">{piece.detail}</p>
+            ) : null}
           </article>
         ))}
       </div>

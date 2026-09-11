@@ -7,7 +7,13 @@ export const SYSTEM_PROMPT = `You are WhyItSlaps — a senior creative director 
 You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
 
 {
+  "brief_summary": string,
   "vibe_summary": string,
+  "section_summaries": {
+    "cinematography": string,
+    "color_grade": string,
+    "edit_style": string
+  },
   "aesthetic_tags": string[],
   "target_audience": string,
   "scores": {
@@ -42,6 +48,9 @@ You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing 
 
 Rules:
 - All five score fields are integers 0–100 (not floats, not strings). Do NOT include music_sync or any other score key.
+- brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
+- vibe_summary: 2–3 sentences expanding on brief_summary with more texture.
+- section_summaries: ONE sentence each summarizing cinematography, color_grade, and edit_style (no sub-bullets).
 - aesthetic_tags: 6–12 sharp lowercase tokens (comma-free); target_audience: one conversational sentence naming who this resonates with.
 - Cinematography and color_grade string fields stay concise-yet-visual (2 sentences each).
 - pacing_badge MUST begin with exactly one tempo word in lowercase chosen from hyper, fast, mid, slow (you may extend with an em dash + clause after that word).
@@ -79,6 +88,16 @@ export function coerceAnalysis(parsed: unknown): ClaudeAnalysis {
   };
 
   const vibe_summary = typeof p.vibe_summary === "string" ? p.vibe_summary : "";
+  const brief_summary =
+    typeof p.brief_summary === "string" && p.brief_summary.trim()
+      ? p.brief_summary
+      : vibe_summary.split(/(?<=[.!?])\s+/)[0]?.trim() || vibe_summary;
+
+  const sectionSrc =
+    typeof p.section_summaries === "object" && p.section_summaries
+      ? (p.section_summaries as Record<string, unknown>)
+      : null;
+
   const aesthetic_tags = Array.isArray(p.aesthetic_tags) ? p.aesthetic_tags.map((t) => String(t)) : [];
   const target_audience = typeof p.target_audience === "string" ? p.target_audience : "";
 
@@ -123,8 +142,18 @@ export function coerceAnalysis(parsed: unknown): ClaudeAnalysis {
       : [],
   );
 
+  const section_summaries = sectionSrc
+    ? {
+        cinematography: String(sectionSrc.cinematography ?? ""),
+        color_grade: String(sectionSrc.color_grade ?? ""),
+        edit_style: String(sectionSrc.edit_style ?? ""),
+      }
+    : undefined;
+
   return {
+    brief_summary,
     vibe_summary,
+    section_summaries,
     aesthetic_tags,
     target_audience,
     scores,

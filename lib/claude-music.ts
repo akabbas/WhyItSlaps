@@ -15,7 +15,13 @@ const MUSIC_SYSTEM_PROMPT = `You are WhyItSlaps — a senior music producer and 
 You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing commentary. Respond with ONE JSON object obeying this schema exactly:
 
 {
+  "brief_summary": string,
   "vibe_summary": string,
+  "section_summaries": {
+    "arrangement": string,
+    "mix": string,
+    "sonic": string
+  },
   "aesthetic_tags": string[],
   "target_listener": string,
   "scores": {
@@ -53,7 +59,9 @@ You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing comm
 
 Rules:
 - All six score fields are integers 0–100. No other score keys.
-- vibe_summary: 2–3 punchy, opinionated sentences. Write like a creative director, not a music journalist. No hedging.
+- brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
+- vibe_summary: 2–3 punchy, opinionated sentences expanding on brief_summary. Write like a creative director, not a music journalist. No hedging.
+- section_summaries: ONE sentence each for arrangement (form + density), mix (overall balance), and sonic (dominant textures).
 - aesthetic_tags: 6–10 sharp lowercase tokens describing the sonic identity of this track.
 - target_listener: one vivid sentence naming who this resonates with and why.
 - sonic_textures: EXACTLY 6 objects naming the most notable sonic layers. Each description is 1–2 short sentences.
@@ -145,8 +153,28 @@ function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
     },
   );
 
+  const vibe_summary = String(p.vibe_summary ?? "");
+  const brief_summary =
+    typeof p.brief_summary === "string" && p.brief_summary.trim()
+      ? p.brief_summary
+      : vibe_summary.split(/(?<=[.!?])\s+/)[0]?.trim() || vibe_summary;
+
+  const sectionSrc =
+    typeof p.section_summaries === "object" && p.section_summaries
+      ? (p.section_summaries as Record<string, unknown>)
+      : null;
+  const section_summaries = sectionSrc
+    ? {
+        arrangement: String(sectionSrc.arrangement ?? ""),
+        mix: String(sectionSrc.mix ?? ""),
+        sonic: String(sectionSrc.sonic ?? ""),
+      }
+    : undefined;
+
   return {
-    vibe_summary: String(p.vibe_summary ?? ""),
+    brief_summary,
+    vibe_summary,
+    section_summaries,
     aesthetic_tags: Array.isArray(p.aesthetic_tags) ? p.aesthetic_tags.map(String) : [],
     target_listener: String(p.target_listener ?? ""),
     scores,
