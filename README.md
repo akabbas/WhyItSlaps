@@ -125,7 +125,7 @@ npm run build && npm run start
 | `POST /api/download` | JSON `{ "url" }` → MP4 |
 | `POST /api/editplan` | Edit plan after **video** analysis |
 
-Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`).
+Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`).
 
 ---
 

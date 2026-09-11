@@ -53,6 +53,10 @@ Dark editorial **`#0A0A0A`**, **`paper`** `#F5F0E8`, **DM Serif Display** + **IB
 
 ## Roadmap
 
+### Music detect (scan)
+
+Shazam-style **identify before you know the track** — reuse ACRCloud on uploaded audio/clip, then jump into Spotify breakdown. Prototype: **`/draft/detect`**, spec **`docs/music-detect-scan.md`**, API **`POST /api/identify-audio`**. Branch: `ammr/music-detect-scan-f408`.
+
 ### More music sources
 
 MUSIC mode is **Spotify track URLs** today. Future: YouTube-music style links, uploads, or other DSPs — each needs ingest + feature extraction or model-only analysis.

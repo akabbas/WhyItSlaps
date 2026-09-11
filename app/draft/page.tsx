@@ -14,7 +14,7 @@ export default function DraftHubPage() {
         </p>
       </header>
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2">
+      <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/draft/history"
           className="group border border-white/15 p-6 transition hover:border-white/35 hover:bg-white/[0.03]"
@@ -37,6 +37,18 @@ export default function DraftHubPage() {
           </p>
           <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
             view mock →
+          </span>
+        </Link>
+        <Link
+          href="/draft/detect"
+          className="group border border-white/15 p-6 transition hover:border-white/35 hover:bg-white/[0.03]"
+        >
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.24em] text-paper">Music scan</h2>
+          <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
+            Shazam-style fingerprint — upload audio or clip before you have a Spotify link.
+          </p>
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+            try prototype →
           </span>
         </Link>
       </section>
