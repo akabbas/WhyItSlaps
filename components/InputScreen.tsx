@@ -123,11 +123,15 @@ export function InputScreen({
               </span>
             </div>
 
-            <div className="flex min-h-14 w-full shrink-0 sm:w-auto">
+            <div className="flex min-h-14 w-full shrink-0 border-t border-white/20 sm:w-auto sm:border-t-0">
               <button
                 disabled={disabled || !looksLikeUrl}
                 type="submit"
-                className="h-14 min-h-14 flex-1 border-none px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition enabled:bg-paper enabled:hover:bg-white disabled:cursor-not-allowed disabled:bg-white/12 disabled:text-white/40 sm:min-w-[9.5rem] sm:flex-none sm:border-r sm:border-white/20"
+                className={`h-14 min-h-14 flex-1 px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none sm:border-r sm:border-white/20 ${
+                  disabled || !looksLikeUrl
+                    ? "cursor-not-allowed bg-white/10 text-white/45"
+                    : "bg-paper text-black hover:bg-white"
+                }`}
               >
                 Analyze
               </button>
@@ -135,7 +139,11 @@ export function InputScreen({
                 <button
                   disabled={disabled || !looksLikeUrl}
                   type="button"
-                  className="h-14 min-h-14 flex-1 border-none bg-[#0A0A0A] px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition enabled:hover:bg-white/[0.08] enabled:hover:text-white disabled:cursor-not-allowed disabled:bg-black/60 disabled:text-white/40 sm:min-w-[9.5rem] sm:flex-none"
+                  className={`h-14 min-h-14 flex-1 px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
+                    disabled || !looksLikeUrl
+                      ? "cursor-not-allowed bg-black/50 text-white/40"
+                      : "bg-[#141414] text-paper hover:bg-white/[0.08] hover:text-white"
+                  }`}
                   onClick={() => {
                     if (!looksLikeUrl || disabled) return;
                     onDownload();
