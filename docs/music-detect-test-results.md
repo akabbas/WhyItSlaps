@@ -13,6 +13,6 @@ Branch: `ammr/music-detect-scan-f408` · spec: `docs/music-detect-scan.md`
 | T7 Deep link auto-analyze | **PASS** | URL cleaned; analyze attempted (Spotify error without env) |
 | T8 Deep link opt-out | **PASS** | `analyze=0` prefills only |
 | T9 Draft page | **BLOCKED** | Same as T4 |
-| T10 Video regression | *(pending subagent)* | |
+| T10 Video regression | **PASS** | Video tab shows Upload clip, not Scan upload |
 
 **Merge gate:** Re-run **T4, T5, T6, T9** on Railway (or `.env.local` with prod keys) then merge PR #14 to `main`.
