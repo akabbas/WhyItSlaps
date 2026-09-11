@@ -22,6 +22,8 @@ export const DEMO_VIDEO_ANALYSIS: AnalyzeSuccess = {
     confidence: 82,
   },
   claude: {
+    brief_summary:
+      "Warm, hyper-cut cinematic clip — pacing and grade carry every frame.",
     vibe_summary:
       "Tight cuts, warm grade, hypnotic motion — this clip slaps because every frame earns its place.",
     aesthetic_tags: ["cinematic", "moody", "hyperedit", "warm-grade"],
@@ -82,6 +84,7 @@ export const DEMO_MUSIC_ANALYSIS: MusicAnalyzeSuccess = {
     time_signature: 4,
   },
   claude: {
+    brief_summary: "Dream-pop synth hook built for night drives.",
     vibe_summary: "Synth-drenched nostalgia with a hook that never lets go.",
     aesthetic_tags: ["dream pop", "nostalgic", "euphoric"],
     target_listener: "Night-drive playlist curators",
