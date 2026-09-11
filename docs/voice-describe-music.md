@@ -87,6 +87,38 @@ Uses existing **Spotify client-credentials** (`SPOTIFY_CLIENT_ID` / `SECRET`).
 
 ---
 
+## Remaining work (PR #15 · develop separately from music detect)
+
+**Ship blockers**
+
+- [ ] Confirm **Spotify** credentials on Railway (`SPOTIFY_CLIENT_ID` / `SECRET`) for `/api/search-spotify`
+- [ ] Manual QA on `/draft/voice` in **Chrome + HTTPS**: listen → interim text → find track → pick row → home with URL prefilled → user taps **Analyze**
+
+**Already in this branch**
+
+- [x] Web Speech API on `/draft/voice` (`interimResults`, listen/stop, typed fallback textarea)
+- [x] `searchSpotifyTracks()` + `POST /api/search-spotify`
+- [x] Result list with **why it slaps →** deep link `/?mode=music&url=`
+- [x] Draft hub **Voice describe** card
+- [x] Home query hydration (`AnalyzeToolPage`: `mode` + `url` — **does not** auto-run analyze)
+
+**Finish before calling it “done” on prod home**
+
+- [ ] **Say it** on landing (Phase 2): embed voice UI in `InputScreen` MUSIC flow
+- [ ] **Auto-search on pause** (~500ms after final transcript) — spec UX target; today user taps **find track**
+- [ ] **Auto-analyze after pick** (optional): navigate with `?url=` and trigger music analyze in `AnalyzeToolPage`, or analyze inline on draft page
+- [ ] **Auto-pick #1** when query is unambiguous (heuristic or LLM) — not built
+- [ ] **Cloud streaming STT** (Phase 3) for Safari/Firefox and better accuracy
+- [ ] **Genre/vibe path** (Phase 4): `/api/analyze-music-vibe` when speech is not a single track
+- [ ] Privacy copy if Web Speech ships to all users (Chrome sends audio to Google)
+- [ ] README / CONCEPT cross-links when merged (detect spec lives on PR #14 branch until then)
+
+**Merge note**
+
+- Overlaps **`app/draft/page.tsx`** and **`components/AnalyzeToolPage.tsx`** with **`ammr/music-detect-scan-f408` (PR #14)**. Merge one PR first, rebase the other; expand draft hub grid to show **Music scan** + **Voice describe** together.
+
+---
+
 ## Related
 
 - Paste URL music mode — home **`/`** MUSIC tab
