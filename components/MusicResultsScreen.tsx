@@ -12,6 +12,8 @@ import type {
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
+import { ShareCardPanel } from "./ShareCardPanel";
+import { MusicShareCard } from "./share-cards/MusicShareCard";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -93,6 +95,7 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
 export function MusicResultsScreen({ data, onReset }: Props) {
   const { track, features, claude: c } = data;
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
+  const [shareCardOpen, setShareCardOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
   const [viewMode, setViewMode] = React.useState<"brief" | "full">("brief");
   const isBrief = viewMode === "brief";
@@ -216,10 +219,17 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <button
             type="button"
+            onClick={() => setShareCardOpen(true)}
+            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+          >
+            share card
+          </button>
+          <button
+            type="button"
             onClick={handleShare}
             className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
           >
-            {copyLabel ?? "share"}
+            {copyLabel ?? "copy text"}
           </button>
           <button
             type="button"
@@ -651,6 +661,16 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         </div>
 
       </div>
+
+      <ShareCardPanel
+        open={shareCardOpen}
+        onClose={() => setShareCardOpen(false)}
+        filenameBase={`${track.artist}-${track.title}`}
+        shareTitle={`WhyItSlaps — ${track.title}`}
+        shareText={c.vibe_summary}
+      >
+        {(format) => <MusicShareCard data={data} format={format} />}
+      </ShareCardPanel>
     </div>
   );
 }

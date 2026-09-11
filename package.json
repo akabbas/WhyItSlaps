@@ -16,6 +16,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@distube/ytdl-core": "^4.16.12",
+    "html-to-image": "^1.11.13",
     "next": "^14.2.35",
     "node-vibrant": "^4.0.3",
     "react": "^18.3.1",

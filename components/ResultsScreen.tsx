@@ -10,6 +10,8 @@ import { ViewModeToggle } from "./ViewModeToggle";
 import { formatShareSummary } from "@/lib/share";
 import { videoBriefHeadline, videoSectionSummaries } from "@/lib/brief";
 import { EditMyFootagePanel } from "./EditMyFootagePanel";
+import { ShareCardPanel } from "./ShareCardPanel";
+import { VideoShareCard } from "./share-cards/VideoShareCard";
 
 type Props = {
   data: AnalyzeSuccess;
@@ -36,6 +38,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
   const isBrief = viewMode === "brief";
   const headline = videoBriefHeadline(c);
   const sections = videoSectionSummaries(c);
+  const [shareCardOpen, setShareCardOpen] = React.useState(false);
 
   const handleShare = () => {
     const text = formatShareSummary(data);
@@ -229,15 +232,34 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
       {!isBrief ? <EditMyFootagePanel analysis={data} /> : null}
 
       <div className="mt-14 flex flex-col items-end gap-3">
-        <button
-          type="button"
-          className="border border-white/40 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
-          onClick={handleShare}
-        >
-          SHARE
-        </button>
+        <div className="flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            className="border border-white/40 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
+            onClick={() => setShareCardOpen(true)}
+          >
+            SHARE CARD
+          </button>
+          <button
+            type="button"
+            className="border border-white/20 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
+            onClick={handleShare}
+          >
+            COPY TEXT
+          </button>
+        </div>
         <p className="min-h-[1rem] font-mono text-[11px] tracking-wide text-white/86">{copyLabel}</p>
       </div>
+
+      <ShareCardPanel
+        open={shareCardOpen}
+        onClose={() => setShareCardOpen(false)}
+        filenameBase={`video-${c.scores.overall_vibe}`}
+        shareTitle="WhyItSlaps video breakdown"
+        shareText={c.vibe_summary}
+      >
+        {(format) => <VideoShareCard data={data} format={format} />}
+      </ShareCardPanel>
     </div>
   );
 }
