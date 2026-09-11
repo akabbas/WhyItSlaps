@@ -49,7 +49,13 @@ export default function ShareGraphicsDemoPage() {
       <header className="mt-10 space-y-4">
         <h1 className="font-serif text-3xl text-paper">Social graphics preview</h1>
         <p className="max-w-2xl font-mono text-[12px] leading-relaxed tracking-wide text-white/55">
-          Pixel-accurate renders from the app components. Use this page for screenshots and design review — not linked from the main tool yet.
+          Archived experiment: the dashed &ldquo;Post this breakdown&rdquo; section is{" "}
+          <strong className="font-normal text-white/75">not</strong> on live result screens. Production uses inline{" "}
+          <span className="text-white/70">Share card</span> instead. See{" "}
+          <code className="text-white/65">docs/share-graphics-experimental.md</code> for rationale and how to revive.
+        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+          Route: /demo/share-graphics · screenshots &amp; design review only
         </p>
       </header>
 
