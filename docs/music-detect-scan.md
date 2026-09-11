@@ -89,6 +89,36 @@ We already fingerprint clip audio via **ACRCloud Identify** (`lib/music.ts`) on 
 
 ---
 
+## Remaining work (PR #14 · develop separately from voice)
+
+**Ship blockers**
+
+- [ ] Confirm **ACRCloud** env on Railway (`ACRCLOUD_*` — same as video analyze) so `/api/identify-audio` works in production preview
+- [ ] Manual QA on `/draft/detect`: mp3, m4a, short mp4; no-match copy; match without `spotify_id`
+
+**Already in this branch**
+
+- [x] `identifyAudioBuffer()` + ffmpeg 15s sample (`lib/music.ts`, `lib/frames.ts`)
+- [x] `POST /api/identify-audio` (25 MB cap, multipart `clip` / aliases)
+- [x] `/draft/detect` upload UI + `MusicCard` + deep link `/?mode=music&url=`
+- [x] Draft hub **Music scan** card
+- [x] Home query hydration (`AnalyzeToolPage`: `mode` + `url` only — user still taps **Analyze**)
+
+**Finish before calling it “done” on prod home**
+
+- [ ] **Scan** entry on landing (`InputScreen` / MUSIC tab or fourth path) — not only `/draft/detect`
+- [ ] **Mic capture** (Phase 2): MediaRecorder ~15s, wave/countdown UX, same API
+- [ ] **One-flow breakdown** (Phase 3): after match, auto `POST /api/analyze-music` or `?url=` + auto-run analyze (today: extra click)
+- [ ] **Spotify fallback** (Phase 4): when ACR returns title/artist but no `spotify_id`, call search (reuse `/api/search-spotify` from voice branch after merge/rebase)
+- [ ] Error/empty states: file too large, ffmpeg failure, rate-limit messaging
+- [ ] Docs/README on main when merged; optional CONCEPT link from voice branch if both land
+
+**Merge note**
+
+- Overlaps **`app/draft/page.tsx`** and **`components/AnalyzeToolPage.tsx`** with **`ammr/voice-describe-f408` (PR #15)**. Merge one PR first, rebase the other, combine draft hub cards (3-col grid can hold history + explore + detect + voice).
+
+---
+
 ## Related code
 
 | Piece | Path |
