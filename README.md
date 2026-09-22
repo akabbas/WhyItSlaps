@@ -125,7 +125,7 @@ npm run build && npm run start
 | `POST /api/download` | JSON `{ "url" }` → MP4 |
 | `POST /api/editplan` | Edit plan after **video** analysis |
 
-Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`).
+Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`), **[docs/voice-stt-cloud.md](./docs/voice-stt-cloud.md)** (`/draft/voice-stt`).
 
 ---
 
