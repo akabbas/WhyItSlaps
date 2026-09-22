@@ -43,6 +43,17 @@ export async function POST(req: Request) {
     );
   }
 
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const n = Number(contentLength);
+    if (Number.isFinite(n) && n > MAX_FILE_BYTES + 1024 * 1024) {
+      return NextResponse.json(
+        { ok: false, error: "File exceeds the 25 MB limit.", stage: "upload" } satisfies IdentifyAudioErrorBody,
+        { status: 413 },
+      );
+    }
+  }
+
   let form: FormData;
   try {
     form = await req.formData();

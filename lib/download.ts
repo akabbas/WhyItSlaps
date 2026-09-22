@@ -19,11 +19,49 @@ function isInstagram(url: string): boolean {
   return /instagram\.com/i.test(url);
 }
 
+/** Hosts yt-dlp is allowed to fetch (blocks open-proxy / SSRF abuse). */
+const ALLOWED_VIDEO_HOST_SUFFIXES = [
+  "youtube.com",
+  "youtu.be",
+  "tiktok.com",
+  "instagram.com",
+  "twitter.com",
+  "x.com",
+] as const;
+
+/**
+ * Reject non-allowlisted URLs before spawning yt-dlp.
+ * Throws a user-facing Error on failure.
+ */
+export function assertAllowedVideoUrl(raw: string): URL {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw.trim());
+  } catch {
+    throw new Error("Paste a full https link first.");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only http(s) video links are supported.");
+  }
+  const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+  const ok = ALLOWED_VIDEO_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith(`.${suffix}`),
+  );
+  if (!ok) {
+    throw new Error(
+      "That site is not supported. Use YouTube, TikTok, Instagram, or X (Twitter) links — or Upload clip.",
+    );
+  }
+  return parsed;
+}
+
 /**
  * Streams a remote video via yt-dlp. Max length enforced by yt-dlp --match-filter.
  * Output path should end with .mp4 (or yt-dlp will still merge to best container).
  */
 export async function downloadVideo(url: string, outputMp4Path: string): Promise<void> {
+  assertAllowedVideoUrl(url);
+
   const baseArgs = [
     "--no-warnings",
     "--no-update",

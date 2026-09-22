@@ -84,10 +84,6 @@ export function listAnalysisHistory(): AnalysisHistoryEntry[] {
   return readRaw();
 }
 
-export function getAnalysisHistoryEntry(id: string): AnalysisHistoryEntry | null {
-  return readRaw().find((e) => e.id === id) ?? null;
-}
-
 export function removeAnalysisHistoryEntry(id: string): AnalysisHistoryEntry[] {
   const next = readRaw().filter((e) => e.id !== id);
   writeRaw(next);

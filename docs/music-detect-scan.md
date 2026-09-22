@@ -1,8 +1,8 @@
 # Music detect / scan (Shazam-style)
 
-**Status:** Prototype on branch `ammr/music-detect-scan-f408` — not on the main home flow yet.
+**Status:** Shipped on home **Music → Scan upload** (also prototype at `/draft/detect`).
 
-**Try it:** `/draft/detect` (upload scan) · **API:** `POST /api/identify-audio`
+**Try it:** `/` Music tab · **Scan upload** · or `/draft/detect` · **API:** `POST /api/identify-audio`
 
 ---
 
