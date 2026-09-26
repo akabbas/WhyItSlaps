@@ -10,7 +10,7 @@ export const SONIC_SCORE_ORDER: MusicScoreKey[] = [
   "hook_strength",
   "production_density",
   "emotional_range",
-  "originality",
+  "impact",
   "mix_clarity",
   "overall_vibe",
 ];
@@ -19,7 +19,7 @@ export const SONIC_SCORE_LABELS: Record<MusicScoreKey, string> = {
   hook_strength: "HOOK STRENGTH",
   production_density: "PRODUCTION DENSITY",
   emotional_range: "EMOTIONAL RANGE",
-  originality: "ORIGINALITY",
+  impact: "IMPACT",
   mix_clarity: "MIX CLARITY",
   overall_vibe: "OVERALL VIBE",
 };
@@ -30,7 +30,7 @@ const OVERALL_WEIGHTS = {
   hook_strength: 0.3,
   production_density: 0.2,
   emotional_range: 0.15,
-  originality: 0.15,
+  impact: 0.15,
   mix_clarity: 0.2,
 } as const;
 
@@ -153,6 +153,19 @@ function pulseStrength(envelope: number[], hopSec: number): number {
   return clamp01(best) * (0.35 + 0.65 * variation);
 }
 
+/** How far the loudest stretch sits above the typical level of this clip. */
+function impactUnit(envelope: number[]): number {
+  if (envelope.length < 4) return 0;
+  const sorted = [...envelope].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const body = sorted.length % 2 === 0 ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2 : (sorted[mid] ?? 0);
+  const hitCount = Math.max(1, Math.round(envelope.length * 0.1));
+  const hit = mean(sorted.slice(-hitCount));
+  if (body < SILENCE_RMS) return hit >= SILENCE_RMS ? 1 : 0;
+  const contrastDb = ampToDb(hit) - ampToDb(body);
+  return clamp01(contrastDb / 12);
+}
+
 function inRange(scores: MusicAnalysisScores): boolean {
   return SONIC_SCORE_ORDER.every((key) => {
     const value = scores[key];
@@ -191,7 +204,6 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
   const loudnessDb: number[] = [];
   const fill: number[] = [];
   const imbalance: number[] = [];
-  const brightness: number[] = [];
 
   for (let start = 0; start + window <= samples.length; start += hop) {
     const end = start + window;
@@ -208,8 +220,6 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
     const occupied = bands.filter((band) => loudest - band < 14).length / bands.length;
     fill.push(occupied);
     imbalance.push(loudest - quietest);
-    const total = lowRms + midRms + highRms;
-    brightness.push(total > 0 ? highRms / total : 0);
   }
 
   if (loudnessDb.length < 4) return null;
@@ -226,7 +236,7 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
     hook_strength: unitToScore(pulseStrength(envelope, HOP_SEC)),
     production_density: unitToScore(0.6 * fillRatio + 0.4 * presence),
     emotional_range: unitToScore(rangeLu / 20),
-    originality: unitToScore(stdev(brightness) / 0.18),
+    impact: unitToScore(impactUnit(envelope)),
     mix_clarity: unitToScore(0.55 * crestScore + 0.45 * balanceScore),
     overall_vibe: 0,
   };
@@ -235,7 +245,7 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
     OVERALL_WEIGHTS.hook_strength * scores.hook_strength +
     OVERALL_WEIGHTS.production_density * scores.production_density +
     OVERALL_WEIGHTS.emotional_range * scores.emotional_range +
-    OVERALL_WEIGHTS.originality * scores.originality +
+    OVERALL_WEIGHTS.impact * scores.impact +
     OVERALL_WEIGHTS.mix_clarity * scores.mix_clarity;
   scores.overall_vibe = unitToScore(blended / 100);
   if (!inRange(scores)) return null;

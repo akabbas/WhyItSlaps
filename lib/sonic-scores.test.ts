@@ -51,22 +51,21 @@ test("a pulsing tone scores a stronger hook and wider range than a steady tone",
   assert.ok(steady.emotional_range < 15);
 });
 
-test("full-band noise is denser than a low sine, and a tone shift scores higher originality", () => {
+test("full-band noise is denser than a low sine, and a late hit scores higher impact than a steady tone", () => {
   const low = scoreFromPcm(tone(4, 80, 0.5), SAMPLE_RATE);
   const wide = scoreFromPcm(noise(4, 0.25), SAMPLE_RATE);
-  const shifting = scoreFromPcm(
-    tone(4, 80, 0.4, () => 1).map((sample, index) => {
-      const t = index / SAMPLE_RATE;
-      if (t < 2) return sample;
-      return Math.sin(2 * Math.PI * 4000 * t) * 0.4;
-    }),
+  const steady = scoreFromPcm(tone(4, 220, 0.45), SAMPLE_RATE);
+  const hit = scoreFromPcm(
+    tone(4, 220, 0.45, (t) => (t < 3 ? 0.08 : 1)),
     SAMPLE_RATE,
   );
   assert.ok(low);
   assert.ok(wide);
-  assert.ok(shifting);
+  assert.ok(steady);
+  assert.ok(hit);
   assert.ok(wide.production_density > low.production_density);
-  assert.ok(shifting.originality > low.originality);
+  assert.ok(hit.impact > steady.impact + 25);
+  assert.ok(steady.impact < 20);
 });
 
 test("a clipped waveform scores lower mix clarity than broadband audio with headroom", () => {
@@ -88,7 +87,7 @@ test("overall vibe is the weighted blend of the five measured scores", () => {
     0.3 * scores.hook_strength +
       0.2 * scores.production_density +
       0.15 * scores.emotional_range +
-      0.15 * scores.originality +
+      0.15 * scores.impact +
       0.2 * scores.mix_clarity,
   );
   assert.equal(scores.overall_vibe, expected);
