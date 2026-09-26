@@ -1,6 +1,5 @@
 import type { AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeSuccess, SpotifyAudioFeatures } from "@/types/music-analysis";
-import { computeSonicScores } from "@/lib/sonic-scores";
 
 const DEMO_MUSIC_FEATURES: SpotifyAudioFeatures = {
   tempo_bpm: 104,
@@ -92,7 +91,7 @@ export const DEMO_MUSIC_ANALYSIS: MusicAnalyzeSuccess = {
     vibe_summary: "Synth-drenched nostalgia with a hook that never lets go.",
     aesthetic_tags: ["dream pop", "nostalgic", "euphoric"],
     target_listener: "Night-drive playlist curators",
-    scores: computeSonicScores(DEMO_MUSIC_FEATURES),
+    scores: null,
     sonic_textures: [],
     energy_arc: [],
     arrangement: { structure: "Build-release", density_strategy: "Layered", signature_moment: "Synth drop" },

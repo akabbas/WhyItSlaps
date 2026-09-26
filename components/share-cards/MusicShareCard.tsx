@@ -106,30 +106,32 @@ export function MusicShareCard({ data, format }: Props) {
             </div>
           </div>
 
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 20,
-                letterSpacing: "0.24em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.5)",
-              }}
-            >
-              Overall vibe
-            </p>
-            <p
-              style={{
-                margin: "8px 0 0",
-                fontFamily: "var(--font-dm-serif), serif",
-                fontSize: format === "story" ? 160 : 120,
-                lineHeight: 1,
-                color: "#F5F0E8",
-              }}
-            >
-              {c.scores ? c.scores.overall_vibe : "—"}
-            </p>
-          </div>
+          {c.scores ? (
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  letterSpacing: "0.24em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                Overall vibe
+              </p>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  fontFamily: "var(--font-dm-serif), serif",
+                  fontSize: format === "story" ? 160 : 120,
+                  lineHeight: 1,
+                  color: "#F5F0E8",
+                }}
+              >
+                {c.scores.overall_vibe}
+              </p>
+            </div>
+          ) : null}
 
           <p
             style={{

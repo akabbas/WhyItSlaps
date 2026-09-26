@@ -1,18 +1,9 @@
-import type { MusicAnalysisScores, MusicScoreKey, SpotifyAudioFeatures } from "@/types/music-analysis";
+import type { MusicAnalysisScores, MusicScoreKey } from "@/types/music-analysis";
 
 /**
- * Sonic scores used to be six integers the language model invented.
- * The prompt only required 0–100, temperature was 0.42, and nothing
- * mapped a score onto a measurement, so the same track could move
- * and a 72 did not mean anything you could check.
- *
- * They are now a pure function of Spotify audio features. The same
- * features always produce the same integers. The model writes the
- * prose and is told these numbers as facts. When Spotify returns no
- * features, the scores are null.
- *
- * These are proxies. Spotify does not measure hooks, originality, or
- * a mix spectrum, and one valence number is not an emotional arc.
+ * Sonic scores are measured from the audio of the track being analyzed.
+ * Each song is decoded and scored from its own waveform. There is no
+ * shared lookup and no fallback number when the audio cannot be read.
  */
 
 export const SONIC_SCORE_ORDER: MusicScoreKey[] = [
@@ -34,47 +25,29 @@ export const SONIC_SCORE_LABELS: Record<MusicScoreKey, string> = {
 };
 
 export const SONIC_SCORE_HINTS: Record<MusicScoreKey, string> = {
-  hook_strength: "Groove, energy, and how close the tempo sits to 118 BPM.",
-  production_density: "Energy, loudness, and how little acoustic space the arrangement leaves.",
-  emotional_range: "The gap between energy and positivity. A driving sad track scores higher than a mood that matches its volume.",
-  originality: "Distance from a generic pop feature profile across tempo, energy, danceability, loudness, and the other Spotify features.",
-  mix_clarity: "Average loudness near -10 dB. Crushed masters and very quiet masters both land lower.",
-  overall_vibe: "Blend of the five scores. Hook 30%, clarity 20%, density 20%, emotional range 15%, originality 15%.",
+  hook_strength: "How regularly the loudness pulses through this recording.",
+  production_density: "How fully the low, mid, and high bands are occupied together.",
+  emotional_range: "How far the loudness travels from the quiet moments to the loud ones.",
+  originality: "How much the tone and brightness move as this recording plays.",
+  mix_clarity: "How much peak room the waveform keeps, and whether one band buries the others.",
+  overall_vibe: "Blend of the five measurements. Hook 30%, clarity 20%, density 20%, emotional range 15%, originality 15%.",
 };
 
-export const SONIC_SCORE_SOURCE =
-  "Calculated from Spotify audio features. The same track returns the same numbers.";
+export const SONIC_SCORE_SOURCE = "Measured from this track's audio.";
+export const SONIC_SCORE_MISSING = "Sonic scores couldn't be found for this track.";
 
-/** Weights for overall vibe. They sum to 1 and apply to the already rounded scores. */
-const OVERALL_WEIGHTS: Record<Exclude<MusicScoreKey, "overall_vibe">, number> = {
+const OVERALL_WEIGHTS = {
   hook_strength: 0.3,
   production_density: 0.2,
   emotional_range: 0.15,
   originality: 0.15,
   mix_clarity: 0.2,
-};
-
-/**
- * Mainstream pop center the originality score measures distance from.
- * These are round reference points, not a fitted corpus.
- */
-const POP_CENTER = {
-  danceability: 0.67,
-  energy: 0.68,
-  valence: 0.52,
-  acousticness: 0.18,
-  instrumentalness: 0.08,
-  speechiness: 0.09,
-  loudness_db: -7.5,
-  tempo_bpm: 120,
 } as const;
 
-const HOOK_TEMPO_CENTER_BPM = 118;
-const HOOK_TEMPO_WIDTH_BPM = 50;
-const CLARITY_LOUDNESS_CENTER_DB = -10;
-const CLARITY_LOUDNESS_WIDTH_DB = 12;
-const ORIGINALITY_LOUDNESS_SPAN_DB = 20;
-const ORIGINALITY_TEMPO_SPAN_BPM = 60;
+const WINDOW_SEC = 0.4;
+const HOP_SEC = 0.1;
+const MIN_SECONDS = 1.5;
+const SILENCE_RMS = 1e-4;
 
 function clamp01(n: number): number {
   if (!Number.isFinite(n)) return 0;
@@ -85,75 +58,186 @@ function unitToScore(unit: number): number {
   return Math.round(clamp01(unit) * 100);
 }
 
-/** Spotify loudness is dB, typically about -60 to 0. */
-function loudnessUnit(db: number): number {
-  if (!Number.isFinite(db)) return 0;
-  return clamp01((db + 60) / 60);
+function ampToDb(amp: number): number {
+  return 20 * Math.log10(Math.max(amp, 1e-10));
 }
 
-/** 1 at `center`, 0 once `value` is `width` away. */
-function bell(value: number, center: number, width: number): number {
-  if (!Number.isFinite(value) || width <= 0) return 0;
-  return clamp01(1 - Math.abs(value - center) / width);
+function mean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function hookUnit(features: SpotifyAudioFeatures): number {
-  const tempoPocket = bell(features.tempo_bpm, HOOK_TEMPO_CENTER_BPM, HOOK_TEMPO_WIDTH_BPM);
-  return (
-    0.62 * clamp01(features.danceability) +
-    0.23 * clamp01(features.energy) +
-    0.15 * tempoPocket
-  );
+function stdev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const avg = mean(values);
+  const variance = values.reduce((sum, value) => sum + (value - avg) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
 }
 
-function densityUnit(features: SpotifyAudioFeatures): number {
-  return (
-    0.4 * clamp01(features.energy) +
-    0.35 * loudnessUnit(features.loudness_db) +
-    0.25 * (1 - clamp01(features.acousticness))
-  );
+function percentile(values: number[], p: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const idx = (sorted.length - 1) * p;
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo] ?? 0;
+  const loValue = sorted[lo] ?? 0;
+  const hiValue = sorted[hi] ?? loValue;
+  return loValue * (hi - idx) + hiValue * (idx - lo);
 }
 
-function emotionalUnit(features: SpotifyAudioFeatures): number {
-  return Math.abs(clamp01(features.energy) - clamp01(features.valence));
+type Biquad = { b0: number; b1: number; b2: number; a1: number; a2: number };
+
+function lowpass(sampleRate: number, freq: number): Biquad {
+  const w0 = (2 * Math.PI * freq) / sampleRate;
+  const cos = Math.cos(w0);
+  const alpha = Math.sin(w0) / (2 * Math.SQRT1_2);
+  const b0 = (1 - cos) / 2;
+  const b1 = 1 - cos;
+  const b2 = (1 - cos) / 2;
+  const a0 = 1 + alpha;
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: (-2 * cos) / a0, a2: (1 - alpha) / a0 };
 }
 
-function originalityUnit(features: SpotifyAudioFeatures): number {
-  const loudnessDistance = Number.isFinite(features.loudness_db)
-    ? clamp01(Math.abs(features.loudness_db - POP_CENTER.loudness_db) / ORIGINALITY_LOUDNESS_SPAN_DB)
-    : 1;
-  const tempoDistance = Number.isFinite(features.tempo_bpm)
-    ? clamp01(Math.abs(features.tempo_bpm - POP_CENTER.tempo_bpm) / ORIGINALITY_TEMPO_SPAN_BPM)
-    : 1;
-  const deviations = [
-    Math.abs(clamp01(features.danceability) - POP_CENTER.danceability),
-    Math.abs(clamp01(features.energy) - POP_CENTER.energy),
-    Math.abs(clamp01(features.valence) - POP_CENTER.valence),
-    Math.abs(clamp01(features.acousticness) - POP_CENTER.acousticness),
-    Math.abs(clamp01(features.instrumentalness) - POP_CENTER.instrumentalness),
-    Math.abs(clamp01(features.speechiness) - POP_CENTER.speechiness),
-    loudnessDistance,
-    tempoDistance,
-  ];
-  return deviations.reduce((sum, value) => sum + value, 0) / deviations.length;
+function highpass(sampleRate: number, freq: number): Biquad {
+  const w0 = (2 * Math.PI * freq) / sampleRate;
+  const cos = Math.cos(w0);
+  const alpha = Math.sin(w0) / (2 * Math.SQRT1_2);
+  const b0 = (1 + cos) / 2;
+  const b1 = -(1 + cos);
+  const b2 = (1 + cos) / 2;
+  const a0 = 1 + alpha;
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: (-2 * cos) / a0, a2: (1 - alpha) / a0 };
 }
 
-function clarityUnit(features: SpotifyAudioFeatures): number {
-  return bell(features.loudness_db, CLARITY_LOUDNESS_CENTER_DB, CLARITY_LOUDNESS_WIDTH_DB);
+function applyBiquad(samples: Float32Array, filter: Biquad): Float32Array {
+  const out = new Float32Array(samples.length);
+  let x1 = 0;
+  let x2 = 0;
+  let y1 = 0;
+  let y2 = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const x0 = samples[i] ?? 0;
+    const y0 = filter.b0 * x0 + filter.b1 * x1 + filter.b2 * x2 - filter.a1 * y1 - filter.a2 * y2;
+    out[i] = y0;
+    x2 = x1;
+    x1 = x0;
+    y2 = y1;
+    y1 = y0;
+  }
+  return out;
 }
 
-export function computeSonicScores(features: SpotifyAudioFeatures): MusicAnalysisScores;
-export function computeSonicScores(features: null): null;
-export function computeSonicScores(features: SpotifyAudioFeatures | null): MusicAnalysisScores | null;
-export function computeSonicScores(features: SpotifyAudioFeatures | null): MusicAnalysisScores | null {
-  if (!features) return null;
+function windowRms(samples: Float32Array, start: number, end: number): number {
+  let sum = 0;
+  const length = Math.max(1, end - start);
+  for (let i = start; i < end; i++) {
+    const sample = samples[i] ?? 0;
+    sum += sample * sample;
+  }
+  return Math.sqrt(sum / length);
+}
+
+/** Strongest repeating pulse between about 0.25s and 4s, ignoring a flat line. */
+function pulseStrength(envelope: number[], hopSec: number): number {
+  if (envelope.length < 8) return 0;
+  const avg = mean(envelope);
+  if (avg < SILENCE_RMS) return 0;
+  const centered = envelope.map((value) => value - avg);
+  let energy = 0;
+  for (const value of centered) energy += value * value;
+  if (energy < 1e-12) return 0;
+
+  const minLag = Math.max(1, Math.round(0.25 / hopSec));
+  const maxLag = Math.min(centered.length - 2, Math.round(4 / hopSec));
+  let best = 0;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let sum = 0;
+    const overlap = centered.length - lag;
+    for (let i = 0; i < overlap; i++) sum += (centered[i] ?? 0) * (centered[i + lag] ?? 0);
+    const normalized = sum / energy;
+    if (normalized > best) best = normalized;
+  }
+
+  const variation = clamp01(stdev(envelope) / avg / 0.25);
+  return clamp01(best) * (0.35 + 0.65 * variation);
+}
+
+function inRange(scores: MusicAnalysisScores): boolean {
+  return SONIC_SCORE_ORDER.every((key) => {
+    const value = scores[key];
+    return Number.isInteger(value) && value >= 0 && value <= 100;
+  });
+}
+
+/**
+ * Score one recording from its mono samples. Returns null when the
+ * buffer is too short or too quiet to measure.
+ */
+export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAnalysisScores | null {
+  if (!Number.isFinite(sampleRate) || sampleRate < 8000) return null;
+  if (samples.length < sampleRate * MIN_SECONDS) return null;
+
+  let peak = 0;
+  let sumSquares = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const sample = samples[i] ?? 0;
+    const abs = Math.abs(sample);
+    if (abs > peak) peak = abs;
+    sumSquares += sample * sample;
+  }
+  const fullRms = Math.sqrt(sumSquares / samples.length);
+  if (fullRms < SILENCE_RMS) return null;
+
+  const low = applyBiquad(samples, lowpass(sampleRate, 180));
+  const mid = applyBiquad(applyBiquad(samples, highpass(sampleRate, 250)), lowpass(sampleRate, 4000));
+  const high = applyBiquad(samples, highpass(sampleRate, 5000));
+
+  const window = Math.floor(sampleRate * WINDOW_SEC);
+  const hop = Math.floor(sampleRate * HOP_SEC);
+  if (window < 32 || hop < 1) return null;
+
+  const envelope: number[] = [];
+  const loudnessDb: number[] = [];
+  const fill: number[] = [];
+  const imbalance: number[] = [];
+  const brightness: number[] = [];
+
+  for (let start = 0; start + window <= samples.length; start += hop) {
+    const end = start + window;
+    const rms = windowRms(samples, start, end);
+    const lowRms = windowRms(low, start, end);
+    const midRms = windowRms(mid, start, end);
+    const highRms = windowRms(high, start, end);
+    envelope.push(rms);
+    if (rms >= SILENCE_RMS) loudnessDb.push(ampToDb(rms));
+
+    const bands = [ampToDb(lowRms), ampToDb(midRms), ampToDb(highRms)];
+    const loudest = Math.max(...bands);
+    const quietest = Math.min(...bands);
+    const occupied = bands.filter((band) => loudest - band < 14).length / bands.length;
+    fill.push(occupied);
+    imbalance.push(loudest - quietest);
+    const total = lowRms + midRms + highRms;
+    brightness.push(total > 0 ? highRms / total : 0);
+  }
+
+  if (loudnessDb.length < 4) return null;
+
+  const integratedDb = mean(loudnessDb);
+  const rangeLu = percentile(loudnessDb, 0.95) - percentile(loudnessDb, 0.1);
+  const crestDb = ampToDb(peak) - ampToDb(fullRms);
+  const presence = clamp01((integratedDb - -36) / (-8 - -36));
+  const fillRatio = mean(fill);
+  const crestScore = clamp01(1 - Math.abs(crestDb - 12) / 10);
+  const balanceScore = clamp01(1 - (mean(imbalance) - 8) / 28);
 
   const scores: MusicAnalysisScores = {
-    hook_strength: unitToScore(hookUnit(features)),
-    production_density: unitToScore(densityUnit(features)),
-    emotional_range: unitToScore(emotionalUnit(features)),
-    originality: unitToScore(originalityUnit(features)),
-    mix_clarity: unitToScore(clarityUnit(features)),
+    hook_strength: unitToScore(pulseStrength(envelope, HOP_SEC)),
+    production_density: unitToScore(0.6 * fillRatio + 0.4 * presence),
+    emotional_range: unitToScore(rangeLu / 20),
+    originality: unitToScore(stdev(brightness) / 0.18),
+    mix_clarity: unitToScore(0.55 * crestScore + 0.45 * balanceScore),
     overall_vibe: 0,
   };
 
@@ -164,6 +248,7 @@ export function computeSonicScores(features: SpotifyAudioFeatures | null): Music
     OVERALL_WEIGHTS.originality * scores.originality +
     OVERALL_WEIGHTS.mix_clarity * scores.mix_clarity;
   scores.overall_vibe = unitToScore(blended / 100);
+  if (!inRange(scores)) return null;
   return scores;
 }
 
@@ -172,7 +257,7 @@ export function formatSonicScoreFacts(scores: MusicAnalysisScores): string {
     (key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100 — ${SONIC_SCORE_HINTS[key]}`,
   );
   return [
-    "Sonic scores are already calculated from Spotify audio features. They are fixed.",
+    "These sonic scores were measured from this track's audio.",
     "Do not output a scores object. Write the critique so it agrees with these numbers.",
     ...lines,
   ].join("\n");

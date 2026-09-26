@@ -11,7 +11,13 @@ import type {
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
-import { SONIC_SCORE_HINTS, SONIC_SCORE_LABELS, SONIC_SCORE_ORDER, SONIC_SCORE_SOURCE } from "@/lib/sonic-scores";
+import {
+  SONIC_SCORE_HINTS,
+  SONIC_SCORE_LABELS,
+  SONIC_SCORE_MISSING,
+  SONIC_SCORE_ORDER,
+  SONIC_SCORE_SOURCE,
+} from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
 
@@ -176,7 +182,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             `Scores (from Spotify audio features):`,
             ...SONIC_SCORE_ORDER.map((k) => `  ${SONIC_SCORE_LABELS[k]}: ${c.scores?.[k]}/100 — ${SONIC_SCORE_HINTS[k]}`),
           ]
-        : ["Scores: unavailable. Spotify did not return audio features."]),
+        : [SONIC_SCORE_MISSING]),
       ``,
       `WHY IT SLAPS:`,
       ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
@@ -342,7 +348,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             Sonic Scores
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/40">
-            {c.scores ? SONIC_SCORE_SOURCE : "Spotify did not return audio features for this track, so these bars stay empty."}
+            {c.scores ? SONIC_SCORE_SOURCE : SONIC_SCORE_MISSING}
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

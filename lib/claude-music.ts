@@ -3,12 +3,13 @@ import type {
   SpotifyTrack,
   SpotifyAudioFeatures,
   ClaudeMusicAnalysis,
+  MusicAnalysisScores,
   SonicTexture,
   EnergyArcSegment,
   ProduceStep,
 } from "@/types/music-analysis";
 import { stripJsonFence } from "@/lib/claude";
-import { computeSonicScores, formatSonicScoreFacts } from "@/lib/sonic-scores";
+import { formatSonicScoreFacts } from "@/lib/sonic-scores";
 
 const MUSIC_SYSTEM_PROMPT = `You are WhyItSlaps — a senior music producer and creative director who decodes why songs hit hard.
 
@@ -165,6 +166,7 @@ function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
 export async function analyzeMusicWithClaude(
   track: SpotifyTrack,
   features: SpotifyAudioFeatures | null,
+  scores: MusicAnalysisScores | null,
 ): Promise<ClaudeMusicAnalysis> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
@@ -175,13 +177,12 @@ export async function analyzeMusicWithClaude(
   const durationMin = Math.floor(track.duration_ms / 60000);
   const durationSec = Math.round((track.duration_ms % 60000) / 1000);
 
-  const scores = computeSonicScores(features);
   const featuresBlock = features
     ? `\nSpotify Audio Features:\n- Tempo: ${features.tempo_bpm} BPM\n- Key: ${features.key}\n- Energy: ${features.energy.toFixed(2)} / 1.0\n- Danceability: ${features.danceability.toFixed(2)} / 1.0\n- Valence (positivity): ${features.valence.toFixed(2)} / 1.0\n- Acousticness: ${features.acousticness.toFixed(2)} / 1.0\n- Instrumentalness: ${features.instrumentalness.toFixed(2)} / 1.0\n- Loudness: ${features.loudness_db.toFixed(1)} dBFS\n- Speechiness: ${features.speechiness.toFixed(2)} / 1.0\n- Time Signature: ${features.time_signature}/4`
     : "";
   const scoreBlock = scores
     ? `\n\n${formatSonicScoreFacts(scores)}`
-    : "\n\nSpotify did not return audio features, so this result has no sonic scores. Do not invent 0–100 ratings and do not output a scores object.";
+    : "\n\nSonic scores could not be measured from audio for this track. Do not invent 0–100 ratings and do not output a scores object.";
 
   const inputText = `Analyze this track and return the full JSON breakdown:
 
