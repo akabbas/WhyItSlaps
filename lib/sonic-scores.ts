@@ -24,16 +24,6 @@ export const SONIC_SCORE_LABELS: Record<MusicScoreKey, string> = {
   overall_vibe: "OVERALL VIBE",
 };
 
-export const SONIC_SCORE_HINTS: Record<MusicScoreKey, string> = {
-  hook_strength: "How regularly the loudness pulses through this recording.",
-  production_density: "How fully the low, mid, and high bands are occupied together.",
-  emotional_range: "How far the loudness travels from the quiet moments to the loud ones.",
-  originality: "How much the tone and brightness move as this recording plays.",
-  mix_clarity: "How much peak room the waveform keeps, and whether one band buries the others.",
-  overall_vibe: "Blend of the five measurements. Hook 30%, clarity 20%, density 20%, emotional range 15%, originality 15%.",
-};
-
-export const SONIC_SCORE_SOURCE = "Measured from this track's audio.";
 export const SONIC_SCORE_MISSING = "Sonic scores couldn't be found for this track.";
 
 const OVERALL_WEIGHTS = {
@@ -253,12 +243,11 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
 }
 
 export function formatSonicScoreFacts(scores: MusicAnalysisScores): string {
-  const lines = SONIC_SCORE_ORDER.map(
-    (key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100 — ${SONIC_SCORE_HINTS[key]}`,
-  );
+  const lines = SONIC_SCORE_ORDER.map((key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100`);
   return [
-    "These sonic scores were measured from this track's audio.",
+    "These sonic scores are already set for this track.",
     "Do not output a scores object. Write the critique so it agrees with these numbers.",
+    "Do not explain how the scores were calculated.",
     ...lines,
   ].join("\n");
 }
