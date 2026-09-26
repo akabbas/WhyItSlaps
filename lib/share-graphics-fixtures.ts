@@ -1,5 +1,19 @@
 import type { AnalyzeSuccess } from "@/types/analysis";
-import type { MusicAnalyzeSuccess } from "@/types/music-analysis";
+import type { MusicAnalyzeSuccess, SpotifyAudioFeatures } from "@/types/music-analysis";
+import { computeSonicScores } from "@/lib/sonic-scores";
+
+const DEMO_MUSIC_FEATURES: SpotifyAudioFeatures = {
+  tempo_bpm: 104,
+  key: "F# minor",
+  energy: 0.82,
+  danceability: 0.58,
+  valence: 0.41,
+  acousticness: 0.02,
+  instrumentalness: 0.89,
+  loudness_db: -6.2,
+  speechiness: 0.04,
+  time_signature: 4,
+};
 
 export const DEMO_VIDEO_ANALYSIS: AnalyzeSuccess = {
   ok: true,
@@ -72,31 +86,13 @@ export const DEMO_MUSIC_ANALYSIS: MusicAnalyzeSuccess = {
     spotify_url: "https://open.spotify.com/track/demo",
     preview_url: null,
   },
-  features: {
-    tempo_bpm: 104,
-    key: "F# minor",
-    energy: 0.82,
-    danceability: 0.58,
-    valence: 0.41,
-    acousticness: 0.02,
-    instrumentalness: 0.89,
-    loudness_db: -6.2,
-    speechiness: 0.04,
-    time_signature: 4,
-  },
+  features: DEMO_MUSIC_FEATURES,
   claude: {
     brief_summary: "Dream-pop synth hook built for night drives.",
     vibe_summary: "Synth-drenched nostalgia with a hook that never lets go.",
     aesthetic_tags: ["dream pop", "nostalgic", "euphoric"],
     target_listener: "Night-drive playlist curators",
-    scores: {
-      hook_strength: 96,
-      production_density: 88,
-      emotional_range: 91,
-      originality: 85,
-      mix_clarity: 90,
-      overall_vibe: 94,
-    },
+    scores: computeSonicScores(DEMO_MUSIC_FEATURES),
     sonic_textures: [],
     energy_arc: [],
     arrangement: { structure: "Build-release", density_strategy: "Layered", signature_moment: "Synth drop" },

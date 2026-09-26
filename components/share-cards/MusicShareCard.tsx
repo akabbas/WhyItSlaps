@@ -127,7 +127,7 @@ export function MusicShareCard({ data, format }: Props) {
                 color: "#F5F0E8",
               }}
             >
-              {c.scores.overall_vibe}
+              {c.scores ? c.scores.overall_vibe : "—"}
             </p>
           </div>
 
@@ -185,10 +185,12 @@ export function MusicShareCard({ data, format }: Props) {
                 </div>
               </>
             ) : null}
-            <div style={{ border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.35)", padding: "16px 14px", textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.48)" }}>HOOK</p>
-              <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>{c.scores.hook_strength}</p>
-            </div>
+            {c.scores ? (
+              <div style={{ border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.35)", padding: "16px 14px", textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.48)" }}>HOOK</p>
+                <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>{c.scores.hook_strength}</p>
+              </div>
+            ) : null}
           </div>
 
           <div

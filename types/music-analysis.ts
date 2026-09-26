@@ -97,7 +97,8 @@ export interface ClaudeMusicAnalysis {
   };
   aesthetic_tags: string[];
   target_listener: string;
-  scores: MusicAnalysisScores;
+  /** Proxies from Spotify audio features. Null when those features were missing. */
+  scores: MusicAnalysisScores | null;
   sonic_textures: SonicTexture[];
   energy_arc: EnergyArcSegment[];
   arrangement: {
