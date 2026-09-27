@@ -29,7 +29,7 @@ export type MusicScoreKey =
   | "hook_strength"
   | "production_density"
   | "emotional_range"
-  | "originality"
+  | "impact"
   | "mix_clarity"
   | "overall_vibe";
 
@@ -37,7 +37,7 @@ export interface MusicAnalysisScores {
   hook_strength: number;
   production_density: number;
   emotional_range: number;
-  originality: number;
+  impact: number;
   mix_clarity: number;
   overall_vibe: number;
 }
@@ -97,7 +97,8 @@ export interface ClaudeMusicAnalysis {
   };
   aesthetic_tags: string[];
   target_listener: string;
-  scores: MusicAnalysisScores;
+  /** Proxies from Spotify audio features. Null when those features were missing. */
+  scores: MusicAnalysisScores | null;
   sonic_textures: SonicTexture[];
   energy_arc: EnergyArcSegment[];
   arrangement: {

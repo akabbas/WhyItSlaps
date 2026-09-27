@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractSpotifyTrackId, fetchSpotifyTrackData } from "@/lib/spotify";
 import { analyzeMusicWithClaude } from "@/lib/claude-music";
+import { scoreTrackAudio } from "@/lib/score-track-audio";
 import type { MusicAnalyzeSuccess, MusicAnalyzeErrorBody } from "@/types/music-analysis";
 
 export const runtime = "nodejs";
@@ -54,9 +55,16 @@ export async function POST(req: Request) {
     );
   }
 
+  let scores = null;
+  try {
+    scores = await scoreTrackAudio(track);
+  } catch {
+    scores = null;
+  }
+
   let claude;
   try {
-    claude = await analyzeMusicWithClaude(track, features);
+    claude = await analyzeMusicWithClaude(track, features, scores);
   } catch (err) {
     const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(

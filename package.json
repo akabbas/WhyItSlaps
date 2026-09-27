@@ -11,7 +11,8 @@
     "dev": "next dev --port 3000 --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:sonic-scores": "node --experimental-strip-types --test lib/sonic-scores.test.ts lib/preview-match.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

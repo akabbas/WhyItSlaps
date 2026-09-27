@@ -7,11 +7,11 @@ import type {
   DawStepsSuccess,
   MusicAnalyzeSuccess,
   EnergyArcSegment,
-  MusicScoreKey,
   ProduceStep,
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
+import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
 
@@ -36,24 +36,6 @@ function readPreferredDaw(): DawId {
   const stored = window.localStorage.getItem(PREFERRED_DAW_KEY);
   return stored === "logic" || stored === "fl" || stored === "ableton" ? stored : "ableton";
 }
-
-const SCORE_LABELS: Record<MusicScoreKey, string> = {
-  hook_strength: "HOOK STRENGTH",
-  production_density: "PRODUCTION DENSITY",
-  emotional_range: "EMOTIONAL RANGE",
-  originality: "ORIGINALITY",
-  mix_clarity: "MIX CLARITY",
-  overall_vibe: "OVERALL VIBE",
-};
-
-const SCORE_ORDER: MusicScoreKey[] = [
-  "hook_strength",
-  "production_density",
-  "emotional_range",
-  "originality",
-  "mix_clarity",
-  "overall_vibe",
-];
 
 const ARC_HEIGHTS: Record<EnergyArcSegment["energy_level"], string[]> = {
   low: ["20%", "25%", "22%", "28%", "24%"],
@@ -189,8 +171,12 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
       ``,
       `Tags: ${c.aesthetic_tags.join(", ")}`,
       ``,
-      `Scores:`,
-      ...SCORE_ORDER.map((k) => `  ${SCORE_LABELS[k]}: ${c.scores[k]}/100`),
+      ...(c.scores
+        ? [
+            `Scores:`,
+            ...SONIC_SCORE_ORDER.map((k) => `  ${SONIC_SCORE_LABELS[k]}: ${c.scores?.[k]}/100`),
+          ]
+        : [SONIC_SCORE_MISSING]),
       ``,
       `WHY IT SLAPS:`,
       ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
@@ -355,22 +341,26 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
           <p className="mb-4 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
             Sonic Scores
           </p>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {SCORE_ORDER.map((key) => (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                  <span>{SCORE_LABELS[key]}</span>
-                  <span className="text-white/92">{c.scores[key]}</span>
+          {c.scores ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {SONIC_SCORE_ORDER.map((key) => (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
+                    <span>{SONIC_SCORE_LABELS[key]}</span>
+                    <span className="text-white/92">{c.scores?.[key]}</span>
+                  </div>
+                  <div className="h-2 w-full border border-white/11 bg-white/5">
+                    <div
+                      className="h-full bg-paper opacity-95"
+                      style={{ width: `${c.scores?.[key] ?? 0}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 w-full border border-white/11 bg-white/5">
-                  <div
-                    className="h-full bg-paper opacity-95"
-                    style={{ width: `${c.scores[key]}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="font-mono text-[10px] leading-relaxed tracking-wide text-white/40">{SONIC_SCORE_MISSING}</p>
+          )}
         </section>
 
         {/* Spotify Audio Features mini-bars */}
