@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import { extractSpotifyTrackId, fetchSpotifyTrackData } from "@/lib/spotify";
 import type { MusicAnalyzeErrorBody } from "@/types/music-analysis";
 
@@ -17,6 +19,9 @@ function previewFilename(artist: string, title: string): string {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "download-music");
+  if (limited) return limited;
+
   let body: { url?: string } = {};
 
   try {
@@ -52,12 +57,10 @@ export async function POST(req: Request) {
   try {
     ({ track } = await fetchSpotifyTrackData(trackId));
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Could not fetch track data from Spotify.",
-        hint,
+        ...publicFailure(err, "Could not fetch track data from Spotify."),
         stage: "spotify",
       } satisfies MusicAnalyzeErrorBody,
       { status: 502 },
@@ -113,12 +116,10 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Preview download failed.",
-        hint,
+        ...publicFailure(err, "Preview download failed."),
         stage: "spotify",
       } satisfies MusicAnalyzeErrorBody,
       { status: 502 },

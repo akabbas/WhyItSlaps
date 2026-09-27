@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
 import type { AnalyzeSuccess } from "@/types/analysis";
 import type { EditPlan, EditPlanResponse } from "@/types/editplan";
 
@@ -175,16 +176,20 @@ export function EditMyFootagePanel({ analysis }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/editplan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clips,
-          targetDuration: td,
-          notes: notes.trim() || undefined,
-          analysis,
-        }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/editplan",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clips,
+            targetDuration: td,
+            notes: notes.trim() || undefined,
+            analysis,
+          }),
+        },
+        TIMEOUT_MS.video,
+      );
       const data = (await res.json()) as EditPlanResponse;
       if (!data.ok) {
         const parts = [data.error];
@@ -193,8 +198,8 @@ export function EditMyFootagePanel({ analysis }: Props) {
         return;
       }
       setPlan(data.plan);
-    } catch {
-      setError("Network error — could not reach the server.");
+    } catch (err) {
+      setError(timeoutMessage(err, "Network error — could not reach the server."));
     } finally {
       setLoading(false);
     }

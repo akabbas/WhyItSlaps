@@ -86,9 +86,9 @@ export async function downloadVideo(url: string, outputMp4Path: string): Promise
     try {
       await run("yt-dlp", [...baseArgs, "--cookies-from-browser", "safari", url], "yt-dlp");
       return;
-    } catch (err) {
+    } catch {
       throw new Error(
-        `Instagram URL paste often fails in the cloud. Save the reel to your device, then upload the file here. Details: ${err instanceof Error ? err.message : String(err)}`,
+        "Instagram link download failed. Save the reel to your device, then use Upload clip.",
       );
     }
   }

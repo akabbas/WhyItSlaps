@@ -1,8 +1,8 @@
 # Music detect / scan (Shazam-style)
 
-**Status:** Shipped on home **Music → Scan upload** (also prototype at `/draft/detect`).
+**Status:** Shipped on home **Music → Scan upload**. `/draft/detect` redirects to `/?mode=music`.
 
-**Try it:** `/` Music tab · **Scan upload** · or `/draft/detect` · **API:** `POST /api/identify-audio`
+**Try it:** `/` Music tab · **Scan upload** · **API:** `POST /api/identify-audio`
 
 ---
 

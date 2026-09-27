@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { extractSpotifyTrackId, fetchSpotifyTrackData } from "@/lib/spotify";
 import { analyzeMusicWithClaude } from "@/lib/claude-music";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import { scoreTrackAudio } from "@/lib/score-track-audio";
 import type { MusicAnalyzeSuccess, MusicAnalyzeErrorBody } from "@/types/music-analysis";
 
@@ -9,6 +11,9 @@ export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "analyze-music");
+  if (limited) return limited;
+
   let body: { url?: string } = {};
   try {
     body = (await req.json()) as { url?: string };
@@ -43,12 +48,10 @@ export async function POST(req: Request) {
   try {
     ({ track, features } = await fetchSpotifyTrackData(trackId));
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Could not fetch track data from Spotify.",
-        hint,
+        ...publicFailure(err, "Could not fetch track data from Spotify."),
         stage: "spotify",
       } satisfies MusicAnalyzeErrorBody,
       { status: 502 },
@@ -66,12 +69,10 @@ export async function POST(req: Request) {
   try {
     claude = await analyzeMusicWithClaude(track, features, scores);
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Claude could not analyze the track.",
-        hint,
+        ...publicFailure(err, "Claude could not analyze the track."),
         stage: "claude",
         retrySuggested: true,
       } satisfies MusicAnalyzeErrorBody,

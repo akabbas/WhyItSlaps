@@ -21,6 +21,21 @@ ocr review --from main --to HEAD
 
 ---
 
+## Status on this branch
+
+Done:
+
+- yt-dlp host allowlist (YouTube, TikTok, Instagram, X).
+- In-memory rate limit (8/min/IP) on analyze, upload, download, download-music, identify-audio, analyze-music, daw-steps, and editplan.
+- Upload size and type checks on identify-audio and analyze-upload.
+- Client `hint`s drop yt-dlp, ffmpeg, paths, and API key text.
+- `/draft/history` → `/?mode=history`, `/draft/detect` → `/?mode=music`. Share graphics stay on `/demo/share-graphics`.
+- Client fetch timeouts and separate video vs music download loader copy.
+- `@distube/ytdl-core` removed. History nested-button a11y. `getAnalysisHistoryEntry` removed.
+- Album art on the live music and video cards uses `next/image`. `.env.example` lists `ANTHROPIC_EDITPLAN_MODEL`.
+
+Still before merge: smoke a YouTube URL analyze and a music scan on a server with API keys. This PR stays draft until those pass.
+
 ## Priority
 
 ### P0 — Security

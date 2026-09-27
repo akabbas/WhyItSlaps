@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
 import { stripJsonFence } from "@/lib/claude";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import type { AnalyzeSuccess } from "@/types/analysis";
 import type {
   EditPlan,
@@ -226,6 +228,9 @@ function parseRequestBody(raw: unknown): { ok: true; body: EditPlanRequestBody }
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "editplan");
+  if (limited) return limited;
+
   let raw: unknown;
   try {
     raw = await req.json();
@@ -263,11 +268,9 @@ export async function POST(req: Request) {
     }
     if (!textOut.trim()) throw new Error("Model returned no text.");
   } catch (e) {
-    const hint = e instanceof Error ? e.message : String(e);
     const err: EditPlanResponse = {
       ok: false,
-      error: "Could not generate an edit plan from the model.",
-      hint,
+      ...publicFailure(e, "Could not generate an edit plan from the model."),
     };
     return NextResponse.json(err, { status: 502 });
   }
@@ -276,11 +279,9 @@ export async function POST(req: Request) {
   try {
     json = JSON.parse(stripJsonFence(textOut));
   } catch (e) {
-    const hint = e instanceof Error ? e.message : String(e);
     const err: EditPlanResponse = {
       ok: false,
-      error: "Model output was not valid JSON.",
-      hint,
+      ...publicFailure(e, "Model output was not valid JSON."),
     };
     return NextResponse.json(err, { status: 502 });
   }
@@ -289,11 +290,9 @@ export async function POST(req: Request) {
   try {
     plan = coerceEditPlan(json);
   } catch (e) {
-    const hint = e instanceof Error ? e.message : String(e);
     const err: EditPlanResponse = {
       ok: false,
-      error: "Model JSON did not match the expected edit plan shape.",
-      hint,
+      ...publicFailure(e, "Model JSON did not match the expected edit plan shape."),
     };
     return NextResponse.json(err, { status: 502 });
   }
