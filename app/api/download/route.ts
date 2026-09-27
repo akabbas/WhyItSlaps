@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import { NextResponse } from "next/server";
 
 import { downloadVideo } from "@/lib/download";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import { transcodeToQuickTimeMp4 } from "@/lib/transcodeDownload";
 import type { AnalyzeErrorBody } from "@/types/analysis";
 
@@ -29,6 +31,9 @@ function deriveFilename(rawUrl: string): string {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "download");
+  if (limited) return limited;
+
   let body: { url?: string } = {};
 
   try {
@@ -78,23 +83,10 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-
-    const hintMsg =
-      message.length && (message.includes("yt-dlp") || /http|403|blocked|sign in|private/i.test(message))
-        ? message
-        : message || undefined;
-
     return NextResponse.json(
       {
         ok: false,
-        error:
-          message.includes("Instagram") || /cookies|Instagram/i.test(message)
-            ? "Could not fetch that Instagram reel from a link. Save the reel, then upload the file."
-            : "Download blocked or URL unsupported.",
-        hint: /instagram/i.test(message)
-          ? "Save the reel to your device, then use Upload clip on the home page."
-          : hintMsg,
+        ...publicFailure(err, "Download blocked or URL unsupported."),
         stage: "download",
       } satisfies AnalyzeErrorBody,
       { status: 422 },

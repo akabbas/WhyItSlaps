@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 
 import { extractIdentifyAudioSample, probeVideoDurationSeconds } from "@/lib/frames";
 import { identifyAudioBuffer } from "@/lib/music";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import type { IdentifyAudioErrorBody, IdentifyAudioSuccess } from "@/types/identify-audio";
 
 export const runtime = "nodejs";
@@ -26,6 +28,9 @@ function isAudioFile(file: File): boolean {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "identify-audio");
+  if (limited) return limited;
+
   const hasAcr =
     !!process.env.ACRCLOUD_HOST?.trim() &&
     !!process.env.ACRCLOUD_ACCESS_KEY?.trim() &&
@@ -41,6 +46,17 @@ export async function POST(req: Request) {
       } satisfies IdentifyAudioErrorBody,
       { status: 503 },
     );
+  }
+
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const n = Number(contentLength);
+    if (Number.isFinite(n) && n > MAX_FILE_BYTES + 1024 * 1024) {
+      return NextResponse.json(
+        { ok: false, error: "File exceeds the 25 MB limit.", stage: "upload" } satisfies IdentifyAudioErrorBody,
+        { status: 413 },
+      );
+    }
   }
 
   let form: FormData;
@@ -148,12 +164,10 @@ export async function POST(req: Request) {
       { status: 200 },
     );
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         ok: false,
-        error: "Could not scan audio.",
-        hint,
+        ...publicFailure(err, "Could not scan audio."),
         stage: "extract",
         retrySuggested: true,
       } satisfies IdentifyAudioErrorBody,
