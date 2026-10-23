@@ -1,8 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ContentBlockParam } from "@anthropic-ai/sdk/resources";
 import type { ClaudeAnalysis, ClaudeAnalysisScores } from "@/types/analysis";
+import { SPEAKER, VIDEO_CRAFT } from "@/lib/dialogue";
 
-export const SYSTEM_PROMPT = `You are WhyItSlaps — a senior creative director judging short-form aesthetics (TikTok, Reels, Shorts).
+export const SYSTEM_PROMPT = `${SPEAKER}
+
+${VIDEO_CRAFT}
 
 You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
 

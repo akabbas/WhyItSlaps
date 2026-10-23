@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { MusicAnalyzeSuccess, EnergyArcSegment, MusicScoreKey } from "@/types/music-analysis";
+import { MeterFill } from "./ScoreBars";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -204,18 +205,13 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             Sonic Scores
           </p>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {SCORE_ORDER.map((key) => (
+            {SCORE_ORDER.map((key, index) => (
               <div key={key} className="space-y-1">
                 <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
                   <span>{SCORE_LABELS[key]}</span>
                   <span className="text-white/92">{c.scores[key]}</span>
                 </div>
-                <div className="h-2 w-full border border-white/11 bg-white/5">
-                  <div
-                    className="h-full bg-paper opacity-95"
-                    style={{ width: `${c.scores[key]}%` }}
-                  />
-                </div>
+                <MeterFill value={c.scores[key]} delayMs={index * 70} />
               </div>
             ))}
           </div>
@@ -369,7 +365,8 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             {c.why_it_works.map((piece, idx) => (
               <article
                 key={`${piece.title}-${idx}`}
-                className="border border-white/10 bg-white/[0.02] p-5"
+                className="border border-white/10 bg-white/[0.02] p-5 motion-safe:animate-stagger"
+                style={{ animationDelay: `${idx * 110}ms` }}
               >
                 <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">
                   {String(idx + 1).padStart(2, "0")}

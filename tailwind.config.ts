@@ -13,8 +13,8 @@ export default {
       },
       animation: {
         "fade-spin": "fadeSpin 8s linear infinite",
-        "bar-fill": "barFill 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards",
-        "stagger": "staggerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "bar-fill": "barFill 0.95s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "stagger": "staggerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
       keyframes: {
         fadeSpin: {

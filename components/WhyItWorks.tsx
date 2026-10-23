@@ -14,7 +14,7 @@ export function WhyItWorks({ items }: Props) {
         {items.map((piece, idx) => (
           <article
             key={`${piece.title}-${idx}`}
-            className="border border-white/10 bg-white/[0.02] p-5 opacity-0 animate-stagger"
+            className="border border-white/10 bg-white/[0.02] p-5 motion-safe:animate-stagger"
             style={{ animationDelay: `${idx * 110}ms` }}
           >
             <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">{String(idx + 1).padStart(2, "0")}</p>

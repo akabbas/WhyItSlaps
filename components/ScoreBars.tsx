@@ -17,10 +17,29 @@ type Props = {
   scores: ClaudeAnalysisScores;
 };
 
+/** Score track. Width is the real value; the fill eases in only when motion is allowed. */
+export function MeterFill({ value, delayMs = 0 }: { value: number; delayMs?: number }) {
+  const clamped = Math.min(100, Math.max(0, Math.round(value)));
+  return (
+    <div className="h-2 w-full border border-white/11 bg-white/5">
+      <div
+        className="h-full bg-paper opacity-95 motion-safe:animate-bar-fill"
+        style={
+          {
+            width: `${clamped}%`,
+            "--bar-target": `${clamped}%`,
+            animationDelay: `${delayMs}ms`,
+          } as CSSProperties
+        }
+      />
+    </div>
+  );
+}
+
 export function ScoreBars({ scores }: Props) {
   return (
     <div className="space-y-4">
-      {ORDER.map((key) => {
+      {ORDER.map((key, index) => {
         const value = scores[key];
         const label = LABELS[key];
 
@@ -30,12 +49,7 @@ export function ScoreBars({ scores }: Props) {
               <span>{label}</span>
               <span className="text-white/92">{value}</span>
             </div>
-            <div className="h-2 w-full border border-white/11 bg-white/5">
-              <div
-                className="h-full animate-bar-fill bg-paper opacity-95"
-                style={{ "--bar-target": `${value}%` } as CSSProperties}
-              />
-            </div>
+            <MeterFill value={value} delayMs={index * 70} />
           </div>
         );
       })}

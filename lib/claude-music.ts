@@ -9,8 +9,11 @@ import type {
   ProduceStep,
 } from "@/types/music-analysis";
 import { stripJsonFence } from "@/lib/claude";
+import { MUSIC_CRAFT, SPEAKER } from "@/lib/dialogue";
 
-const MUSIC_SYSTEM_PROMPT = `You are WhyItSlaps — a senior music producer and creative director who decodes why songs hit hard.
+const MUSIC_SYSTEM_PROMPT = `${SPEAKER}
+
+${MUSIC_CRAFT}
 
 You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing commentary. Respond with ONE JSON object obeying this schema exactly:
 
@@ -53,7 +56,7 @@ You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing comm
 
 Rules:
 - All six score fields are integers 0–100. No other score keys.
-- vibe_summary: 2–3 punchy, opinionated sentences. Write like a creative director, not a music journalist. No hedging.
+- vibe_summary: 2–3 sentences. Name a move, then what it does to the listener.
 - aesthetic_tags: 6–10 sharp lowercase tokens describing the sonic identity of this track.
 - target_listener: one vivid sentence naming who this resonates with and why.
 - sonic_textures: EXACTLY 6 objects naming the most notable sonic layers. Each description is 1–2 short sentences.
