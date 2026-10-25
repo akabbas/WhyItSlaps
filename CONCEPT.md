@@ -36,7 +36,7 @@ Motion stays in CSS (Tailwind keyframes). No GSAP or Motion unless a specific ef
 
 One speaker, in `lib/dialogue.ts`, composed into the video critique, the music critique, and the edit plan. Prose names a move, says what it does to the person watching or listening, and in a how-to gives one thing to try.
 
-Video craft treats the clip as a scene: a want, something in the way, where the eye goes, and a cut that lands for a reason. Music craft talks arrangement and mix: what enters, what leaves, and which sound yields when two fight. `STILL_CRAFT` is sent by `/api/analyze-still`. Each analyze stays one model call. The still route passes focal length, aperture, shutter, and ISO only when the file contains that tag, and the prompt is told which of those were present. The model does not guess a lens or a camera.
+Video names a hold, a cut, or where the eye goes, then what that does to the person watching, in the same sentence. Music names what enters, what leaves, or which sound yields, then what that does to the person listening, in the same sentence. Still names where the eye lands, what the light is doing, or whether the frame gives the subject room, then what that does to the person looking, in the same sentence. `STILL_CRAFT` is sent by `/api/analyze-still`. Each analyze stays one model call. The still route passes focal length, aperture, shutter, and ISO only when the file contains that tag, and the prompt is told which of those were present. The model does not guess a lens or a camera.
 
 ---
 
