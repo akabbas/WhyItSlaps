@@ -2,11 +2,11 @@
 
 import React from "react";
 
-export type AppMode = "video" | "music" | "history";
+export type AppMode = "video" | "music" | "still" | "history";
 export type PlatformGlyph = "YT" | "IG" | "TT" | "X" | "SP";
 
 function inferPlatform(raw: string, mode: AppMode): PlatformGlyph | null {
-  if (mode === "history") return null;
+  if (mode === "history" || mode === "still") return null;
   try {
     const host = new URL(raw).hostname.replace(/^www\./, "");
     if (mode === "music") {
@@ -61,6 +61,7 @@ export function InputScreen({
   const plat = inferPlatform(value.trim(), mode);
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
   const isMusic = mode === "music";
+  const isStill = mode === "still";
   const isHistory = mode === "history";
   const isInstagramUrl = plat === "IG";
 
@@ -81,14 +82,16 @@ export function InputScreen({
           <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
             {isHistory
               ? "your past analyses · private log on this device"
-              : isMusic
-                ? "paste a spotify link · or scan audio before you know the track"
-                : "paste a tiktok · find out why it slaps"}
+              : isStill
+                ? "upload a picture · find out why it slaps"
+                : isMusic
+                  ? "paste a spotify link · or scan audio before you know the track"
+                  : "paste a tiktok · find out why it slaps"}
           </p>
         </div>
 
         {onModeChange ? (
-          <div className="grid grid-cols-3 border-t border-white/20">
+          <div className="grid grid-cols-4 border-t border-white/20">
             <button
               type="button"
               disabled={disabled}
@@ -108,6 +111,14 @@ export function InputScreen({
             <button
               type="button"
               disabled={disabled}
+              onClick={() => onModeChange("still")}
+              className={`border-l border-white/20 ${tabClass(mode === "still")}`}
+            >
+              Still
+            </button>
+            <button
+              type="button"
+              disabled={disabled}
               onClick={() => onModeChange("history")}
               className={`border-l border-white/20 ${tabClass(mode === "history")}`}
             >
@@ -118,6 +129,37 @@ export function InputScreen({
 
         {isHistory ? (
           historyPanel
+        ) : isStill ? (
+          <div className="border-t border-white/20 px-6 py-5 text-left md:px-8">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+              className="hidden"
+              disabled={disabled}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) onUploadFile?.(file);
+              }}
+            />
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => fileInputRef.current?.click()}
+              className="h-14 w-full border border-white/35 bg-paper font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Upload picture
+            </button>
+            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+              jpeg · png · webp · gif · one still · 8 mb
+            </p>
+            {(error ?? "").trim() ? (
+              <div className="mt-5 border-l-2 border-paper/60 pl-4">
+                <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <form
             className="border-t border-white/20 text-left"

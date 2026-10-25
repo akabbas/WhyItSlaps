@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
 import { stripJsonFence } from "@/lib/claude";
+import { SPEAKER } from "@/lib/dialogue";
 import { publicFailure } from "@/lib/public-error";
 import { rateLimitResponse } from "@/lib/http-rate-limit";
 import type { AnalyzeSuccess } from "@/types/analysis";
@@ -18,7 +19,10 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-const EDITPLAN_SYSTEM = `You are a professional video editor and creative director. You have just analyzed a reference video and produced an aesthetic breakdown. Now the user wants to edit their own footage to match that exact style.
+const EDITPLAN_SYSTEM = `${SPEAKER}
+
+You have the reference breakdown. The user wants to cut their own footage toward that same feel.
+The shot list stays technical: seconds, transitions, and grade numbers. The voice above still applies to the overview and the tips.
 Your job is to produce a precise, actionable shot-by-shot edit plan that a non-professional editor could follow in Premiere Pro or DaVinci Resolve.
 Be extremely specific. Don't say "use a warm grade" — say "lift your blacks to around 15-20 IRE, push your mids toward amber (+10 hue on highlights), desaturate overall by about 20%, add a subtle vignette". Don't say "cut slowly" — say "hold this clip for exactly 4.5 seconds before cutting".
 Return ONLY a valid JSON object with no markdown, no backticks, no extra text.

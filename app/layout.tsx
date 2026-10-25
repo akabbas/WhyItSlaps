@@ -20,7 +20,7 @@ const ibmMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "WhyItSlaps — find out why it slaps",
   description:
-    "Paste a TikTok, short, or Spotify track and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
+    "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

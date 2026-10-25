@@ -18,6 +18,13 @@ const MESSAGES_MUSIC = [
   "writing the breakdown",
 ] as const;
 
+const MESSAGES_STILL = [
+  "reading the picture",
+  "finding the palette",
+  "looking at the light",
+  "writing the breakdown",
+] as const;
+
 const MESSAGES_SCAN = [
   "extracting audio sample",
   "fingerprinting track",
@@ -35,12 +42,13 @@ const MESSAGES_DOWNLOAD_MUSIC = [
   "packaging preview for browser save…",
 ] as const;
 
-type Phase = "analyze" | "music" | "download" | "download-music" | "scan";
+type Phase = "analyze" | "music" | "still" | "download" | "download-music" | "scan";
 
 function messagesForPhase(phase: Phase) {
   if (phase === "download-music") return MESSAGES_DOWNLOAD_MUSIC;
   if (phase === "download") return MESSAGES_DOWNLOAD;
   if (phase === "music") return MESSAGES_MUSIC;
+  if (phase === "still") return MESSAGES_STILL;
   if (phase === "scan") return MESSAGES_SCAN;
   return MESSAGES_ANALYZE;
 }

@@ -5,6 +5,7 @@ import React from "react";
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
 import type { IdentifyAudioErrorBody, IdentifyAudioSuccess } from "@/types/identify-audio";
+import type { StillAnalyzeErrorBody, StillAnalyzeSuccess } from "@/types/still-analysis";
 
 import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
 import { arrayBufferToMp3Download, arrayBufferToMp4Download, saveAudioBlobToDevice, saveVideoBlobToDevice } from "@/lib/clientDownload";
@@ -15,6 +16,7 @@ import type { AppMode } from "@/components/InputScreen";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { MusicResultsScreen } from "@/components/MusicResultsScreen";
+import { StillResultsScreen } from "@/components/StillResultsScreen";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { pushMusicHistory, pushVideoHistory, type AnalysisHistoryEntry } from "@/lib/analysis-history";
 
@@ -74,7 +76,7 @@ export function AnalyzeToolPage() {
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
   const [storedMusicSourceUrl, setStoredMusicSourceUrl] = React.useState("");
   const [loadingPhase, setLoadingPhase] = React.useState<
-    null | "analyze" | "music" | "download" | "download-music" | "scan"
+    null | "analyze" | "music" | "still" | "download" | "download-music" | "scan"
   >(null);
   const busy = loadingPhase !== null;
   const pendingMusicAutoAnalyzeUrl = React.useRef<string | null>(null);
@@ -83,6 +85,8 @@ export function AnalyzeToolPage() {
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
   const [result, setResult] = React.useState<AnalyzeSuccess | null>(null);
   const [musicResult, setMusicResult] = React.useState<MusicAnalyzeSuccess | null>(null);
+  const [stillResult, setStillResult] = React.useState<StillAnalyzeSuccess | null>(null);
+  const [stillPreview, setStillPreview] = React.useState<string | null>(null);
   const [historyRefreshToken, setHistoryRefreshToken] = React.useState(0);
 
   React.useEffect(() => {
@@ -90,7 +94,7 @@ export function AnalyzeToolPage() {
 
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("mode");
-    if (requestedMode === "music" || requestedMode === "history") {
+    if (requestedMode === "music" || requestedMode === "history" || requestedMode === "still") {
       setMode(requestedMode);
     }
     const urlParam = params.get("url")?.trim();
@@ -359,7 +363,7 @@ export function AnalyzeToolPage() {
   const runAnalyze = React.useCallback(async () => {
     setError(null);
     setAnalysisRetryHint(false);
-    if (mode === "history") return;
+    if (mode === "history" || mode === "still") return;
     const target = url.trim();
     if (!target) {
       setError("paste a full https link first.");
@@ -500,9 +504,68 @@ export function AnalyzeToolPage() {
   }, []);
 
 
+  const clearStill = React.useCallback(() => {
+    setStillResult(null);
+    setStillPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const runStillAnalyze = React.useCallback(async (file: File) => {
+    setError(null);
+    setAnalysisRetryHint(false);
+
+    const looksLikeImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|gif)$/i.test(file.name);
+    if (!looksLikeImage) {
+      setError("Choose a JPEG, PNG, WebP, or GIF.");
+      return;
+    }
+
+    setLoadingPhase("still");
+
+    try {
+      const form = new FormData();
+      form.append("image", file, file.name || "picture.jpg");
+
+      const res = await fetchWithTimeout(
+        new URL("/api/analyze-still", window.location.origin),
+        {
+          method: "POST",
+          body: form,
+        },
+        TIMEOUT_MS.music,
+      );
+
+      let payload: StillAnalyzeSuccess | StillAnalyzeErrorBody;
+      try {
+        payload = (await res.json()) as StillAnalyzeSuccess | StillAnalyzeErrorBody;
+      } catch {
+        throw new Error("Invalid response from server.");
+      }
+
+      if ("ok" in payload && payload.ok) {
+        setStillPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return URL.createObjectURL(file);
+        });
+        setStillResult(payload);
+        return;
+      }
+
+      const err = payload as StillAnalyzeErrorBody;
+      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+    } catch (unexpected) {
+      setError(caughtError(unexpected, "Unknown network error."));
+    } finally {
+      setLoadingPhase(null);
+    }
+  }, []);
+
   const openHistoryEntry = React.useCallback((entry: AnalysisHistoryEntry) => {
     setError(null);
     setAnalysisRetryHint(false);
+    clearStill();
     if (entry.kind === "music" && entry.music) {
       setResult(null);
       setStoredSourceUrl("");
@@ -516,11 +579,12 @@ export function AnalyzeToolPage() {
       setStoredSourceUrl(entry.sourceUrl);
       setResult(entry.video);
     }
-  }, []);
+  }, [clearStill]);
 
   const handleReset = React.useCallback(() => {
     setResult(null);
     setMusicResult(null);
+    clearStill();
     setError(null);
     setAnalysisRetryHint(false);
     setStoredSourceUrl("");
@@ -528,15 +592,25 @@ export function AnalyzeToolPage() {
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
+  }, [clearStill]);
 
   const loadingUiPhase =
     loadingPhase === "download" ||
     loadingPhase === "download-music" ||
     loadingPhase === "music" ||
+    loadingPhase === "still" ||
     loadingPhase === "scan"
       ? loadingPhase
       : "analyze";
+
+  if (stillResult) {
+    return (
+      <>
+        <LoadingScreen active={busy} phase={loadingUiPhase} />
+        <StillResultsScreen data={stillResult} previewUrl={stillPreview} onReset={handleReset} />
+      </>
+    );
+  }
 
   if (musicResult) {
     return (
@@ -596,7 +670,7 @@ export function AnalyzeToolPage() {
           if (next === "history") setHistoryRefreshToken((n) => n + 1);
         }}
         onRetryAnalysis={runAnalyze}
-        onUploadFile={(file) => void runUploadAnalyze(file)}
+        onUploadFile={(file) => void (mode === "still" ? runStillAnalyze(file) : runUploadAnalyze(file))}
         onUploadMusicScan={(file) => void runMusicScan(file)}
         historyPanel={
           <HistoryPanel refreshToken={historyRefreshToken} onOpen={openHistoryEntry} />
