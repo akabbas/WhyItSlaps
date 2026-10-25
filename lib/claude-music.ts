@@ -10,6 +10,7 @@ import type {
 } from "@/types/music-analysis";
 import { stripJsonFence } from "@/lib/claude";
 import { MUSIC_CRAFT, SPEAKER } from "@/lib/dialogue";
+import { formatSonicScoreFacts } from "@/lib/sonic-scores";
 
 const MUSIC_SYSTEM_PROMPT = `${SPEAKER}
 
@@ -18,17 +19,15 @@ ${MUSIC_CRAFT}
 You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing commentary. Respond with ONE JSON object obeying this schema exactly:
 
 {
+  "brief_summary": string,
   "vibe_summary": string,
+  "section_summaries": {
+    "arrangement": string,
+    "mix": string,
+    "sonic": string
+  },
   "aesthetic_tags": string[],
   "target_listener": string,
-  "scores": {
-    "hook_strength": number,
-    "production_density": number,
-    "emotional_range": number,
-    "originality": number,
-    "mix_clarity": number,
-    "overall_vibe": number
-  },
   "sonic_textures": [
     { "name": string, "description": string }
   ],
@@ -55,8 +54,10 @@ You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing comm
 }
 
 Rules:
-- All six score fields are integers 0–100. No other score keys.
-- vibe_summary: 2–3 sentences. Name a move, then what it does to the listener.
+- Do NOT output a scores object. The app calculates sonic scores from Spotify audio features and gives them to you as fixed facts.
+- brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
+- vibe_summary: 2–3 sentences expanding on brief_summary. Name a move, then what it does to the listener.
+- section_summaries: ONE sentence each for arrangement (form + density), mix (overall balance), and sonic (dominant textures).
 - aesthetic_tags: 6–10 sharp lowercase tokens describing the sonic identity of this track.
 - target_listener: one vivid sentence naming who this resonates with and why.
 - sonic_textures: EXACTLY 6 objects naming the most notable sonic layers. Each description is 1–2 short sentences.
@@ -64,31 +65,14 @@ Rules:
 - arrangement.structure: concise shorthand of full song form (e.g., "Intro → V → Pre → Ch → V → Pre → Ch → Bridge → Ch × 2 → Outro").
 - mix_profile: each string is 1–2 sentences, specific to this production style inferred from the audio features provided.
 - why_it_works: EXACTLY 4 objects. Each must name a specific sonic or structural mechanism and explain the psychological or emotional effect it produces.
-- how_to_produce: EXACTLY 4 objects with concrete, DAW-agnostic production steps a producer could follow to recreate this sound.
+- how_to_produce: EXACTLY 4 objects with concrete Ableton Live production steps using stock devices only (Drum Rack, Operator, Simpler, EQ Eight, Glue Compressor, Saturator, Utility, etc.). Name real menu paths, device settings, and routing. Each step title is a short imperative phrase; each body is 2–4 sentences.
 - CRITICAL: Never use hyphens to join words in any text output. Write compound words as two separate words (e.g., "close mic" not "close-mic", "mid gain" not "mid-gain", "double tracked" not "double-tracked", "high passed" not "high-passed").`;
 
 const VALID_LEVELS = new Set(["low", "mid", "high", "peak"]);
 
-function clampScore(n: unknown): number {
-  const v = typeof n === "number" ? n : Number.parseInt(String(n), 10);
-  if (!Number.isFinite(v)) return 0;
-  return Math.min(100, Math.max(0, Math.round(v)));
-}
-
 function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
   if (!parsed || typeof parsed !== "object") throw new Error("Claude music payload was empty.");
   const p = parsed as Record<string, unknown>;
-
-  const rawScores =
-    p.scores && typeof p.scores === "object" ? (p.scores as Record<string, unknown>) : {};
-  const scores: MusicAnalysisScores = {
-    hook_strength: clampScore(rawScores.hook_strength),
-    production_density: clampScore(rawScores.production_density),
-    emotional_range: clampScore(rawScores.emotional_range),
-    originality: clampScore(rawScores.originality),
-    mix_clarity: clampScore(rawScores.mix_clarity),
-    overall_vibe: clampScore(rawScores.overall_vibe),
-  };
 
   const sonic_textures: SonicTexture[] = (Array.isArray(p.sonic_textures) ? p.sonic_textures : []).flatMap(
     (t) => {
@@ -148,11 +132,31 @@ function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
     },
   );
 
+  const vibe_summary = String(p.vibe_summary ?? "");
+  const brief_summary =
+    typeof p.brief_summary === "string" && p.brief_summary.trim()
+      ? p.brief_summary
+      : vibe_summary.split(/(?<=[.!?])\s+/)[0]?.trim() || vibe_summary;
+
+  const sectionSrc =
+    typeof p.section_summaries === "object" && p.section_summaries
+      ? (p.section_summaries as Record<string, unknown>)
+      : null;
+  const section_summaries = sectionSrc
+    ? {
+        arrangement: String(sectionSrc.arrangement ?? ""),
+        mix: String(sectionSrc.mix ?? ""),
+        sonic: String(sectionSrc.sonic ?? ""),
+      }
+    : undefined;
+
   return {
-    vibe_summary: String(p.vibe_summary ?? ""),
+    brief_summary,
+    vibe_summary,
+    section_summaries,
     aesthetic_tags: Array.isArray(p.aesthetic_tags) ? p.aesthetic_tags.map(String) : [],
     target_listener: String(p.target_listener ?? ""),
-    scores,
+    scores: null,
     sonic_textures,
     energy_arc,
     arrangement,
@@ -165,6 +169,7 @@ function coerceMusicAnalysis(parsed: unknown): ClaudeMusicAnalysis {
 export async function analyzeMusicWithClaude(
   track: SpotifyTrack,
   features: SpotifyAudioFeatures | null,
+  scores: MusicAnalysisScores | null,
 ): Promise<ClaudeMusicAnalysis> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
@@ -178,13 +183,16 @@ export async function analyzeMusicWithClaude(
   const featuresBlock = features
     ? `\nSpotify Audio Features:\n- Tempo: ${features.tempo_bpm} BPM\n- Key: ${features.key}\n- Energy: ${features.energy.toFixed(2)} / 1.0\n- Danceability: ${features.danceability.toFixed(2)} / 1.0\n- Valence (positivity): ${features.valence.toFixed(2)} / 1.0\n- Acousticness: ${features.acousticness.toFixed(2)} / 1.0\n- Instrumentalness: ${features.instrumentalness.toFixed(2)} / 1.0\n- Loudness: ${features.loudness_db.toFixed(1)} dBFS\n- Speechiness: ${features.speechiness.toFixed(2)} / 1.0\n- Time Signature: ${features.time_signature}/4`
     : "";
+  const scoreBlock = scores
+    ? `\n\n${formatSonicScoreFacts(scores)}`
+    : "\n\nSonic scores could not be measured from audio for this track. Do not invent 0–100 ratings and do not output a scores object.";
 
   const inputText = `Analyze this track and return the full JSON breakdown:
 
 Title: ${track.title}
 Artist: ${track.artist}
 Album: ${track.album}${track.release_year ? ` (${track.release_year})` : ""}
-Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}${featuresBlock}`;
+Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}${featuresBlock}${scoreBlock}`;
 
   const resp = await anthropic.messages.create({
     model,
@@ -208,7 +216,7 @@ Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit
   }
 
   try {
-    return coerceMusicAnalysis(parsedJson);
+    return { ...coerceMusicAnalysis(parsedJson), scores };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(`Unable to coerce Claude music payload: ${msg}`);

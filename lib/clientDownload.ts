@@ -18,6 +18,7 @@ export function filenameFromContentDisposition(header: string | null, fallback: 
 }
 
 export const VIDEO_MP4_MIME = "video/mp4";
+export const AUDIO_MPEG_MIME = "audio/mpeg";
 
 function skipLeadingAsciiWhitespace(u: Uint8Array, maxScan: number): number {
   let i = 0;
@@ -89,6 +90,32 @@ export function arrayBufferToMp4Download(
   return { ok: true, blob, filename: fname };
 }
 
+function ensureEndsWithMp3(name: string): string {
+  const t = name.trim() || "whyitslaps-preview.mp3";
+  return t.toLowerCase().endsWith(".mp3") ? t : `${t.replace(/\.[^./\\]+$/, "")}.mp3`;
+}
+
+export function arrayBufferToMp3Download(
+  buf: ArrayBuffer,
+  contentDispositionHeader: string | null,
+  fallbackFilename: string,
+): { ok: true; blob: Blob; filename: string } | { ok: false; message: string } {
+  const errJson = tryParseErrorJsonPayload(buf);
+  if (errJson) {
+    const glue = errJson.hint ? `${errJson.error} — ${errJson.hint}` : errJson.error;
+    return { ok: false, message: glue };
+  }
+
+  if (buf.byteLength < 256) {
+    return { ok: false, message: "Downloaded payload is too small to be a valid preview." };
+  }
+
+  const fname = ensureEndsWithMp3(filenameFromContentDisposition(contentDispositionHeader, fallbackFilename));
+  const blob = new Blob([buf], { type: AUDIO_MPEG_MIME });
+
+  return { ok: true, blob, filename: fname };
+}
+
 /**
  * Saves a video blob locally. Prefer File System Access API when available so the OS assigns type/folder explicitly.
  */
@@ -136,5 +163,50 @@ export async function saveVideoBlobToDevice(blob: Blob, filename: string): Promi
   a.click();
   a.remove();
   // Delay revoke: some browsers/OSes finish the hand‑off asynchronously.
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+}
+
+export async function saveAudioBlobToDevice(blob: Blob, filename: string): Promise<void> {
+  const name = ensureEndsWithMp3(filename);
+
+  if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+    const w = window as Window &
+      typeof globalThis & {
+        showSaveFilePicker?: (opts: {
+          suggestedName?: string;
+          types?: Array<{ description: string; accept: Record<string, string[]> }>;
+        }) => Promise<FileSystemFileHandle>;
+      };
+    if (typeof w.showSaveFilePicker === "function") {
+      try {
+        const handle = await w.showSaveFilePicker({
+          suggestedName: name,
+          types: [
+            {
+              description: "MP3 audio",
+              accept: { [AUDIO_MPEG_MIME]: [".mp3"] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        if (e instanceof DOMException && e.name === "AbortError") return;
+      }
+    }
+  }
+
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = name;
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

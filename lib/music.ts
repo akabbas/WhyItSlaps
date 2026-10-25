@@ -128,7 +128,7 @@ function parseMatchFromResponse(json: Record<string, unknown>): MusicMatch | nul
  * Sends an MP3 (or compatible) sample to ACRCloud Identify (multipart/form-data).
  * Uses HMAC-SHA1 signing via Node crypto. Returns structured match fields or null.
  */
-export async function analyzeMusic(audioPath: string): Promise<MusicMatch | null> {
+export async function identifyAudioBuffer(audioBuffer: Buffer): Promise<MusicMatch | null> {
   const hostRaw = process.env.ACRCLOUD_HOST?.trim() ?? "";
   const accessKey = process.env.ACRCLOUD_ACCESS_KEY?.trim();
   const accessSecret = process.env.ACRCLOUD_ACCESS_SECRET?.trim();
@@ -138,8 +138,7 @@ export async function analyzeMusic(audioPath: string): Promise<MusicMatch | null
   const url = resolveIdentifyUrl(hostRaw);
   if (!url) return null;
 
-  const audioBuffer = await readFile(audioPath).catch(() => null);
-  if (!audioBuffer?.length) return null;
+  if (!audioBuffer.length) return null;
 
   const dataType = "audio";
   const signatureVersion = "1";
@@ -147,7 +146,7 @@ export async function analyzeMusic(audioPath: string): Promise<MusicMatch | null
   const signature = signRequest(accessKey, accessSecret, dataType, timestampUnixSeconds);
 
   const form = new FormData();
-  form.append("sample", new Blob([audioBuffer], { type: "audio/mpeg" }), "sample.mp3");
+  form.append("sample", new Blob([new Uint8Array(audioBuffer)], { type: "audio/mpeg" }), "sample.mp3");
   form.append("access_key", accessKey);
   form.append("sample_bytes", String(audioBuffer.byteLength));
   form.append("timestamp", String(timestampUnixSeconds));
@@ -163,4 +162,10 @@ export async function analyzeMusic(audioPath: string): Promise<MusicMatch | null
   } catch {
     return null;
   }
+}
+
+export async function analyzeMusic(audioPath: string): Promise<MusicMatch | null> {
+  const audioBuffer = await readFile(audioPath).catch(() => null);
+  if (!audioBuffer?.length) return null;
+  return identifyAudioBuffer(audioBuffer);
 }

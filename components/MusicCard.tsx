@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import type { MusicMatch } from "@/types/analysis";
 
@@ -36,9 +37,11 @@ export function MusicCard({ music }: Props) {
     <div className="border border-white/12 bg-black/30 p-6">
       <div className="flex items-start gap-5">
         {albumArt ? (
-          <img
+          <Image
             src={albumArt}
             alt={music.album ?? music.title ?? "album art"}
+            width={80}
+            height={80}
             className="h-20 w-20 shrink-0 object-cover"
           />
         ) : null}

@@ -50,6 +50,7 @@ interface RawSpotifyTrack {
     images: { url: string; width: number; height: number }[];
   };
   external_urls: { spotify: string };
+  preview_url: string | null;
 }
 
 interface RawAudioFeatures {
@@ -104,6 +105,7 @@ export async function fetchSpotifyTrackData(
     duration_ms: raw.duration_ms ?? 0,
     explicit: raw.explicit ?? false,
     spotify_url: raw.external_urls?.spotify ?? `https://open.spotify.com/track/${trackId}`,
+    preview_url: raw.preview_url ?? null,
   };
 
   const features: SpotifyAudioFeatures | null = feat

@@ -8,6 +8,8 @@ export interface SpotifyTrack {
   duration_ms: number;
   explicit: boolean;
   spotify_url: string;
+  /** ~30s MP3 preview from Spotify; null when the label did not provide one. */
+  preview_url: string | null;
 }
 
 export interface SpotifyAudioFeatures {
@@ -27,7 +29,7 @@ export type MusicScoreKey =
   | "hook_strength"
   | "production_density"
   | "emotional_range"
-  | "originality"
+  | "impact"
   | "mix_clarity"
   | "overall_vibe";
 
@@ -35,7 +37,7 @@ export interface MusicAnalysisScores {
   hook_strength: number;
   production_density: number;
   emotional_range: number;
-  originality: number;
+  impact: number;
   mix_clarity: number;
   overall_vibe: number;
 }
@@ -56,11 +58,47 @@ export interface ProduceStep {
   body: string;
 }
 
+export type DawId = "ableton" | "logic" | "fl";
+
+export interface DawStepsRequestBody {
+  daw: Exclude<DawId, "ableton">;
+  track: SpotifyTrack;
+  features: SpotifyAudioFeatures | null;
+  production_context: {
+    vibe_summary: string;
+    aesthetic_tags: string[];
+    arrangement: ClaudeMusicAnalysis["arrangement"];
+    sonic_textures: Pick<SonicTexture, "name">[];
+    reference_steps: ProduceStep[];
+  };
+}
+
+export interface DawStepsSuccess {
+  ok: true;
+  daw: Exclude<DawId, "ableton">;
+  steps: ProduceStep[];
+}
+
+export interface DawStepsErrorBody {
+  ok: false;
+  error: string;
+  hint?: string;
+}
+
 export interface ClaudeMusicAnalysis {
+  /** One punchy sentence — the TL;DR shown in brief mode. */
+  brief_summary: string;
   vibe_summary: string;
+  /** One line per dense section for brief mode. */
+  section_summaries?: {
+    arrangement: string;
+    mix: string;
+    sonic: string;
+  };
   aesthetic_tags: string[];
   target_listener: string;
-  scores: MusicAnalysisScores;
+  /** Proxies from Spotify audio features. Null when those features were missing. */
+  scores: MusicAnalysisScores | null;
   sonic_textures: SonicTexture[];
   energy_arc: EnergyArcSegment[];
   arrangement: {

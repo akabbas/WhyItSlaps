@@ -16,7 +16,7 @@ For setup, see **[README.md](./README.md)**. For architecture, **[techstack/READ
 | **MUSIC** | `open.spotify.com/track/...` | Spotify metadata + **audio features**, structured sonic critique (`MusicResultsScreen`) |
 | **STILL** | One uploaded JPEG, PNG, WebP, or GIF (8 MB) | Vision critique, palette, five scores. No URL paste. Focal length, aperture, shutter, and ISO only when the file contains that tag. |
 
-Toggle **VIDEO** / **MUSIC** / **STILL** on the home page (`InputScreen`).
+Toggle **VIDEO** / **MUSIC** / **STILL** / **HISTORY** on the home page (`InputScreen`).
 
 **Note:** “Music” on the **video** results page (MusicCard) is **fingerprint ID** from the video’s soundtrack, not the same as **MUSIC** mode (Spotify-first pipeline).
 
@@ -43,10 +43,12 @@ Video names a hold, a cut, or where the eye goes, then what that does to the per
 ## Built feature list
 
 - **VIDEO:** `/api/analyze`, `/api/analyze-upload`, `/api/download`, `/api/editplan`; `ResultsScreen`; session cache `whyitslaps:last-result`.
-- **MUSIC:** `/api/analyze-music`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
+- **MUSIC:** `/api/analyze-music`, `/api/download-music`, `/api/analyze-music/daw-steps`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
 - **STILL:** `/api/analyze-still`; `StillResultsScreen`; `lib/claude-still.ts`, `types/still-analysis.ts`. Palette via `node-vibrant`. EXIF focal length, aperture, shutter, and ISO only when the file has the tag.
+- **Music scan:** home **Scan upload** + `/api/identify-audio` (ACRCloud → Spotify breakdown).
+- **History:** home **History** tab — localStorage log of video + music analyses (`lib/analysis-history.ts`).
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
-- **`/welcome`** — explainer; **`/analyze`** → redirect `/`.
+- **Legacy redirects:** `/welcome`, `/analyze` → `/`.
 
 ---
 
@@ -67,6 +69,14 @@ Video names a hold, a cut, or where the eye goes, then what that does to the per
 ---
 
 ## Roadmap
+
+### Music detect (scan)
+
+Shazam-style **identify before you know the track** — **shipped** on home Music → Scan upload. Spec: **`docs/music-detect-scan.md`**. Still open: mic capture, Spotify fallback when ACR has no `spotify_id`.
+
+### Personal history
+
+**Phase 1 shipped** (localStorage History tab). Later: accounts + cloud sync, private share URLs, opt-in Slap library — **`docs/draft-history-social.md`**.
 
 ### More music sources
 

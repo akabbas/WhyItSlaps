@@ -53,7 +53,9 @@ Next.js 14 (App Router) + TypeScript + Tailwind. **Video** path: **yt-dlp**, **f
 | **VIDEO** + **Analyze** | Full video pipeline → `ResultsScreen`. |
 | **VIDEO** + **Download** | `POST /api/download` → MP4 only. |
 | **MUSIC** + **Analyze** | `POST /api/analyze-music` → `MusicResultsScreen`. |
-| **`/welcome`** | Short intro; **`/?fresh=1`** clears cached **video** result. |
+| **MUSIC** + **Download** | `POST /api/download-music` → ~30s Spotify **preview** MP3 (when available). |
+| Legacy **`/welcome`** | Permanent redirect to **`/`** (no separate page). |
+| **`/?fresh=1`** | Clears cached **video** result in this browser tab. |
 | **Edit My Footage** | After **video** analysis → `/api/editplan`. |
 | **Extension** | IG CDN capture → `analyze-upload` when needed. |
 
@@ -125,7 +127,7 @@ npm run build && npm run start
 | `POST /api/download` | JSON `{ "url" }` → MP4 |
 | `POST /api/editplan` | Edit plan after **video** analysis |
 
-Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
+Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`), **[docs/CODE_CLEANUP_BACKLOG.md](./docs/CODE_CLEANUP_BACKLOG.md)**.
 
 ---
 

@@ -1,31 +1,44 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
-import type { MusicAnalyzeSuccess, EnergyArcSegment, MusicScoreKey } from "@/types/music-analysis";
+import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
+import type {
+  DawId,
+  DawStepsErrorBody,
+  DawStepsSuccess,
+  MusicAnalyzeSuccess,
+  EnergyArcSegment,
+  ProduceStep,
+} from "@/types/music-analysis";
+import { ViewModeToggle } from "./ViewModeToggle";
+import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
+import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
+import { ShareCardPanel } from "./ShareCardPanel";
+import { MusicShareCard } from "./share-cards/MusicShareCard";
 import { MeterFill } from "./ScoreBars";
 
 type Props = {
   data: MusicAnalyzeSuccess;
+  downloadError?: string | null;
+  downloadBusy?: boolean;
+  onDownloadPreview?: () => void;
   onReset: () => void;
 };
 
-const SCORE_LABELS: Record<MusicScoreKey, string> = {
-  hook_strength: "HOOK STRENGTH",
-  production_density: "PRODUCTION DENSITY",
-  emotional_range: "EMOTIONAL RANGE",
-  originality: "ORIGINALITY",
-  mix_clarity: "MIX CLARITY",
-  overall_vibe: "OVERALL VIBE",
-};
+const PREFERRED_DAW_KEY = "whyitslaps-preferred-daw";
 
-const SCORE_ORDER: MusicScoreKey[] = [
-  "hook_strength",
-  "production_density",
-  "emotional_range",
-  "originality",
-  "mix_clarity",
-  "overall_vibe",
+const DAW_TABS: { id: DawId; label: string }[] = [
+  { id: "ableton", label: "ABLETON" },
+  { id: "logic", label: "LOGIC PRO" },
+  { id: "fl", label: "FL STUDIO" },
 ];
+
+function readPreferredDaw(): DawId {
+  if (typeof window === "undefined") return "ableton";
+  const stored = window.localStorage.getItem(PREFERRED_DAW_KEY);
+  return stored === "logic" || stored === "fl" || stored === "ableton" ? stored : "ableton";
+}
 
 const ARC_HEIGHTS: Record<EnergyArcSegment["energy_level"], string[]> = {
   low: ["20%", "25%", "22%", "28%", "24%"],
@@ -58,12 +71,105 @@ function FeatureBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function MusicResultsScreen({ data, onReset }: Props) {
+function BriefSectionCard({ label, text }: { label: string; text: string }) {
+  return (
+    <div className="border border-white/12 bg-black/20 p-4">
+      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">{label}</p>
+      <p className="mt-2 font-mono text-[11px] leading-relaxed text-white/75">{text}</p>
+    </div>
+  );
+}
+
+export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownloadPreview, onReset }: Props) {
   const { track, features, claude: c } = data;
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"ableton" | "logic" | "fl">("ableton");
+  const [shareCardOpen, setShareCardOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
+  const [viewMode, setViewMode] = React.useState<"brief" | "full">("brief");
+  const isBrief = viewMode === "brief";
+  const headline = musicBriefHeadline(c);
+  const sections = musicSectionSummaries(c);
+  const [stepsByDaw, setStepsByDaw] = React.useState<Partial<Record<DawId, ProduceStep[]>>>({
+    ableton: c.how_to_produce,
+  });
+  const [loadingDaw, setLoadingDaw] = React.useState<DawId | null>(null);
+  const [dawError, setDawError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const preferred = readPreferredDaw();
+    setActiveTab(preferred);
+  }, []);
+
+  const fetchDawSteps = React.useCallback(
+    async (daw: Exclude<DawId, "ableton">) => {
+      const referenceSteps = stepsByDaw.ableton ?? c.how_to_produce;
+      if (referenceSteps.length < 4) {
+        setDawError("Ableton reference steps are missing.");
+        return;
+      }
+
+      setLoadingDaw(daw);
+      setDawError(null);
+      try {
+        const res = await fetchWithTimeout(
+          "/api/analyze-music/daw-steps",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              daw,
+              track,
+              features,
+              production_context: {
+                vibe_summary: c.vibe_summary,
+                aesthetic_tags: c.aesthetic_tags,
+                arrangement: c.arrangement,
+                sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
+                reference_steps: referenceSteps,
+              },
+            }),
+          },
+          TIMEOUT_MS.music,
+        );
+        const payload = (await res.json()) as DawStepsSuccess | DawStepsErrorBody;
+        if (!res.ok || !payload.ok) {
+          const err = payload as DawStepsErrorBody;
+          throw new Error(err.hint ? `${err.error} — ${err.hint}` : err.error);
+        }
+        setStepsByDaw((prev) => ({ ...prev, [payload.daw]: payload.steps }));
+      } catch (err) {
+        setDawError(timeoutMessage(err, "Could not load DAW steps."));
+      } finally {
+        setLoadingDaw(null);
+      }
+    },
+    [c, features, stepsByDaw.ableton, track],
+  );
+
+  const handleDawTab = React.useCallback(
+    (daw: DawId) => {
+      setActiveTab(daw);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(PREFERRED_DAW_KEY, daw);
+      }
+      if (daw !== "ableton" && !stepsByDaw[daw] && loadingDaw !== daw) {
+        void fetchDawSteps(daw);
+      }
+    },
+    [fetchDawSteps, loadingDaw, stepsByDaw],
+  );
+
+  React.useEffect(() => {
+    if (activeTab === "ableton") return;
+    if (stepsByDaw[activeTab] || loadingDaw === activeTab) return;
+    void fetchDawSteps(activeTab);
+  }, [activeTab, fetchDawSteps, loadingDaw, stepsByDaw]);
+
+  const activeSteps = stepsByDaw[activeTab] ?? (activeTab === "ableton" ? c.how_to_produce : []);
+  const activeDawLabel = DAW_TABS.find((tab) => tab.id === activeTab)?.label ?? "ABLETON";
 
   const handleShare = () => {
+    const produceSteps = activeSteps.length > 0 ? activeSteps : c.how_to_produce;
     const lines = [
       `WHYITSLAPS — MUSIC`,
       `${track.title} by ${track.artist}`,
@@ -72,11 +178,18 @@ export function MusicResultsScreen({ data, onReset }: Props) {
       ``,
       `Tags: ${c.aesthetic_tags.join(", ")}`,
       ``,
-      `Scores:`,
-      ...SCORE_ORDER.map((k) => `  ${SCORE_LABELS[k]}: ${c.scores[k]}/100`),
+      ...(c.scores
+        ? [
+            `Scores:`,
+            ...SONIC_SCORE_ORDER.map((k) => `  ${SONIC_SCORE_LABELS[k]}: ${c.scores?.[k]}/100`),
+          ]
+        : [SONIC_SCORE_MISSING]),
       ``,
       `WHY IT SLAPS:`,
       ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
+      ``,
+      `HOW TO PRODUCE (${activeDawLabel}):`,
+      ...produceSteps.map((step, i) => `  ${i + 1}. ${step.title} — ${step.body}`),
     ];
     const text = lines.join("\n");
 
@@ -100,12 +213,29 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           WHYITSLAPS
         </span>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {typeof onDownloadPreview === "function" ? (
+            <button
+              type="button"
+              disabled={!!downloadBusy}
+              onClick={() => onDownloadPreview()}
+              className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper disabled:opacity-40"
+            >
+              download preview mp3
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setShareCardOpen(true)}
+            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+          >
+            share card
+          </button>
           <button
             type="button"
             onClick={handleShare}
             className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
           >
-            {copyLabel ?? "share"}
+            {copyLabel ?? "copy text"}
           </button>
           <button
             type="button"
@@ -117,14 +247,25 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         </div>
       </nav>
 
+      {(downloadError ?? "").trim() ? (
+        <p className="mt-5 font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+      ) : null}
+
       <div className="mt-8 space-y-10">
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">music breakdown</p>
+          <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+        </div>
 
         {/* Track Hero */}
         <section className="grid grid-cols-[80px_1fr] gap-5 border border-white/12 bg-black/30 p-5 md:grid-cols-[96px_1fr_auto] md:items-center">
           {track.album_art_url ? (
-            <img
+            <Image
               src={track.album_art_url}
               alt={track.album}
+              width={96}
+              height={96}
               className="h-20 w-20 object-cover md:h-24 md:w-24"
             />
           ) : (
@@ -181,13 +322,18 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         {/* Vibe Summary */}
         <div className="border-l-2 border-paper pl-5">
           <p className="font-serif text-xl italic leading-relaxed text-paper md:text-2xl">
-            &ldquo;{c.vibe_summary}&rdquo;
+            &ldquo;{isBrief ? headline : c.vibe_summary}&rdquo;
           </p>
+          {!isBrief && headline !== c.vibe_summary ? (
+            <p className="mt-3 font-mono text-[10px] leading-relaxed tracking-wide text-white/40">
+              TL;DR — {headline}
+            </p>
+          ) : null}
         </div>
 
         {/* Aesthetic Tags */}
         <div className="flex flex-wrap gap-2">
-          {c.aesthetic_tags.map((tag, i) => (
+          {c.aesthetic_tags.slice(0, isBrief ? 6 : undefined).map((tag, i) => (
             <span
               key={`${tag}-${i}`}
               className={`border px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em] ${
@@ -204,17 +350,21 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           <p className="mb-4 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
             Sonic Scores
           </p>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {SCORE_ORDER.map((key, index) => (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                  <span>{SCORE_LABELS[key]}</span>
-                  <span className="text-white/92">{c.scores[key]}</span>
+          {c.scores ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {SONIC_SCORE_ORDER.map((key, index) => (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
+                    <span>{SONIC_SCORE_LABELS[key]}</span>
+                    <span className="text-white/92">{c.scores?.[key]}</span>
+                  </div>
+                  <MeterFill value={c.scores?.[key] ?? 0} delayMs={index * 70} />
                 </div>
-                <MeterFill value={c.scores[key]} delayMs={index * 70} />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="font-mono text-[10px] leading-relaxed tracking-wide text-white/40">{SONIC_SCORE_MISSING}</p>
+          )}
         </section>
 
         {/* Spotify Audio Features mini-bars */}
@@ -223,15 +373,27 @@ export function MusicResultsScreen({ data, onReset }: Props) {
             <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
               Audio Features
             </p>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />
               <FeatureBar label="Danceability" value={features.danceability} />
-              <FeatureBar label="Valence" value={features.valence} />
-              <FeatureBar label="Acousticness" value={features.acousticness} />
+              {!isBrief ? (
+                <>
+                  <FeatureBar label="Valence" value={features.valence} />
+                  <FeatureBar label="Acousticness" value={features.acousticness} />
+                </>
+              ) : null}
             </div>
           </section>
         )}
 
+        {isBrief ? (
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <BriefSectionCard label="arrangement" text={sections.arrangement} />
+            <BriefSectionCard label="mix" text={sections.mix} />
+            <BriefSectionCard label="sonic texture" text={sections.sonic} />
+          </section>
+        ) : (
+          <>
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
           <section className="border border-white/12 bg-black/20 p-5">
@@ -356,12 +518,93 @@ export function MusicResultsScreen({ data, onReset }: Props) {
           </div>
         </section>
 
+        {/* How To Produce Like This */}
+        {c.how_to_produce.length > 0 && (
+          <section className="space-y-4 border-t border-white/10 pt-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
+                HOW TO PRODUCE LIKE THIS
+              </h3>
+              <div className="flex">
+                {DAW_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleDawTab(tab.id)}
+                    disabled={loadingDaw === tab.id}
+                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
+                      activeTab === tab.id
+                        ? "border-white/40 bg-white/[0.08] text-paper"
+                        : "border-white/12 bg-transparent text-white/40 hover:text-white/70"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">
+              Stock plugins only for {activeDawLabel}
+              {activeTab !== "ableton" && !stepsByDaw[activeTab] && loadingDaw === activeTab
+                ? " · loading recipe"
+                : ""}
+            </p>
+            {dawError ? (
+              <div className="flex flex-wrap items-center gap-4 border border-white/12 bg-black/30 px-4 py-3">
+                <p className="font-mono text-[11px] text-white/65">{dawError}</p>
+                {activeTab !== "ableton" ? (
+                  <button
+                    type="button"
+                    onClick={() => void fetchDawSteps(activeTab)}
+                    className="bg-transparent font-mono text-[10px] uppercase tracking-[0.16em] text-paper underline-offset-4 hover:underline"
+                  >
+                    retry
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+            <div className="space-y-3">
+              {activeSteps.length > 0 ? (
+                activeSteps.map((step, idx) => (
+                  <div key={idx} className="border border-white/12 bg-black/30 p-5">
+                    <div className="flex items-baseline gap-4">
+                      <span className="font-serif text-3xl leading-none text-white/12">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
+                      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-paper">
+                        {step.title}
+                      </span>
+                    </div>
+                    <p className="mt-3 pl-10 font-mono text-[11px] leading-relaxed tracking-[0.03em] text-white/65">
+                      {step.body}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-3">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <div
+                      key={idx}
+                      className="animate-pulse border border-white/12 bg-black/30 p-5"
+                    >
+                      <div className="h-4 w-40 bg-white/10" />
+                      <div className="mt-4 h-12 w-full bg-white/5" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+          </>
+        )}
+
         {/* Why It Slaps */}
         <section className="space-y-4 border-t border-white/10 pt-8">
           <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
             WHY IT SLAPS
           </h3>
-          <div className="grid gap-4">
+          <div className={`grid gap-4 ${isBrief ? "md:grid-cols-2" : ""}`}>
             {c.why_it_works.map((piece, idx) => (
               <article
                 key={`${piece.title}-${idx}`}
@@ -372,57 +615,33 @@ export function MusicResultsScreen({ data, onReset }: Props) {
                   {String(idx + 1).padStart(2, "0")}
                 </p>
                 <h4 className="mt-2 font-serif text-xl tracking-wide text-white">{piece.title}</h4>
-                <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">
-                  {piece.detail}
-                </p>
+                {!isBrief ? (
+                  <p className="mt-3 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">
+                    {piece.detail}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>
         </section>
 
-        {/* How To Produce Like This */}
-        {c.how_to_produce.length > 0 && (
-          <section className="space-y-4 border-t border-white/10 pt-8">
-            <div className="flex flex-wrap items-baseline justify-between gap-4">
-              <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
-                HOW TO PRODUCE LIKE THIS
-              </h3>
-              <div className="flex">
-                {(["ableton", "logic", "fl"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setActiveTab(tab)}
-                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors ${
-                      activeTab === tab
-                        ? "border-white/40 bg-white/[0.08] text-paper"
-                        : "border-white/12 bg-transparent text-white/40 hover:text-white/70"
-                    }`}
-                  >
-                    {tab === "ableton" ? "ABLETON" : tab === "logic" ? "LOGIC PRO" : "FL STUDIO"}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-3">
+        {isBrief && c.how_to_produce.length > 0 ? (
+          <section className="space-y-4 border border-white/10 bg-black/20 p-6">
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.32em] text-paper">produce cheat sheet</h3>
+            <ol className="space-y-3">
               {c.how_to_produce.map((step, idx) => (
-                <div key={idx} className="border border-white/12 bg-black/30 p-5">
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-serif text-3xl leading-none text-white/12">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-paper">
-                      {step.title}
-                    </span>
-                  </div>
-                  <p className="mt-3 pl-10 font-mono text-[11px] leading-relaxed tracking-[0.03em] text-white/65">
-                    {step.body}
-                  </p>
-                </div>
+                <li
+                  key={idx}
+                  className="border-l-2 border-paper pl-4 font-mono text-[11px] leading-relaxed text-white/75"
+                >
+                  <span className="font-semibold text-paper">{step.title}</span>
+                  {" — "}
+                  {step.body.split(/(?<=[.!?])\s+/)[0]}
+                </li>
               ))}
-            </div>
+            </ol>
           </section>
-        )}
+        ) : null}
 
         {/* Spotify CTA */}
         <div className="flex items-center gap-4 border border-[rgba(29,185,84,0.25)] bg-[rgba(29,185,84,0.05)] px-5 py-4">
@@ -454,6 +673,16 @@ export function MusicResultsScreen({ data, onReset }: Props) {
         </div>
 
       </div>
+
+      <ShareCardPanel
+        open={shareCardOpen}
+        onClose={() => setShareCardOpen(false)}
+        filenameBase={`${track.artist}-${track.title}`}
+        shareTitle={`WhyItSlaps — ${track.title}`}
+        shareText={c.vibe_summary}
+      >
+        {(format) => <MusicShareCard data={data} format={format} />}
+      </ShareCardPanel>
     </div>
   );
 }

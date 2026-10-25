@@ -79,6 +79,31 @@ export async function extractArtifacts(
   return { framesDir, audioPath, durationSeconds, framePaths };
 }
 
+/** First N seconds of audio as MP3 for ACRCloud Identify (no keyframes). */
+export async function extractIdentifyAudioSample(
+  mediaPath: string,
+  outputMp3Path: string,
+  maxSeconds = 15,
+): Promise<void> {
+  await run(
+    "ffmpeg",
+    [
+      "-y",
+      "-i",
+      mediaPath,
+      "-t",
+      String(maxSeconds),
+      "-vn",
+      "-codec:a",
+      "libmp3lame",
+      "-q:a",
+      "4",
+      outputMp3Path,
+    ],
+    "ffmpeg-identify-audio",
+  );
+}
+
 export async function framesToBase64Jpegs(paths: string[], maxFrames = 16): Promise<string[]> {
   const step = paths.length <= maxFrames ? 1 : Math.ceil(paths.length / maxFrames);
   const subset: string[] = [];
