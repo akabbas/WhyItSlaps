@@ -6,6 +6,7 @@ import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
 import type { IdentifyAudioErrorBody, IdentifyAudioSuccess } from "@/types/identify-audio";
 
+import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
 import { arrayBufferToMp3Download, arrayBufferToMp4Download, saveAudioBlobToDevice, saveVideoBlobToDevice } from "@/lib/clientDownload";
 import { readAnalyzeResponse } from "@/lib/clientNdjson";
 
@@ -21,6 +22,10 @@ const STORAGE_KEY = "whyitslaps:last-result";
 /** Extension injector may write after first paint; poll briefly without delaying normal cache read. */
 const EXT_RESULT_POLL_MS = 50;
 const EXT_RESULT_MAX_ATTEMPTS = 30;
+
+function caughtError(err: unknown, fallback: string): string {
+  return networkErrorHint(timeoutMessage(err, fallback));
+}
 
 function networkErrorHint(original: string): string {
   if (!/load failed|failed to fetch|networkerror|network error|http2|ping_failed/i.test(original)) {
@@ -69,7 +74,7 @@ export function AnalyzeToolPage() {
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
   const [storedMusicSourceUrl, setStoredMusicSourceUrl] = React.useState("");
   const [loadingPhase, setLoadingPhase] = React.useState<
-    null | "analyze" | "music" | "download" | "scan"
+    null | "analyze" | "music" | "download" | "download-music" | "scan"
   >(null);
   const busy = loadingPhase !== null;
   const pendingMusicAutoAnalyzeUrl = React.useRef<string | null>(null);
@@ -84,8 +89,9 @@ export function AnalyzeToolPage() {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get("mode") === "music") {
-      setMode("music");
+    const requestedMode = params.get("mode");
+    if (requestedMode === "music" || requestedMode === "history") {
+      setMode(requestedMode);
     }
     const urlParam = params.get("url")?.trim();
     if (urlParam && /^https?:\/\//i.test(urlParam)) {
@@ -197,11 +203,15 @@ export function AnalyzeToolPage() {
     setLoadingPhase("download");
 
     try {
-      const res = await fetch("/api/download", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: target }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/download",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: target }),
+        },
+        TIMEOUT_MS.video,
+      );
 
       if (!res.ok) {
         let msg = "";
@@ -228,11 +238,7 @@ export function AnalyzeToolPage() {
       }
       await saveVideoBlobToDevice(prepared.blob, prepared.filename);
     } catch (unexpected) {
-      setError(
-        networkErrorHint(
-          unexpected instanceof Error ? unexpected.message : "Browser could not finish the download.",
-        ),
-      );
+      setError(caughtError(unexpected, "Browser could not finish the download."));
     } finally {
       setLoadingPhase(null);
     }
@@ -252,14 +258,18 @@ export function AnalyzeToolPage() {
         return;
       }
 
-      setLoadingPhase("download");
+      setLoadingPhase("download-music");
 
       try {
-        const res = await fetch("/api/download-music", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ url: target }),
-        });
+        const res = await fetchWithTimeout(
+          "/api/download-music",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ url: target }),
+          },
+          TIMEOUT_MS.music,
+        );
 
         if (!res.ok) {
           let msg = "";
@@ -284,11 +294,7 @@ export function AnalyzeToolPage() {
         }
         await saveAudioBlobToDevice(prepared.blob, prepared.filename);
       } catch (unexpected) {
-        setError(
-          networkErrorHint(
-            unexpected instanceof Error ? unexpected.message : "Browser could not finish the download.",
-          ),
-        );
+        setError(caughtError(unexpected, "Browser could not finish the download."));
       } finally {
         setLoadingPhase(null);
       }
@@ -307,11 +313,15 @@ export function AnalyzeToolPage() {
 
     setLoadingPhase("music");
     try {
-      const res = await fetch(new URL("/api/analyze-music", window.location.origin), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: target }),
-      });
+      const res = await fetchWithTimeout(
+        new URL("/api/analyze-music", window.location.origin),
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: target }),
+        },
+        TIMEOUT_MS.music,
+      );
       const text = await res.text();
       let payload: MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
       try {
@@ -331,11 +341,7 @@ export function AnalyzeToolPage() {
       if (err.retrySuggested) setAnalysisRetryHint(true);
       setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
     } catch (unexpected) {
-      setError(
-        networkErrorHint(
-          unexpected instanceof Error ? unexpected.message : "Unknown network error.",
-        ),
-      );
+      setError(caughtError(unexpected, "Unknown network error."));
     } finally {
       setLoadingPhase(null);
     }
@@ -368,11 +374,15 @@ export function AnalyzeToolPage() {
     setLoadingPhase("analyze");
 
     try {
-      const res = await fetch(new URL("/api/analyze", window.location.origin), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: target }),
-      });
+      const res = await fetchWithTimeout(
+        new URL("/api/analyze", window.location.origin),
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url: target }),
+        },
+        TIMEOUT_MS.video,
+      );
 
       const payload = await readAnalyzeResponse(res);
 
@@ -393,11 +403,7 @@ export function AnalyzeToolPage() {
       const glue = err.hint ? `${err.error} — ${err.hint}` : err.error;
       setError(glue);
     } catch (unexpected) {
-      setError(
-        networkErrorHint(
-          unexpected instanceof Error ? unexpected.message : "Unknown network error.",
-        ),
-      );
+      setError(caughtError(unexpected, "Unknown network error."));
     } finally {
       setLoadingPhase(null);
     }
@@ -412,10 +418,14 @@ export function AnalyzeToolPage() {
       try {
         const form = new FormData();
         form.append("clip", file, file.name || "clip.bin");
-        const res = await fetch(new URL("/api/identify-audio", window.location.origin), {
-          method: "POST",
-          body: form,
-        });
+        const res = await fetchWithTimeout(
+          new URL("/api/identify-audio", window.location.origin),
+          {
+            method: "POST",
+            body: form,
+          },
+          TIMEOUT_MS.scan,
+        );
         const payload = (await res.json()) as IdentifyAudioSuccess | IdentifyAudioErrorBody;
         if (!res.ok || !payload.ok) {
           const err = payload as IdentifyAudioErrorBody;
@@ -437,11 +447,7 @@ export function AnalyzeToolPage() {
         setLoadingPhase(null);
         await runMusicAnalyze(spotifyUrl);
       } catch (unexpected) {
-        setError(
-          networkErrorHint(
-            unexpected instanceof Error ? unexpected.message : "Scan failed.",
-          ),
-        );
+        setError(caughtError(unexpected, "Scan failed."));
       } finally {
         setLoadingPhase((phase) => (phase === "scan" ? null : phase));
       }
@@ -464,10 +470,14 @@ export function AnalyzeToolPage() {
       const form = new FormData();
       form.append("video", file, file.name || "clip.mp4");
 
-      const res = await fetch(new URL("/api/analyze-upload", window.location.origin), {
-        method: "POST",
-        body: form,
-      });
+      const res = await fetchWithTimeout(
+        new URL("/api/analyze-upload", window.location.origin),
+        {
+          method: "POST",
+          body: form,
+        },
+        TIMEOUT_MS.video,
+      );
 
       const payload = await readAnalyzeResponse(res);
 
@@ -483,11 +493,7 @@ export function AnalyzeToolPage() {
       if (err.retrySuggested) setAnalysisRetryHint(true);
       setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
     } catch (unexpected) {
-      setError(
-        networkErrorHint(
-          unexpected instanceof Error ? unexpected.message : "Unknown network error.",
-        ),
-      );
+      setError(caughtError(unexpected, "Unknown network error."));
     } finally {
       setLoadingPhase(null);
     }
@@ -525,13 +531,12 @@ export function AnalyzeToolPage() {
   }, []);
 
   const loadingUiPhase =
-    loadingPhase === "download"
-      ? "download"
-      : loadingPhase === "music"
-        ? "music"
-        : loadingPhase === "scan"
-          ? "scan"
-          : "analyze";
+    loadingPhase === "download" ||
+    loadingPhase === "download-music" ||
+    loadingPhase === "music" ||
+    loadingPhase === "scan"
+      ? loadingPhase
+      : "analyze";
 
   if (musicResult) {
     return (
@@ -540,7 +545,7 @@ export function AnalyzeToolPage() {
         <MusicResultsScreen
           data={musicResult}
           downloadError={error}
-          downloadBusy={loadingPhase === "download"}
+          downloadBusy={loadingPhase === "download-music"}
           onDownloadPreview={() =>
             void triggerDownloadForMusicUrl(storedMusicSourceUrl || musicResult.track.spotify_url)
           }

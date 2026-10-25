@@ -60,11 +60,11 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
       </div>
       <ul className="max-h-[min(28rem,60vh)] divide-y divide-white/10 overflow-y-auto">
         {entries.map((entry) => (
-          <li key={entry.id}>
+          <li key={entry.id} className="flex items-start gap-3 px-6 py-4 md:px-8">
             <button
               type="button"
               onClick={() => onOpen(entry)}
-              className="flex w-full items-start gap-3 px-6 py-4 text-left transition hover:bg-white/[0.04] md:px-8"
+              className="flex min-w-0 flex-1 items-start gap-3 text-left transition hover:opacity-90"
             >
               {entry.artUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -106,20 +106,13 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
                   </span>
                 ) : null}
               </span>
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(e) => onDelete(entry.id, e)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onDelete(entry.id, e as unknown as React.MouseEvent);
-                  }
-                }}
-                className="shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
-              >
-                del
-              </span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => onDelete(entry.id, e)}
+              className="mt-1 shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
+            >
+              del
             </button>
           </li>
         ))}

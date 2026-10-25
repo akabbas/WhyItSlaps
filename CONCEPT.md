@@ -30,9 +30,11 @@ Dark editorial **`#0A0A0A`**, **`paper`** `#F5F0E8`, **DM Serif Display** + **IB
 ## Built feature list
 
 - **VIDEO:** `/api/analyze`, `/api/analyze-upload`, `/api/download`, `/api/editplan`; `ResultsScreen`; session cache `whyitslaps:last-result`.
-- **MUSIC:** `/api/analyze-music`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
+- **MUSIC:** `/api/analyze-music`, `/api/download-music`, `/api/analyze-music/daw-steps`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`.
+- **Music scan:** home **Scan upload** + `/api/identify-audio` (ACRCloud → Spotify breakdown).
+- **History:** home **History** tab — localStorage log of video + music analyses (`lib/analysis-history.ts`).
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
-- **`/welcome`**, **`/analyze`** → redirect `/` (legacy URLs).
+- **Legacy redirects:** `/welcome`, `/analyze` → `/`.
 
 ---
 
@@ -55,7 +57,11 @@ Dark editorial **`#0A0A0A`**, **`paper`** `#F5F0E8`, **DM Serif Display** + **IB
 
 ### Music detect (scan)
 
-Shazam-style **identify before you know the track** — reuse ACRCloud on uploaded audio/clip, then jump into Spotify breakdown. Prototype: **`/draft/detect`**, spec **`docs/music-detect-scan.md`**, API **`POST /api/identify-audio`**. Branch: `ammr/music-detect-scan-f408`.
+Shazam-style **identify before you know the track** — **shipped** on home Music → Scan upload. Spec: **`docs/music-detect-scan.md`**. Still open: mic capture, Spotify fallback when ACR has no `spotify_id`.
+
+### Personal history
+
+**Phase 1 shipped** (localStorage History tab). Later: accounts + cloud sync, private share URLs, opt-in Slap library — **`docs/draft-history-social.md`**.
 
 ### More music sources
 

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateDawProduceSteps } from "@/lib/claude-music-daw";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import type {
   DawId,
   DawStepsErrorBody,
@@ -21,6 +23,9 @@ function isProduceStep(value: unknown): value is ProduceStep {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "daw-steps");
+  if (limited) return limited;
+
   let body: Partial<DawStepsRequestBody> = {};
   try {
     body = (await req.json()) as Partial<DawStepsRequestBody>;
@@ -92,9 +97,8 @@ export async function POST(req: Request) {
     const payload: DawStepsSuccess = { ok: true, daw, steps };
     return NextResponse.json(payload, { status: 200 });
   } catch (err) {
-    const hint = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { ok: false, error: "Could not generate DAW steps.", hint } satisfies DawStepsErrorBody,
+      { ok: false, ...publicFailure(err, "Could not generate DAW steps.") } satisfies DawStepsErrorBody,
       { status: 502 },
     );
   }

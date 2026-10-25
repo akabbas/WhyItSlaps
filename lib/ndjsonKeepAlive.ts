@@ -1,4 +1,5 @@
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
+import { publicFailure } from "@/lib/public-error";
 
 export type AnalyzeJsonBody = AnalyzeSuccess | AnalyzeErrorBody;
 
@@ -38,13 +39,11 @@ export function keepAliveNdjsonResponse(work: () => Promise<AnalyzeWorkResult>):
           ...body,
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
         write({
           type: "error",
           status: 500,
           ok: false,
-          error: "Analysis failed unexpectedly.",
-          hint: message || undefined,
+          ...publicFailure(err, "Analysis failed unexpectedly."),
         } satisfies AnalyzeErrorBody & { type: string; status: number });
       } finally {
         clearInterval(heartbeat);

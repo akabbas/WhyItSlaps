@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
+import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
 import type {
   DawId,
   DawStepsErrorBody,
@@ -108,22 +110,26 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
       setLoadingDaw(daw);
       setDawError(null);
       try {
-        const res = await fetch("/api/analyze-music/daw-steps", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            daw,
-            track,
-            features,
-            production_context: {
-              vibe_summary: c.vibe_summary,
-              aesthetic_tags: c.aesthetic_tags,
-              arrangement: c.arrangement,
-              sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
-              reference_steps: referenceSteps,
-            },
-          }),
-        });
+        const res = await fetchWithTimeout(
+          "/api/analyze-music/daw-steps",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              daw,
+              track,
+              features,
+              production_context: {
+                vibe_summary: c.vibe_summary,
+                aesthetic_tags: c.aesthetic_tags,
+                arrangement: c.arrangement,
+                sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
+                reference_steps: referenceSteps,
+              },
+            }),
+          },
+          TIMEOUT_MS.music,
+        );
         const payload = (await res.json()) as DawStepsSuccess | DawStepsErrorBody;
         if (!res.ok || !payload.ok) {
           const err = payload as DawStepsErrorBody;
@@ -131,7 +137,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         }
         setStepsByDaw((prev) => ({ ...prev, [payload.daw]: payload.steps }));
       } catch (err) {
-        setDawError(err instanceof Error ? err.message : "Could not load DAW steps.");
+        setDawError(timeoutMessage(err, "Could not load DAW steps."));
       } finally {
         setLoadingDaw(null);
       }
@@ -254,9 +260,11 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Track Hero */}
         <section className="grid grid-cols-[80px_1fr] gap-5 border border-white/12 bg-black/30 p-5 md:grid-cols-[96px_1fr_auto] md:items-center">
           {track.album_art_url ? (
-            <img
+            <Image
               src={track.album_art_url}
               alt={track.album}
+              width={96}
+              height={96}
               className="h-20 w-20 object-cover md:h-24 md:w-24"
             />
           ) : (

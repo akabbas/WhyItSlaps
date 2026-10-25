@@ -10,7 +10,7 @@
 |-------|----------------|
 | `/` History tab | Real personal log (localStorage) |
 | `/draft` | Hub — pros/cons, phased roadmap |
-| `/draft/history` | Older mock layout (superseded by home History tab) |
+| `/draft/history` | Redirects to `/?mode=history` (live History tab) |
 | `/draft/explore` | Opt-in public gallery (mock community feed) |
 
 ---

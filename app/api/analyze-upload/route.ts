@@ -8,6 +8,8 @@ import { analyzeMusic } from "@/lib/music";
 import { paletteFromMiddleFrame } from "@/lib/palette";
 import { analyzeWithClaude } from "@/lib/claude";
 import { keepAliveNdjsonResponse, type AnalyzeWorkResult } from "@/lib/ndjsonKeepAlive";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import type { AnalyzeErrorBody, AnalyzeSuccess, PaletteSwatch } from "@/types/analysis";
 
 export const runtime = "nodejs";
@@ -17,6 +19,11 @@ export const dynamic = "force-dynamic";
 const MAX_FILE_BYTES = 100 * 1024 * 1024;
 const MAX_DURATION_SECONDS = 60;
 const MULTIPART_LENGTH_SLACK = 1024 * 1024;
+
+function isVideoUpload(file: File): boolean {
+  if (file.type.startsWith("video/")) return true;
+  return /\.(mp4|mov|webm|m4v)$/i.test(file.name);
+}
 
 function payloadTooLarge(): NextResponse {
   return NextResponse.json(
@@ -29,6 +36,9 @@ function payloadTooLarge(): NextResponse {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "analyze-upload");
+  if (limited) return limited;
+
   const contentLength = req.headers.get("content-length");
   if (contentLength) {
     const n = Number(contentLength);
@@ -66,6 +76,17 @@ export async function POST(req: Request) {
     return payloadTooLarge();
   }
 
+  if (!isVideoUpload(video)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Upload a video file.",
+        hint: "mp4, mov, webm",
+      } satisfies AnalyzeErrorBody,
+      { status: 400 },
+    );
+  }
+
   const buf = Buffer.from(await video.arrayBuffer());
 
   return keepAliveNdjsonResponse(async (): Promise<AnalyzeWorkResult> => {
@@ -81,13 +102,11 @@ export async function POST(req: Request) {
       try {
         durationSeconds = await probeVideoDurationSeconds(videoPath);
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: "Could not read the uploaded clip duration.",
-            hint,
+            ...publicFailure(err, "Could not read the uploaded clip duration."),
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };
@@ -114,13 +133,11 @@ export async function POST(req: Request) {
         frames = artifact.framePaths;
         audioPath = artifact.audioPath;
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: "Could not decode the uploaded clip.",
-            hint,
+            ...publicFailure(err, "Could not decode the uploaded clip."),
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };
@@ -156,13 +173,11 @@ export async function POST(req: Request) {
         thumbs = await framesToBase64Jpegs(frames, 14);
         if (!thumbs.length) throw new Error("empty_thumbs");
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: "Could not serialize keyframes for vision.",
-            hint,
+            ...publicFailure(err, "Could not prepare frames for analysis."),
             stage: "palette",
           } satisfies AnalyzeErrorBody,
         };
@@ -172,13 +187,11 @@ export async function POST(req: Request) {
       try {
         claudePayload = await analyzeWithClaude(thumbs);
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 502,
           body: {
             ok: false,
-            error: "Vision analysis could not be completed.",
-            hint,
+            ...publicFailure(err, "Vision analysis could not be completed."),
             stage: "claude",
             retrySuggested: true,
           } satisfies AnalyzeErrorBody,
@@ -196,13 +209,11 @@ export async function POST(req: Request) {
 
       return { status: 200, body: payload };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
       return {
         status: 422,
         body: {
           ok: false,
-          error: "Could not save or process the upload.",
-          hint: message || undefined,
+          ...publicFailure(err, "Could not save or process the upload."),
         } satisfies AnalyzeErrorBody,
       };
     } finally {

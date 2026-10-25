@@ -28,13 +28,17 @@ const MESSAGES_DOWNLOAD = [
   "fetching clip from original source",
   "muxing stream to mp4 on disk",
   "packaging file for browser save…",
+] as const;
+
+const MESSAGES_DOWNLOAD_MUSIC = [
   "fetching spotify preview mp3",
   "packaging preview for browser save…",
 ] as const;
 
-type Phase = "analyze" | "music" | "download" | "scan";
+type Phase = "analyze" | "music" | "download" | "download-music" | "scan";
 
 function messagesForPhase(phase: Phase) {
+  if (phase === "download-music") return MESSAGES_DOWNLOAD_MUSIC;
   if (phase === "download") return MESSAGES_DOWNLOAD;
   if (phase === "music") return MESSAGES_MUSIC;
   if (phase === "scan") return MESSAGES_SCAN;
