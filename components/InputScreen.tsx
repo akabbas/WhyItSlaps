@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export type AppMode = "video" | "music";
+export type AppMode = "video" | "music" | "still";
 export type PlatformGlyph = "YT" | "IG" | "TT" | "X" | "SP";
 
 function inferPlatform(raw: string, mode: AppMode): PlatformGlyph | null {
@@ -53,6 +53,7 @@ export function InputScreen({
   const plat = inferPlatform(value.trim(), mode);
   const looksLikeUrl = /^https?:\/\/.+/i.test(value.trim());
   const isMusic = mode === "music";
+  const isStill = mode === "still";
   const isInstagramUrl = plat === "IG";
 
   return (
@@ -60,9 +61,11 @@ export function InputScreen({
       <div className="space-y-3">
         <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">WHYITSLAPS</h1>
         <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
-          {isMusic
-            ? "paste a spotify track · find out why it slaps"
-            : "paste a tiktok · find out why it slaps"}
+          {isStill
+            ? "upload a picture · find out why it slaps"
+            : isMusic
+              ? "paste a spotify track · find out why it slaps"
+              : "paste a tiktok · find out why it slaps"}
         </p>
         {onModeChange && (
           <div className="flex justify-center pt-1">
@@ -72,7 +75,7 @@ export function InputScreen({
                 disabled={disabled}
                 onClick={() => onModeChange("video")}
                 className={`px-5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
-                  !isMusic ? "bg-paper text-black" : "bg-transparent text-white/45 hover:text-white/70"
+                  !isMusic && !isStill ? "bg-paper text-black" : "bg-transparent text-white/45 hover:text-white/70"
                 }`}
               >
                 VIDEO
@@ -87,11 +90,53 @@ export function InputScreen({
               >
                 MUSIC
               </button>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onModeChange("still")}
+                className={`px-5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
+                  isStill ? "bg-paper text-black" : "bg-transparent text-white/45 hover:text-white/70"
+                }`}
+              >
+                STILL
+              </button>
             </div>
           </div>
         )}
       </div>
 
+      {isStill ? (
+        <div className="w-full text-left">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+            className="hidden"
+            disabled={disabled}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) onUploadFile?.(file);
+            }}
+          />
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => fileInputRef.current?.click()}
+            className="h-14 w-full border border-white/35 bg-white font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Upload picture
+          </button>
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">jpeg · png · webp · gif · one still · 8 mb</p>
+          {(error ?? "").trim() ? (
+            <div className="mt-8 border-l-2 border-paper/60 pl-4">
+              <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!isStill ? (
       <form
         className="relative w-full"
         onSubmit={(e) => {
@@ -194,6 +239,7 @@ export function InputScreen({
           </button>
         ) : null}
       </form>
+      ) : null}
     </div>
   );
 }

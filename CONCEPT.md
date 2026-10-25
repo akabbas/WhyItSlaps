@@ -2,7 +2,7 @@
 
 ## One-liner
 
-**Two modes, one site:** analyze **short video** (why the clip slaps) or analyze a **Spotify track** (why the song slaps).
+**Three modes, one site:** analyze **short video** (why the clip slaps), a **Spotify track** (why the song slaps), or a **still picture** (why the photograph or artwork slaps).
 
 For setup, see **[README.md](./README.md)**. For architecture, **[techstack/README.md](./techstack/README.md)**. For deployment limits, **[BOTTLENECKS.md](./BOTTLENECKS.md)**.
 
@@ -14,8 +14,9 @@ For setup, see **[README.md](./README.md)**. For architecture, **[techstack/READ
 |------|--------|----------------|
 | **VIDEO** | YT / IG / TikTok / X URL, file upload, or extension-captured MP4 | Vision critique JSON, palette, scores (0–100), optional **ACRCloud** track match on the **clip audio**, share text, MP4 download (URL flow), **Edit my footage** |
 | **MUSIC** | `open.spotify.com/track/...` | Spotify metadata + **audio features**, structured sonic critique (`MusicResultsScreen`) |
+| **STILL** | One uploaded JPEG, PNG, WebP, or GIF (8 MB) | Vision critique, palette, five scores. No URL paste. EXIF is not read. |
 
-Toggle **VIDEO** / **MUSIC** on the home page (`InputScreen`).
+Toggle **VIDEO** / **MUSIC** / **STILL** on the home page (`InputScreen`).
 
 **Note:** “Music” on the **video** results page (MusicCard) is **fingerprint ID** from the video’s soundtrack, not the same as **MUSIC** mode (Spotify-first pipeline).
 
@@ -35,7 +36,7 @@ Motion stays in CSS (Tailwind keyframes). No GSAP or Motion unless a specific ef
 
 One speaker, in `lib/dialogue.ts`, composed into the video critique, the music critique, and the edit plan. Prose names a move, says what it does to the person watching or listening, and in a how-to gives one thing to try.
 
-Video craft treats the clip as a scene: a want, something in the way, where the eye goes, and a cut that lands for a reason. Music craft talks arrangement and mix: what enters, what leaves, and which sound yields when two fight. `STILL_CRAFT` sits in the same file and is not sent until a still route exists. Each analyze stays one model call.
+Video craft treats the clip as a scene: a want, something in the way, where the eye goes, and a cut that lands for a reason. Music craft talks arrangement and mix: what enters, what leaves, and which sound yields when two fight. `STILL_CRAFT` is sent by `/api/analyze-still`. Each analyze stays one model call. The still route does not read EXIF, and the prompt is told that.
 
 ---
 
@@ -43,6 +44,7 @@ Video craft treats the clip as a scene: a want, something in the way, where the 
 
 - **VIDEO:** `/api/analyze`, `/api/analyze-upload`, `/api/download`, `/api/editplan`; `ResultsScreen`; session cache `whyitslaps:last-result`.
 - **MUSIC:** `/api/analyze-music`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
+- **STILL:** `/api/analyze-still`; `StillResultsScreen`; `lib/claude-still.ts`, `types/still-analysis.ts`. Palette via `node-vibrant`. No EXIF.
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
 - **`/welcome`** — explainer; **`/analyze`** → redirect `/`.
 
@@ -83,7 +85,7 @@ Slap library, batch “what do these shares have in common?” reports.
 
 ### Still pictures
 
-A third mode, **STILL**, for a photograph or a piece of artwork. Same product shape as video and music: ingest, structured critique, results. Not built yet.
+A third mode, **STILL**, for a photograph or a piece of artwork. Same product shape as video and music: ingest, structured critique, results. The upload path is live. EXIF is the follow-up, not this slice.
 
 | | Still |
 |---|---|
@@ -96,7 +98,7 @@ Skip yt-dlp, ffmpeg, ACRCloud, and `/api/editplan`. Artwork uses the same path; 
 
 Five scores, so the existing meters still work: composition, light, color harmony, subject, overall vibe. Sections: framing, light, color, exactly four “why it works” points, exactly four “how to shoot like this” steps. The prompt may use photography rules when the picture supports them, and must skip a rule when it does not: thirds and power points, leading lines, frame within a frame, negative space, symmetry against tension, horizon, foreground / midground / background, light direction and quality, contrast, color temperature, what the eye hits first, isolation, gesture. The model does not guess a lens or a camera. Missing EXIF stays missing.
 
-First slice when this starts: types, prompt, one upload route, one results screen, a STILL label on the home toggle. No gallery and no accounts. README and the home-page one-liner change when that toggle ships.
+Shipped in this slice: types, prompt, one upload route, one results screen, a STILL label on the home toggle. No gallery, no accounts, no URL paste, no EXIF.
 
 ---
 

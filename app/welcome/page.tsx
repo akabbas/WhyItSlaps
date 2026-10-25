@@ -29,7 +29,7 @@ export default function WelcomePage() {
       </div>
 
       <p className="max-w-md font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-        TikTok · YouTube · X · upload a reel · Spotify · under ~60s
+        TikTok · YouTube · X · upload a reel · Spotify · a still picture · under ~60s for video
       </p>
     </main>
   );

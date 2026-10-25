@@ -5,6 +5,7 @@ import React from "react";
 
 import type { AnalyzeErrorBody, AnalyzeSuccess } from "@/types/analysis";
 import type { MusicAnalyzeErrorBody, MusicAnalyzeSuccess } from "@/types/music-analysis";
+import type { StillAnalyzeErrorBody, StillAnalyzeSuccess } from "@/types/still-analysis";
 
 import { arrayBufferToMp4Download, saveVideoBlobToDevice } from "@/lib/clientDownload";
 
@@ -13,6 +14,7 @@ import type { AppMode } from "@/components/InputScreen";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { MusicResultsScreen } from "@/components/MusicResultsScreen";
+import { StillResultsScreen } from "@/components/StillResultsScreen";
 
 const STORAGE_KEY = "whyitslaps:last-result";
 /** Extension injector may write after first paint; poll briefly without delaying normal cache read. */
@@ -56,13 +58,15 @@ export function AnalyzeToolPage() {
   const [mode, setMode] = React.useState<AppMode>("video");
   const [url, setUrl] = React.useState("");
   const [storedSourceUrl, setStoredSourceUrl] = React.useState("");
-  const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "music" | "download">(null);
+  const [loadingPhase, setLoadingPhase] = React.useState<null | "analyze" | "music" | "still" | "download">(null);
   const busy = loadingPhase !== null;
 
   const [error, setError] = React.useState<string | null>(null);
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
   const [result, setResult] = React.useState<AnalyzeSuccess | null>(null);
   const [musicResult, setMusicResult] = React.useState<MusicAnalyzeSuccess | null>(null);
+  const [stillResult, setStillResult] = React.useState<StillAnalyzeSuccess | null>(null);
+  const [stillPreview, setStillPreview] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -334,9 +338,60 @@ export function AnalyzeToolPage() {
     }
   }, []);
 
+  const runStillAnalyze = React.useCallback(async (file: File) => {
+    setError(null);
+    setAnalysisRetryHint(false);
+
+    const looksLikeImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|gif)$/i.test(file.name);
+    if (!looksLikeImage) {
+      setError("Choose a JPEG, PNG, WebP, or GIF.");
+      return;
+    }
+
+    setLoadingPhase("still");
+
+    try {
+      const form = new FormData();
+      form.append("image", file, file.name || "picture.jpg");
+
+      const res = await fetch(new URL("/api/analyze-still", window.location.origin), {
+        method: "POST",
+        body: form,
+      });
+
+      let payload: StillAnalyzeSuccess | StillAnalyzeErrorBody;
+      try {
+        payload = (await res.json()) as StillAnalyzeSuccess | StillAnalyzeErrorBody;
+      } catch {
+        throw new Error("Invalid response from server.");
+      }
+
+      if ("ok" in payload && payload.ok) {
+        setStillPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return URL.createObjectURL(file);
+        });
+        setStillResult(payload);
+        return;
+      }
+
+      const err = payload as StillAnalyzeErrorBody;
+      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+    } catch (unexpected) {
+      setError(networkErrorHint(unexpected instanceof Error ? unexpected.message : "Unknown network error."));
+    } finally {
+      setLoadingPhase(null);
+    }
+  }, []);
+
   const handleReset = React.useCallback(() => {
     setResult(null);
     setMusicResult(null);
+    setStillResult(null);
+    setStillPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     setError(null);
     setAnalysisRetryHint(false);
     setStoredSourceUrl("");
@@ -344,6 +399,23 @@ export function AnalyzeToolPage() {
       window.sessionStorage.removeItem(STORAGE_KEY);
     }
   }, []);
+
+  if (stillResult) {
+    return (
+      <>
+        <div className="absolute right-4 top-4 z-20 md:right-8">
+          <Link
+            href="/welcome"
+            className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 underline-offset-4 hover:text-paper"
+          >
+            About
+          </Link>
+        </div>
+        <LoadingScreen active={busy} phase="still" />
+        <StillResultsScreen data={stillResult} previewUrl={stillPreview} onReset={handleReset} />
+      </>
+    );
+  }
 
   if (musicResult) {
     return (
@@ -396,7 +468,10 @@ export function AnalyzeToolPage() {
           About
         </Link>
       </div>
-      <LoadingScreen active={busy} phase={loadingPhase === "download" ? "download" : "analyze"} />
+      <LoadingScreen
+        active={busy}
+        phase={loadingPhase === "download" ? "download" : loadingPhase === "music" ? "music" : loadingPhase === "still" ? "still" : "analyze"}
+      />
       <InputScreen
         error={error}
         value={url}
@@ -416,7 +491,7 @@ export function AnalyzeToolPage() {
           setAnalysisRetryHint(false);
         }}
         onRetryAnalysis={runAnalyze}
-        onUploadFile={(file) => void runUploadAnalyze(file)}
+        onUploadFile={(file) => void (mode === "still" ? runStillAnalyze(file) : runUploadAnalyze(file))}
       />
     </main>
   );

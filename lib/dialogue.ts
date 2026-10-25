@@ -6,7 +6,7 @@
  * music — what enters, what leaves, and which sound yields when two fight
  * still — where the eye lands, what the light is doing, one thing to try next
  *
- * STILL_CRAFT is not sent until a still route exists.
+ * STILL_CRAFT is sent by the still upload route. No EXIF is read.
  */
 
 export const SPEAKER = `You are WhyItSlaps. You talk like someone who makes this work and wants the reader to be able to make it too. One speaker. Do not announce a job title.
