@@ -3,6 +3,7 @@ import type { ContentBlockParam, ImageBlockParam } from "@anthropic-ai/sdk/resou
 
 import { stripJsonFence } from "@/lib/claude";
 import { SPEAKER, STILL_CRAFT } from "@/lib/dialogue";
+import { stillExposureUserText, type StillExposureFacts } from "@/lib/still-exif";
 import type { StillAnalysis, StillAnalysisScores, StillMedium } from "@/types/still-analysis";
 
 const STILL_SYSTEM_PROMPT = `${SPEAKER}
@@ -37,12 +38,12 @@ You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing 
 Rules:
 - All five score fields are integers 0–100.
 - aesthetic_tags: 6–10 sharp lowercase tokens.
-- medium is photo, painting, print, or other. Pick from what the picture looks like.
+- medium is photo, painting, print, or other. Pick from what the picture looks like. A screenshot or a crushed copy is other unless the picture itself is clearly a photo, painting, or print. A low-quality photo stays a photo.
 - target_viewer: one sentence naming who this picture is for.
 - framing, light, and color are 2 sentences each. Point at something in the picture.
 - why_it_works: EXACTLY four objects.
-- how_to_make: EXACTLY four imperative steps. For a photograph, steps are how to shoot one like this. For a painting or print, steps are how to make one like this.
-- No camera, lens, aperture, shutter, or ISO. None was read from the file.`;
+- how_to_make: EXACTLY four imperative steps. A photograph can say how to shoot. A painting or print says how to make one. A screenshot or other degraded copy says how to make the picture you can see.
+- State a focal length, aperture, shutter, or ISO only when the user message lists that fact. If it is not listed, leave it out. Do not guess a lens or a camera.`;
 
 const MEDIUMS = new Set<StillMedium>(["photo", "painting", "print", "other"]);
 
@@ -101,7 +102,11 @@ export function coerceStillAnalysis(parsed: unknown): StillAnalysis {
 
 export type StillImageMedia = "image/jpeg" | "image/png" | "image/webp" | "image/gif";
 
-export async function analyzeStillWithClaude(imageBase64: string, mediaType: StillImageMedia): Promise<StillAnalysis> {
+export async function analyzeStillWithClaude(
+  imageBase64: string,
+  mediaType: StillImageMedia,
+  exposure: StillExposureFacts,
+): Promise<StillAnalysis> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
 
@@ -116,7 +121,7 @@ export async function analyzeStillWithClaude(imageBase64: string, mediaType: Sti
   const contentBlocks: ContentBlockParam[] = [
     {
       type: "text",
-      text: "One still picture is attached. No EXIF was read. Judge only what you can see.",
+      text: stillExposureUserText(exposure),
     },
     image,
   ];

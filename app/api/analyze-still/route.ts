@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { analyzeStillWithClaude, type StillImageMedia } from "@/lib/claude-still";
 import { paletteFromMiddleFrame } from "@/lib/palette";
+import { readStillExposureFacts } from "@/lib/still-exif";
 import type { PaletteSwatch } from "@/types/analysis";
 import type { StillAnalyzeErrorBody, StillAnalyzeSuccess } from "@/types/still-analysis";
 
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
       palette = [];
     }
 
-    const claude = await analyzeStillWithClaude(buf.toString("base64"), mediaType);
+    const exposure = await readStillExposureFacts(buf);
+    const claude = await analyzeStillWithClaude(buf.toString("base64"), mediaType, exposure);
     const body: StillAnalyzeSuccess = { ok: true, claude, palette };
     return NextResponse.json(body);
   } catch (err) {
