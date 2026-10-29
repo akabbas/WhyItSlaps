@@ -36,9 +36,15 @@ export function MeterFill({ value, delayMs = 0 }: { value: number; delayMs?: num
   );
 }
 
+/** Qualifier so overall vibe reads as this piece, not a rank. `normal-case` keeps it off the axis-name uppercase. */
+export function ThisPieceQualifier() {
+  return <span className="normal-case tracking-[0.08em] text-white/45"> · this piece</span>;
+}
+
 export function ScoreBars({ scores }: Props) {
   return (
     <div className="space-y-4">
+      <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">this clip&apos;s meters</p>
       {ORDER.map((key, index) => {
         const value = scores[key];
         const label = LABELS[key];
@@ -46,7 +52,10 @@ export function ScoreBars({ scores }: Props) {
         return (
           <div key={key} className="space-y-1">
             <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-              <span>{label}</span>
+              <span>
+                {label}
+                {key === "overall_vibe" ? <ThisPieceQualifier /> : null}
+              </span>
               <span className="text-white/92">{value}</span>
             </div>
             <MeterFill value={value} delayMs={index * 70} />
