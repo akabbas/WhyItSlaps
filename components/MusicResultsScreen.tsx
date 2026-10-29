@@ -251,7 +251,19 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
       ) : null}
 
       {(downloadError ?? "").trim() ? (
-        <p className="mt-5 font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+        <div className="mt-5 space-y-2">
+          <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+          {/no ~30s preview|no preview clip|never the whole song/i.test(downloadError ?? "") ? (
+            <a
+              href={track.spotify_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-mono text-[11px] uppercase tracking-[0.2em] text-paper underline underline-offset-4 hover:text-white"
+            >
+              Open in Spotify
+            </a>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="mt-8 space-y-10">

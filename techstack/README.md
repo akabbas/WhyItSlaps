@@ -80,7 +80,7 @@ ffmpeg decodes the preview for scores. yt-dlp is not on this path.
 | `POST` | `/api/analyze-music` | JSON `{ url }` — Spotify track analysis (`maxDuration` 60). |
 | `POST` | `/api/analyze-music/daw-steps` | Logic or FL steps from the Ableton reference (`maxDuration` 45). |
 | `POST` | `/api/download` | JSON `{ url }` → `video/mp4` (`maxDuration` 300). |
-| `POST` | `/api/download-music` | JSON `{ url }` → Spotify preview `audio/mpeg`. |
+| `POST` | `/api/download-music` | JSON `{ url }` → ~30s preview `audio/mpeg` (Spotify, else iTunes). Never the full song. |
 | `POST` | `/api/identify-audio` | Multipart audio or short video → ACRCloud match (`maxDuration` 120). |
 | `POST` | `/api/editplan` | Reference **video** analysis + user clips → edit plan (`maxDuration` 300). |
 
@@ -129,4 +129,4 @@ Long `maxDuration` values require a host that actually honors them (see BOTTLENE
 
 ## Loading UX
 
-`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`download`** (video file), **`download-music`** (Spotify preview), **`scan`**. Rotating copy is illustrative, not step-accurate.
+`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`download`** (video file), **`download-music`** (~30s preview clip), **`scan`**. Rotating copy is illustrative, not step-accurate.
