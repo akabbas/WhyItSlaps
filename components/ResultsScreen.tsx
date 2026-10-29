@@ -174,7 +174,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
 
           <section className="mt-16 border border-white/12 bg-black/25 p-6">
             <h3 className="font-mono text-[11px] uppercase tracking-[0.26em] text-paper">edit style deck</h3>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="mt-6 grid gap-4 min-[480px]:grid-cols-3">
               <div className="border border-white/17 bg-black/55 p-4 text-center md:text-left">
                 <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/54">pace</p>
                 <span className="mt-4 inline-flex border border-paper px-2 py-[6px] font-mono text-[11px] uppercase tracking-[0.18em] text-paper">

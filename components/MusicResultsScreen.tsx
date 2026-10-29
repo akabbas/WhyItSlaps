@@ -212,13 +212,13 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">
           WHYITSLAPS
         </span>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
           {typeof onDownloadPreview === "function" ? (
             <button
               type="button"
               disabled={!!downloadBusy}
               onClick={() => onDownloadPreview()}
-              className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper disabled:opacity-40"
+              className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper disabled:opacity-40"
             >
               download preview mp3
             </button>
@@ -226,26 +226,30 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
           <button
             type="button"
             onClick={() => setShareCardOpen(true)}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/40 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
           >
             share card
           </button>
           <button
             type="button"
             onClick={handleShare}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
           >
-            {copyLabel ?? "copy text"}
+            copy text
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
           >
             ← new track
           </button>
         </div>
       </nav>
+
+      {copyLabel ? (
+        <p className="mt-3 min-h-[1rem] font-mono text-[11px] tracking-wide text-white/86">{copyLabel}</p>
+      ) : null}
 
       {(downloadError ?? "").trim() ? (
         <p className="mt-5 font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
@@ -525,14 +529,14 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
                 HOW TO PRODUCE LIKE THIS
               </h3>
-              <div className="flex">
+              <div className="flex max-w-full flex-wrap gap-2">
                 {DAW_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => handleDawTab(tab.id)}
                     disabled={loadingDaw === tab.id}
-                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
+                    className={`min-h-[44px] border px-4 py-2 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
                       activeTab === tab.id
                         ? "border-white/40 bg-white/[0.08] text-paper"
                         : "border-white/12 bg-transparent text-white/40 hover:text-white/70"
