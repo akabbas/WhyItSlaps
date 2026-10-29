@@ -12,6 +12,7 @@ import { videoBriefHeadline, videoSectionSummaries } from "@/lib/brief";
 import { EditMyFootagePanel } from "./EditMyFootagePanel";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { VideoShareCard } from "./share-cards/VideoShareCard";
+import { ResultsWordmark } from "./ResultsWordmark";
 
 type Props = {
   data: AnalyzeSuccess;
@@ -63,7 +64,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-6xl px-4 pb-24 pt-8 md:px-8">
       <nav className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-5">
-        <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">WHYITSLAPS</span>
+        <ResultsWordmark onHome={onReset} />
         <div className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3">
           {videoSourceUrl?.trim() && typeof onDownloadVideo === "function" ? (
             <button
@@ -118,16 +119,35 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
             {c.target_audience}
           </span>
         </div>
+
+        <div className="md:hidden space-y-2 border-t border-white/10 pt-5">
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="border border-white/40 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
+              onClick={() => setShareCardOpen(true)}
+            >
+              SHARE CARD
+            </button>
+            <button
+              type="button"
+              className="border border-white/20 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
+              onClick={handleShare}
+            >
+              COPY TEXT
+            </button>
+          </div>
+          <p className="min-h-[1rem] font-mono text-[11px] tracking-wide text-white/86">{copyLabel}</p>
+        </div>
       </header>
 
       <section className="mt-14 grid gap-10 md:grid-cols-[1.08fr_minmax(0,0.9fr)] md:gap-14">
-        <div className="space-y-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">motion read</p>
+        <div>
           <ScoreBars scores={c.scores} />
         </div>
 
         <div className="space-y-4">
-          <MusicCard music={data.music} />
+          <MusicCard music={data.music} kicker="Soundtrack match (not Spotify mode)" />
           <div className="grid grid-cols-2 gap-4 font-mono text-[11px] text-white/60">
             <p>
              keyframes <span className="text-white/90">{data.keyframe_count}</span>
@@ -174,19 +194,19 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
 
           <section className="mt-16 border border-white/12 bg-black/25 p-6">
             <h3 className="font-mono text-[11px] uppercase tracking-[0.26em] text-paper">edit style deck</h3>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="border border-white/17 bg-black/55 p-4 text-center md:text-left">
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/54">pace</p>
+            <div className="mt-6 grid grid-cols-1 gap-4 min-[480px]:grid-cols-3">
+              <div className="border border-white/17 bg-black/55 p-4 text-center min-[480px]:text-left">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/54">pace</p>
                 <span className="mt-4 inline-flex border border-paper px-2 py-[6px] font-mono text-[11px] uppercase tracking-[0.18em] text-paper">
                   {c.edit_style.pacing_badge}
                 </span>
               </div>
               <div className="border border-white/17 bg-black/55 p-4">
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/54">cuts</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/54">cuts</p>
                 <p className="mt-4 font-mono text-[11px] leading-relaxed tracking-wide text-white/85">{c.edit_style.cut_pattern}</p>
               </div>
               <div className="border border-white/17 bg-black/55 p-4">
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/54">transitions</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/54">transitions</p>
                 <p className="mt-4 font-mono text-[11px] leading-relaxed tracking-wide text-white/85">{c.edit_style.transitions}</p>
               </div>
             </div>
@@ -231,7 +251,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
 
       {!isBrief ? <EditMyFootagePanel analysis={data} /> : null}
 
-      <div className="mt-14 flex flex-col items-end gap-3">
+      <div className="mt-14 hidden flex-col items-end gap-3 md:flex">
         <div className="flex flex-wrap justify-end gap-3">
           <button
             type="button"

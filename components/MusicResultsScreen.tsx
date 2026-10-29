@@ -1,19 +1,23 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
+import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
 import type {
   DawId,
   DawStepsErrorBody,
   DawStepsSuccess,
   MusicAnalyzeSuccess,
   EnergyArcSegment,
-  MusicScoreKey,
   ProduceStep,
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
+import { SONIC_SCORE_HINTS, SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
+import { MeterFill, ThisPieceQualifier } from "./ScoreBars";
+import { ResultsWordmark } from "./ResultsWordmark";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -36,24 +40,6 @@ function readPreferredDaw(): DawId {
   const stored = window.localStorage.getItem(PREFERRED_DAW_KEY);
   return stored === "logic" || stored === "fl" || stored === "ableton" ? stored : "ableton";
 }
-
-const SCORE_LABELS: Record<MusicScoreKey, string> = {
-  hook_strength: "HOOK STRENGTH",
-  production_density: "PRODUCTION DENSITY",
-  emotional_range: "EMOTIONAL RANGE",
-  originality: "ORIGINALITY",
-  mix_clarity: "MIX CLARITY",
-  overall_vibe: "OVERALL VIBE",
-};
-
-const SCORE_ORDER: MusicScoreKey[] = [
-  "hook_strength",
-  "production_density",
-  "emotional_range",
-  "originality",
-  "mix_clarity",
-  "overall_vibe",
-];
 
 const ARC_HEIGHTS: Record<EnergyArcSegment["energy_level"], string[]> = {
   low: ["20%", "25%", "22%", "28%", "24%"],
@@ -96,7 +82,8 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
 }
 
 export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownloadPreview, onReset }: Props) {
-  const { track, features, claude: c } = data;
+  const { track, features, analysis, claude: c } = data;
+  const hasFullArc = Boolean(analysis?.sections?.length);
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
   const [shareCardOpen, setShareCardOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
@@ -126,22 +113,26 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
       setLoadingDaw(daw);
       setDawError(null);
       try {
-        const res = await fetch("/api/analyze-music/daw-steps", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            daw,
-            track,
-            features,
-            production_context: {
-              vibe_summary: c.vibe_summary,
-              aesthetic_tags: c.aesthetic_tags,
-              arrangement: c.arrangement,
-              sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
-              reference_steps: referenceSteps,
-            },
-          }),
-        });
+        const res = await fetchWithTimeout(
+          "/api/analyze-music/daw-steps",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              daw,
+              track,
+              features,
+              production_context: {
+                vibe_summary: c.vibe_summary,
+                aesthetic_tags: c.aesthetic_tags,
+                arrangement: c.arrangement,
+                sonic_textures: c.sonic_textures.map((t) => ({ name: t.name })),
+                reference_steps: referenceSteps,
+              },
+            }),
+          },
+          TIMEOUT_MS.music,
+        );
         const payload = (await res.json()) as DawStepsSuccess | DawStepsErrorBody;
         if (!res.ok || !payload.ok) {
           const err = payload as DawStepsErrorBody;
@@ -149,7 +140,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         }
         setStepsByDaw((prev) => ({ ...prev, [payload.daw]: payload.steps }));
       } catch (err) {
-        setDawError(err instanceof Error ? err.message : "Could not load DAW steps.");
+        setDawError(timeoutMessage(err, "Could not load DAW steps."));
       } finally {
         setLoadingDaw(null);
       }
@@ -189,8 +180,12 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
       ``,
       `Tags: ${c.aesthetic_tags.join(", ")}`,
       ``,
-      `Scores:`,
-      ...SCORE_ORDER.map((k) => `  ${SCORE_LABELS[k]}: ${c.scores[k]}/100`),
+      ...(c.scores
+        ? [
+            `Scores:`,
+            ...SONIC_SCORE_ORDER.map((k) => `  ${SONIC_SCORE_LABELS[k]}: ${c.scores?.[k]}/100`),
+          ]
+        : [SONIC_SCORE_MISSING]),
       ``,
       `WHY IT SLAPS:`,
       ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
@@ -216,16 +211,14 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
       {/* Nav */}
       <nav className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-5">
-        <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">
-          WHYITSLAPS
-        </span>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <ResultsWordmark onHome={onReset} />
+        <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
           {typeof onDownloadPreview === "function" ? (
             <button
               type="button"
               disabled={!!downloadBusy}
               onClick={() => onDownloadPreview()}
-              className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper disabled:opacity-40"
+              className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper disabled:opacity-40"
             >
               download preview mp3
             </button>
@@ -233,29 +226,45 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
           <button
             type="button"
             onClick={() => setShareCardOpen(true)}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/40 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
           >
-            share card
+            SHARE CARD
           </button>
           <button
             type="button"
             onClick={handleShare}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
           >
-            {copyLabel ?? "copy text"}
+            copy text
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 underline-offset-4 hover:text-paper"
+            className="min-h-[44px] border border-white/20 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white/80 hover:border-paper hover:text-paper"
           >
             ← new track
           </button>
         </div>
       </nav>
 
+      {copyLabel ? (
+        <p className="mt-3 min-h-[1rem] font-mono text-[11px] tracking-wide text-white/86">{copyLabel}</p>
+      ) : null}
+
       {(downloadError ?? "").trim() ? (
-        <p className="mt-5 font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+        <div className="mt-5 space-y-2">
+          <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/88">{downloadError}</p>
+          {/no ~30s preview|no preview clip|never the whole song/i.test(downloadError ?? "") ? (
+            <a
+              href={track.spotify_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-mono text-[11px] uppercase tracking-[0.2em] text-paper underline underline-offset-4 hover:text-white"
+            >
+              Open in Spotify
+            </a>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="mt-8 space-y-10">
@@ -268,9 +277,11 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Track Hero */}
         <section className="grid grid-cols-[80px_1fr] gap-5 border border-white/12 bg-black/30 p-5 md:grid-cols-[96px_1fr_auto] md:items-center">
           {track.album_art_url ? (
-            <img
+            <Image
               src={track.album_art_url}
               alt={track.album}
+              width={96}
+              height={96}
               className="h-20 w-20 object-cover md:h-24 md:w-24"
             />
           ) : (
@@ -352,32 +363,43 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Sonic Scores */}
         <section>
-          <p className="mb-4 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-            Sonic Scores
+          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">
+            this track&apos;s meters
           </p>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {SCORE_ORDER.map((key) => (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                  <span>{SCORE_LABELS[key]}</span>
-                  <span className="text-white/92">{c.scores[key]}</span>
+          <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five — this track&apos;s contour, not a ranking. Energy arc and Spotify stats below are separate.
+          </p>
+          {c.scores ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {SONIC_SCORE_ORDER.map((key, index) => (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
+                    <span>
+                      {SONIC_SCORE_LABELS[key]}
+                      {key === "overall_vibe" ? <ThisPieceQualifier /> : null}
+                    </span>
+                    <span className="text-white/92">{c.scores?.[key]}</span>
+                  </div>
+                  <MeterFill value={c.scores?.[key] ?? 0} delayMs={index * 70} />
+                  <p className="font-mono text-[9px] leading-snug tracking-wide text-white/40">
+                    {SONIC_SCORE_HINTS[key]}
+                  </p>
                 </div>
-                <div className="h-2 w-full border border-white/11 bg-white/5">
-                  <div
-                    className="h-full bg-paper opacity-95"
-                    style={{ width: `${c.scores[key]}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="font-mono text-[10px] leading-relaxed tracking-wide text-white/40">{SONIC_SCORE_MISSING}</p>
+          )}
         </section>
 
         {/* Spotify Audio Features mini-bars */}
         {features && (
           <section className="border border-white/12 bg-black/20 p-5">
-            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-              Audio Features
+            <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+              Spotify track stats
+            </p>
+            <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+              From Spotify&apos;s audio features API (energy, danceability, etc.). Same full-recording catalog as the meters above; different units (0–1 stats vs 0–100 shape).
             </p>
             <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />
@@ -403,8 +425,13 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
           <section className="border border-white/12 bg-black/20 p-5">
-            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+            <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
               Energy Arc
+            </p>
+            <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+              {hasFullArc
+                ? "Full recording, not the 30s clip. Loudness and tempo by section from Spotify's audio analysis; names (verse, chorus, ...) are written to match that map."
+                : "Sketch of the song’s shape. Spotify’s full-recording analysis was missing, so this is not measured from the 30s preview either — treat the bars as a draft."}
             </p>
             <div className="flex items-end gap-1" style={{ height: "56px" }}>
               {c.energy_arc.map((seg, si) =>
@@ -474,7 +501,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             </p>
             <div className="space-y-4">
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Structure
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -482,7 +509,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 </p>
               </div>
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Density Strategy
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -490,7 +517,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 </p>
               </div>
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Signature Moment
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -514,7 +541,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 ] as const
               ).map(([label, val]) => (
                 <div key={label}>
-                  <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                  <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                     {label}
                   </p>
                   <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">{val}</p>
@@ -531,14 +558,14 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               <h3 className="font-mono text-[12px] uppercase tracking-[0.32em] text-paper">
                 HOW TO PRODUCE LIKE THIS
               </h3>
-              <div className="flex">
+              <div className="flex max-w-full flex-wrap gap-2">
                 {DAW_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => handleDawTab(tab.id)}
                     disabled={loadingDaw === tab.id}
-                    className={`border px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
+                    className={`min-h-[44px] border px-4 py-2 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors disabled:opacity-50 ${
                       activeTab === tab.id
                         ? "border-white/40 bg-white/[0.08] text-paper"
                         : "border-white/12 bg-transparent text-white/40 hover:text-white/70"
@@ -549,7 +576,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 ))}
               </div>
             </div>
-            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/50">
               Stock plugins only for {activeDawLabel}
               {activeTab !== "ableton" && !stepsByDaw[activeTab] && loadingDaw === activeTab
                 ? " · loading recipe"
@@ -614,7 +641,8 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             {c.why_it_works.map((piece, idx) => (
               <article
                 key={`${piece.title}-${idx}`}
-                className="border border-white/10 bg-white/[0.02] p-5"
+                className="border border-white/10 bg-white/[0.02] p-5 motion-safe:animate-stagger"
+                style={{ animationDelay: `${idx * 110}ms` }}
               >
                 <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/54">
                   {String(idx + 1).padStart(2, "0")}
@@ -671,7 +699,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Target Listener */}
         <div className="border-l-2 border-white/12 pl-4">
-          <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+          <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/50">
             Target Listener
           </p>
           <p className="font-mono text-[12px] leading-relaxed text-white/70">{c.target_listener}</p>

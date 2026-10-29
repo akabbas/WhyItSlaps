@@ -1,4 +1,5 @@
 import type { SpotifyTrack, SpotifyAudioFeatures } from "@/types/music-analysis";
+import { summarizeAudioAnalysis, type SpotifyAudioAnalysisSummary } from "@/lib/spotify-analysis";
 
 const KEY_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -72,14 +73,15 @@ export async function fetchSpotifyTrackData(
   trackId: string,
 ): Promise<{ track: SpotifyTrack; features: SpotifyAudioFeatures | null }> {
   const token = await getAccessToken();
+  const headers = { Authorization: `Bearer ${token}` };
 
   const [trackRes, featRes] = await Promise.all([
     fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
       cache: "no-store",
     }),
     fetch(`https://api.spotify.com/v1/audio-features/${trackId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
       cache: "no-store",
     }),
   ]);
@@ -175,4 +177,19 @@ export async function searchSpotifyTracks(query: string, limit = 5): Promise<Spo
       };
     })
     .filter((t) => t.id && t.spotify_url);
+}
+
+/** Full-recording analysis. Fail-open: 403/empty → null (do not call from download-only). */
+export async function fetchSpotifyAudioAnalysis(trackId: string): Promise<SpotifyAudioAnalysisSummary | null> {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`https://api.spotify.com/v1/audio-analysis/${trackId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return summarizeAudioAnalysis(await res.json());
+  } catch {
+    return null;
+  }
 }

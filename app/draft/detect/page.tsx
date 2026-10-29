@@ -49,7 +49,7 @@ export default function DraftDetectPage() {
           Upload a short audio or video clip — we fingerprint the opening seconds with ACRCloud (same engine as video
           soundtrack ID). No full Spotify link required to start.
         </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
           Spec: docs/music-detect-scan.md
         </p>
       </header>
@@ -99,7 +99,7 @@ export default function DraftDetectPage() {
         ) : null}
       </section>
 
-      <footer className="mt-14 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+      <footer className="mt-14 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
         <Link href="/draft" className="hover:text-paper">
           ← draft hub
         </Link>

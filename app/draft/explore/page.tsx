@@ -69,11 +69,11 @@ export default function DraftExplorePage() {
               footer={
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/50">
                       by {entry.publisher}
                     </span>
                     <span className="mx-2 text-white/20">·</span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/50">
                       published {formatDraftDate(entry.publishedAt)}
                     </span>
                   </div>

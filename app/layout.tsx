@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { DM_Serif_Display, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
@@ -17,10 +17,30 @@ const ibmMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0A0A0A",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://whyitslaps.com"),
   title: "WhyItSlaps — find out why it slaps",
   description:
-    "Paste a TikTok, short, or Spotify track and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
+    "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
+  openGraph: {
+    title: "WhyItSlaps — find out why it slaps",
+    description:
+      "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps.",
+    url: "https://whyitslaps.com",
+    siteName: "WhyItSlaps",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WhyItSlaps — find out why it slaps",
+    description:
+      "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps.",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

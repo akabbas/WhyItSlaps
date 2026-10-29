@@ -1,9 +1,10 @@
 # WhyItSlaps
 
-**WhyItSlaps** is a web app with two modes on the home page **`/`**:
+**WhyItSlaps** is a web app with three modes on the home page **`/`**:
 
 - **VIDEO** — Why does this **short** hit? Paste a TikTok / YouTube / X link, or **upload a clip** (Instagram: save the reel, then upload). You get palette, pacing, grade, cinematography, edit read, recreation tips, **optional soundtrack ID** from the clip (ACRCloud), plus **Edit my footage** (shot list via `/api/editplan`).
 - **MUSIC** — Why does this **track** hit? Paste a **Spotify track** URL. The app pulls metadata + **audio features** from Spotify, then a **language model** returns a structured sonic critique (`/api/analyze-music`).
+- **STILL** — Why does this **picture** hit? Upload one JPEG, PNG, WebP, or GIF (8 MB). Palette plus a vision critique (`/api/analyze-still`). Focal length, aperture, shutter, and ISO are passed to the critique only when the file contains that tag. Camera and lens are not read.
 
 **Live site:** see [DEPLOY.md](DEPLOY.md) for Railway + Porkbun (`whyitslaps.com`). Website only — no Chrome extension for launch.
 
@@ -52,7 +53,7 @@ Next.js 14 (App Router) + TypeScript + Tailwind. **Video** path: **yt-dlp**, **f
 | **VIDEO** + **Analyze** | Full video pipeline → `ResultsScreen`. |
 | **VIDEO** + **Download** | `POST /api/download` → MP4 only. |
 | **MUSIC** + **Analyze** | `POST /api/analyze-music` → `MusicResultsScreen`. |
-| **MUSIC** + **Download** | `POST /api/download-music` → ~30s Spotify **preview** MP3 (when available). |
+| **MUSIC** + **Save preview** | `POST /api/download-music` → ~30s **preview** MP3 (Spotify, else matching iTunes clip). Never the full song. |
 | Legacy **`/welcome`** | Permanent redirect to **`/`** (no separate page). |
 | **`/?fresh=1`** | Clears cached **video** result in this browser tab. |
 | **Edit My Footage** | After **video** analysis → `/api/editplan`. |
@@ -121,11 +122,26 @@ npm run build && npm run start
 |-------|---------|
 | `POST /api/analyze` | JSON `{ "url": "https://..." }` — **video** pipeline |
 | `POST /api/analyze-music` | JSON `{ "url": "https://open.spotify.com/track/..." }` |
+| `POST /api/analyze-still` | Multipart **`image`** (JPEG, PNG, WebP, or GIF, max **8 MB**). Focal length, aperture, shutter, and ISO are read only when that tag is present. |
 | `POST /api/analyze-upload` | Multipart **`video`** (max **100 MB**) |
 | `POST /api/download` | JSON `{ "url" }` → MP4 |
 | `POST /api/editplan` | Edit plan after **video** analysis |
 
-Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`), **[docs/voice-stt-cloud.md](./docs/voice-stt-cloud.md)** (`/draft/voice-stt`).
+Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[CONCEPT.md](./CONCEPT.md)** · hosting limits: **[BOTTLENECKS.md](./BOTTLENECKS.md)** · parked UX: **[docs/share-graphics-experimental.md](./docs/share-graphics-experimental.md)** (demo at `/demo/share-graphics`), **[docs/draft-history-social.md](./docs/draft-history-social.md)** (`/draft/*`), **[docs/music-detect-scan.md](./docs/music-detect-scan.md)** (`/draft/detect`), **[docs/voice-stt-cloud.md](./docs/voice-stt-cloud.md)** (`/draft/voice-stt`), **[docs/CODE_CLEANUP_BACKLOG.md](./docs/CODE_CLEANUP_BACKLOG.md)**.
+
+---
+
+## UI agents (Impeccable + Ponytail)
+
+Baseline **Design Health** grades: **[docs/ui-impeccable-grade.md](./docs/ui-impeccable-grade.md)**. Sprint prompts and commands: **[docs/UI_AGENT_PLAYBOOK.md](./docs/UI_AGENT_PLAYBOOK.md)**. Impeccable reads **[PRODUCT.md](./PRODUCT.md)** and **[DESIGN.md](./DESIGN.md)**.
+
+After clone, download the Impeccable engine (skills are in-repo; binary is gitignored):
+
+```bash
+npm run agent:setup
+```
+
+Ponytail skills live under **`.cursor/skills/ponytail*`** (minimal UI diffs; do not cut accessibility). In agent chat: `/impeccable polish …`, `@ponytail`, or the playbook prompt template.
 
 ---
 

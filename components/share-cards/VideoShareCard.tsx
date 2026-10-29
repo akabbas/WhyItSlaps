@@ -41,15 +41,6 @@ export function VideoShareCard({ data, format }: Props) {
     >
       <div
         style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 18% 12%, rgba(245,240,232,0.08), transparent 42%), radial-gradient(circle at 82% 88%, rgba(245,240,232,0.05), transparent 38%)",
-        }}
-      />
-
-      <div
-        style={{
           position: "relative",
           height: "100%",
           display: "flex",
@@ -77,7 +68,7 @@ export function VideoShareCard({ data, format }: Props) {
               fontSize: 18,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.50)",
             }}
           >
             Video breakdown
@@ -87,29 +78,7 @@ export function VideoShareCard({ data, format }: Props) {
         <div style={{ textAlign: "center" }}>
           <p
             style={{
-              margin: 0,
-              fontSize: 20,
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.5)",
-            }}
-          >
-            Overall vibe
-          </p>
-          <p
-            style={{
-              margin: "8px 0 0",
-              fontFamily: "var(--font-dm-serif), serif",
-              fontSize: format === "story" ? 180 : 140,
-              lineHeight: 1,
-              color: "#F5F0E8",
-            }}
-          >
-            {c.scores.overall_vibe}
-          </p>
-          <p
-            style={{
-              margin: "28px auto 0",
+              margin: "0 auto",
               maxWidth: 820,
               fontFamily: "var(--font-dm-serif), serif",
               fontSize: format === "story" ? 34 : 28,
@@ -148,7 +117,7 @@ export function VideoShareCard({ data, format }: Props) {
                   fontSize: 14,
                   letterSpacing: "0.24em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.42)",
+                  color: "rgba(255,255,255,0.50)",
                 }}
               >
                 Palette
@@ -190,7 +159,7 @@ export function VideoShareCard({ data, format }: Props) {
                     margin: 0,
                     fontSize: 12,
                     letterSpacing: "0.14em",
-                    color: "rgba(255,255,255,0.48)",
+                    color: "rgba(255,255,255,0.50)",
                   }}
                 >
                   {SCORE_LABELS[key]}
@@ -221,10 +190,10 @@ export function VideoShareCard({ data, format }: Props) {
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.45)" }}>
+              <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
                 Pace · {c.edit_style.pacing_badge}
               </p>
-              <p style={{ margin: "6px 0 0", fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.45)" }}>
+              <p style={{ margin: "6px 0 0", fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
                 {data.video_duration_seconds}s clip
               </p>
             </div>

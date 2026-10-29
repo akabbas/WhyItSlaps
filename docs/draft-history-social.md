@@ -10,7 +10,7 @@
 |-------|----------------|
 | `/` History tab | Real personal log (localStorage) |
 | `/draft` | Hub — pros/cons, phased roadmap |
-| `/draft/history` | Older mock layout (superseded by home History tab) |
+| `/draft/history` | Redirects to `/?mode=history` (live History tab) |
 | `/draft/explore` | Opt-in public gallery (mock community feed) |
 
 ---
@@ -50,6 +50,8 @@ Phase 2 — optional accounts + cloud history
 Phase 3 — private share URLs (/share/abc)
 Phase 4 — opt-in “Slap library” gallery (no follows/comments yet)
 ```
+
+Do **not** invent live query-string or `/s/:id` URLs before Phase 2 storage. Current session is `/` only; others cannot open your result. Decision + tickets: [`CREATIVE_UX.md`](./CREATIVE_UX.md) §4.
 
 ---
 

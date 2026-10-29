@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { NextResponse } from "next/server";
 
 import { downloadVideo } from "@/lib/download";
+import { publicFailure } from "@/lib/public-error";
+import { rateLimitResponse } from "@/lib/http-rate-limit";
 import { extractArtifacts, framesToBase64Jpegs } from "@/lib/frames";
 import { analyzeMusic } from "@/lib/music";
 import { paletteFromMiddleFrame } from "@/lib/palette";
@@ -18,6 +20,9 @@ export const dynamic = "force-dynamic";
 const ROOT_TMP = "/tmp";
 
 export async function POST(req: Request) {
+  const limited = rateLimitResponse(req, "analyze");
+  if (limited) return limited;
+
   let body: { url?: string } = {};
 
   try {
@@ -55,20 +60,11 @@ export async function POST(req: Request) {
       try {
         await downloadVideo(urlRaw, videoPath);
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: /instagram/i.test(message)
-              ? "Could not fetch that Instagram reel from a link."
-              : message.length &&
-                  (message.includes("yt-dlp") || /http|403|blocked|sign in|private/i.test(message))
-                ? "Download blocked or URL unsupported — try another public clip."
-                : "Download failed.",
-            hint: /instagram/i.test(message)
-              ? "Save the reel to your device, then use Upload clip on this page."
-              : message || undefined,
+            ...publicFailure(err, "Download blocked or URL unsupported. Try another public clip, or upload the file."),
             stage: "download",
           } satisfies AnalyzeErrorBody,
         };
@@ -99,13 +95,11 @@ export async function POST(req: Request) {
         frames = artifact.framePaths;
         audioPath = artifact.audioPath;
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: "Could not decode the downloaded clip.",
-            hint,
+            ...publicFailure(err, "Could not decode the downloaded clip."),
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };
@@ -141,13 +135,11 @@ export async function POST(req: Request) {
         thumbs = await framesToBase64Jpegs(frames, 14);
         if (!thumbs.length) throw new Error("empty_thumbs");
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 422,
           body: {
             ok: false,
-            error: "Could not serialize keyframes for vision.",
-            hint,
+            ...publicFailure(err, "Could not prepare frames for analysis."),
             stage: "palette",
           } satisfies AnalyzeErrorBody,
         };
@@ -157,13 +149,11 @@ export async function POST(req: Request) {
       try {
         claudePayload = await analyzeWithClaude(thumbs);
       } catch (err) {
-        const hint = err instanceof Error ? err.message : String(err);
         return {
           status: 502,
           body: {
             ok: false,
-            error: "Vision analysis could not be completed.",
-            hint,
+            ...publicFailure(err, "Vision analysis could not be completed."),
             stage: "claude",
             retrySuggested: true,
           } satisfies AnalyzeErrorBody,

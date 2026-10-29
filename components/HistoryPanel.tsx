@@ -35,10 +35,12 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
   if (entries.length === 0) {
     return (
       <div className="border-t border-white/20 px-6 py-10 text-left md:px-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">history log</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
+          library on this device · video & music only
+        </p>
         <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
-          No analyses saved yet. Run a video or music breakdown — it will show up here like a chat log on this
-          browser only.
+          No analyses in this library yet. Video and music only — still breakdowns are not saved here yet. Run a
+          video or music breakdown; entries stay on this device only.
         </p>
       </div>
     );
@@ -48,7 +50,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
     <div className="border-t border-white/20 text-left">
       <div className="flex items-center justify-between gap-3 border-b border-white/12 px-6 py-4 md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          {entries.length} saved · this device
+          {entries.length} in this library · this device · video & music only
         </p>
         <button
           type="button"
@@ -60,15 +62,19 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
       </div>
       <ul className="max-h-[min(28rem,60vh)] divide-y divide-white/10 overflow-y-auto">
         {entries.map((entry) => (
-          <li key={entry.id}>
+          <li key={entry.id} className="flex items-stretch gap-2 px-6 py-2 md:px-8">
             <button
               type="button"
               onClick={() => onOpen(entry)}
-              className="flex w-full items-start gap-3 px-6 py-4 text-left transition hover:bg-white/[0.04] md:px-8"
+              className="flex min-h-[44px] min-w-0 flex-1 items-start gap-3 py-3 text-left transition hover:opacity-90 active:opacity-80"
             >
               {entry.artUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.artUrl} alt="" className="mt-0.5 h-12 w-12 shrink-0 object-cover" />
+                <img
+                  src={entry.artUrl}
+                  alt={entry.title}
+                  className="mt-0.5 h-12 w-12 shrink-0 object-cover"
+                />
               ) : (
                 <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">
                   {entry.platform}
@@ -82,11 +88,6 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
                   <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/30">
                     {formatHistoryWhen(entry.analyzedAt)}
                   </span>
-                  {typeof entry.score === "number" ? (
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/80">
-                      {Math.round(entry.score)}
-                    </span>
-                  ) : null}
                 </span>
                 <span className="mt-1 block truncate font-mono text-[12px] text-paper">{entry.title}</span>
                 {entry.subtitle ? (
@@ -106,20 +107,13 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
                   </span>
                 ) : null}
               </span>
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(e) => onDelete(entry.id, e)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onDelete(entry.id, e as unknown as React.MouseEvent);
-                  }
-                }}
-                className="shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
-              >
-                del
-              </span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => onDelete(entry.id, e)}
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center self-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
+            >
+              del
             </button>
           </li>
         ))}

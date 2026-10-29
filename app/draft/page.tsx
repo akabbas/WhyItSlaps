@@ -9,22 +9,21 @@ export default function DraftHubPage() {
           History & explore
         </h1>
         <p className="font-mono text-[11px] leading-relaxed text-white/55">
-          Lightweight prototypes for revisiting past analyses and an opt-in public gallery. Nothing here is wired to
-          real data yet — click through to see layout and copy.
+          History and music scan open the live tool. The slap library is still a layout mock.
         </p>
       </header>
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
-          href="/draft/history"
+          href="/?mode=history"
           className="group border border-white/15 p-6 transition hover:border-white/35 hover:bg-white/[0.03]"
         >
           <h2 className="font-mono text-[11px] uppercase tracking-[0.24em] text-paper">Personal history</h2>
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
             Your past video & music breakdowns — private list, reopen any row.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
-            view mock →
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
+            open history →
           </span>
         </Link>
         <Link
@@ -35,20 +34,20 @@ export default function DraftHubPage() {
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
             Opt-in public feed — what people chose to publish, not everything they analyzed.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
             view mock →
           </span>
         </Link>
         <Link
-          href="/draft/detect"
+          href="/?mode=music"
           className="group border border-white/15 p-6 transition hover:border-white/35 hover:bg-white/[0.03]"
         >
           <h2 className="font-mono text-[11px] uppercase tracking-[0.24em] text-paper">Music scan</h2>
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
-            Shazam-style fingerprint — upload audio or clip before you have a Spotify link.
+            Shazam-style fingerprint — upload audio or a short clip on the Music tab.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
-            try prototype →
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
+            open music →
           </span>
         </Link>
         <Link
@@ -124,10 +123,10 @@ export default function DraftHubPage() {
         </p>
       </section>
 
-      <footer className="mt-14 flex flex-wrap gap-6 border-t border-white/12 pt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+      <footer className="mt-14 flex flex-wrap gap-6 border-t border-white/12 pt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
         <Link href="/" className="hover:text-paper">open tool</Link>
         <Link href="/" className="hover:text-paper">home</Link>
-        <span className="text-white/30">spec: docs/draft-history-social.md</span>
+        <span className="text-white/50">spec: docs/draft-history-social.md</span>
       </footer>
     </main>
   );
