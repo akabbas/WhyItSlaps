@@ -5,7 +5,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { decodeAudioFileToPcm } from "./decode-audio.ts";
-import { blendSonicScores, scoreFromCatalogSignals, scoreFromPcm } from "./sonic-scores.ts";
+import {
+  blendSonicScores,
+  formatSonicScoreFacts,
+  scoreFromCatalogSignals,
+  scoreFromPcm,
+  SONIC_SCORE_HINTS,
+  SONIC_SCORE_LABELS,
+  SONIC_SCORE_ORDER,
+} from "./sonic-scores.ts";
 
 const SAMPLE_RATE = 22050;
 
@@ -185,4 +193,36 @@ test("blend keeps catalog hook/impact and preview mix clarity", () => {
 test("catalog and preview both missing yields no scores", () => {
   assert.equal(scoreFromCatalogSignals(null, null), null);
   assert.equal(blendSonicScores(null, null), null);
+});
+
+test("meter labels are measurements and facts use those names", () => {
+  assert.equal(SONIC_SCORE_LABELS.hook_strength, "CHORUS LIFT");
+  assert.equal(SONIC_SCORE_LABELS.production_density, "DENSITY");
+  assert.equal(SONIC_SCORE_LABELS.emotional_range, "DYNAMICS");
+  assert.equal(SONIC_SCORE_LABELS.impact, "ENERGY");
+  assert.equal(SONIC_SCORE_LABELS.mix_clarity, "HEADROOM");
+  assert.equal(SONIC_SCORE_LABELS.overall_vibe, "SHAPE");
+
+  for (const key of SONIC_SCORE_ORDER) {
+    assert.ok(SONIC_SCORE_HINTS[key].includes("."));
+    assert.notEqual(SONIC_SCORE_HINTS[key], SONIC_SCORE_LABELS[key]);
+  }
+
+  const facts = formatSonicScoreFacts({
+    hook_strength: 70,
+    production_density: 60,
+    emotional_range: 50,
+    impact: 40,
+    mix_clarity: 30,
+    overall_vibe: 55,
+  });
+  assert.match(facts, /CHORUS LIFT: 70\/100/);
+  assert.match(facts, /DENSITY: 60\/100/);
+  assert.match(facts, /DYNAMICS: 50\/100/);
+  assert.match(facts, /ENERGY: 40\/100/);
+  assert.match(facts, /HEADROOM: 30\/100/);
+  assert.match(facts, /SHAPE: 55\/100/);
+  assert.equal(facts.includes("HOOK STRENGTH"), false);
+  assert.equal(facts.includes("OVERALL VIBE"), false);
+  assert.equal(facts.includes("MIX CLARITY"), false);
 });
