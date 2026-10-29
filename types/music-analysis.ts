@@ -25,6 +25,21 @@ export interface SpotifyAudioFeatures {
   time_signature: number;
 }
 
+/** Compact `/v1/audio-analysis` — full catalog recording, not the preview clip. */
+export type SpotifySectionSummary = {
+  start_s: number;
+  duration_s: number;
+  loudness_db: number;
+  tempo_bpm: number;
+};
+
+export type SpotifyAudioAnalysisSummary = {
+  duration_s: number;
+  loudness_db: number | null;
+  tempo_bpm: number | null;
+  sections: SpotifySectionSummary[];
+};
+
 export type MusicScoreKey =
   | "hook_strength"
   | "production_density"
@@ -97,7 +112,7 @@ export interface ClaudeMusicAnalysis {
   };
   aesthetic_tags: string[];
   target_listener: string;
-  /** Proxies from Spotify audio features. Null when those features were missing. */
+  /** Preview-clip DSP meters. Null when no preview audio could be scored. */
   scores: MusicAnalysisScores | null;
   sonic_textures: SonicTexture[];
   energy_arc: EnergyArcSegment[];
@@ -120,6 +135,8 @@ export interface MusicAnalyzeSuccess {
   ok: true;
   track: SpotifyTrack;
   features: SpotifyAudioFeatures | null;
+  /** Full-recording Spotify analysis; null when the endpoint is missing or forbidden. */
+  analysis?: SpotifyAudioAnalysisSummary | null;
   claude: ClaudeMusicAnalysis;
 }
 

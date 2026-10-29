@@ -89,7 +89,7 @@ Post-**video**-analysis prompts for tools like Runway / Kling from tags, grade, 
 
 ### Share / export
 
-Richer share formats; PDF; durable share URLs (today: **video** result cached in `sessionStorage`; **music** session is not persisted the same way — see code). Numbers as **character meters** (not a leaderboard), share-card polish, and spawnable tickets: **`docs/CREATIVE_UX.md`**.
+Richer share formats; PDF; durable share URLs (today: **video** result cached in `sessionStorage`; **music** session is not persisted the same way — see code). Numbers as **character meters** (not a leaderboard), share-card polish, and spawnable tickets: **`docs/CREATIVE_UX.md`**. Ranked engine / loading / API work: **`docs/WORK_ORDER.md`**.
 
 ### Product ideas
 

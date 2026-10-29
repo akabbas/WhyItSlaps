@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type {
   SpotifyTrack,
   SpotifyAudioFeatures,
+  SpotifyAudioAnalysisSummary,
   ClaudeMusicAnalysis,
   MusicAnalysisScores,
   SonicTexture,
@@ -11,6 +12,7 @@ import type {
 import { stripJsonFence } from "@/lib/claude";
 import { MUSIC_CRAFT, SPEAKER } from "@/lib/dialogue";
 import { formatSonicScoreFacts } from "@/lib/sonic-scores";
+import { formatAudioAnalysisFacts } from "@/lib/spotify-analysis";
 
 const MUSIC_SYSTEM_PROMPT = `${SPEAKER}
 
@@ -170,6 +172,7 @@ export async function analyzeMusicWithClaude(
   track: SpotifyTrack,
   features: SpotifyAudioFeatures | null,
   scores: MusicAnalysisScores | null,
+  analysis: SpotifyAudioAnalysisSummary | null = null,
 ): Promise<ClaudeMusicAnalysis> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
@@ -185,7 +188,10 @@ export async function analyzeMusicWithClaude(
     : "";
   const scoreBlock = scores
     ? `\n\n${formatSonicScoreFacts(scores)}`
-    : "\n\nSonic scores could not be measured from audio for this track. Do not invent 0–100 ratings and do not output a scores object.";
+    : "\n\nSonic scores could not be measured from the preview clip. Do not invent 0–100 ratings and do not output a scores object.";
+  const analysisBlock = analysis
+    ? `\n\n${formatAudioAnalysisFacts(analysis)}`
+    : "\n\nSpotify audio analysis of the full recording was not available. Do not invent a section map. Keep energy_arc and arrangement.structure honest about uncertainty.";
 
   const inputText = `Analyze this track and return the full JSON breakdown:
 

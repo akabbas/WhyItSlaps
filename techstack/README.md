@@ -62,9 +62,9 @@ flowchart LR
 ## MUSIC pipeline (`POST /api/analyze-music`)
 
 1. Parse **Spotify track ID** from URL (`extractSpotifyTrackId`).
-2. **Client-credentials** token; fetch track + **audio features** (`lib/spotify.ts`).
+2. **Client-credentials** token; fetch track + **audio features** + **audio analysis** (sections of the full catalog recording; fail-open) (`lib/spotify.ts`).
 3. **`scoreTrackAudio`** measures a preview (Spotify `preview_url`, otherwise an iTunes Search match) and returns sonic scores. Unreadable audio leaves scores `null`.
-4. **`analyzeMusicWithClaude(track, features, scores)`** → structured JSON per `types/music-analysis.ts`. The model is given the numbers as facts and is told not to explain the measurement.
+4. **`analyzeMusicWithClaude(track, features, scores, analysis)`** → structured JSON per `types/music-analysis.ts`. Clip DSP and full-recording analysis are separate facts.
 5. `maxDuration = 60` on this route (lighter than video).
 
 ffmpeg decodes the preview for scores. yt-dlp is not on this path.
@@ -129,4 +129,4 @@ Long `maxDuration` values require a host that actually honors them (see BOTTLENE
 
 ## Loading UX
 
-`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`download`** (video file), **`download-music`** (~30s preview clip), **`scan`**. Rotating copy is illustrative, not step-accurate.
+`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`still`**, **`download`** (video file), **`download-music`** (~30s preview clip), **`scan`**. Copy is per-media. The bar is elapsed-time and **never decreases**; it does not claim 100% while still waiting.

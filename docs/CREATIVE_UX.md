@@ -6,6 +6,8 @@ Living product answers plus **numbered, independently spawnable** agent tickets.
 
 **Out of scope here:** Voice STT (**PR #17** — skip). Full-song download (music save is a ~30s Spotify or iTunes **preview** only).
 
+**Ranked engine / loading / share work order:** [`WORK_ORDER.md`](./WORK_ORDER.md).
+
 ---
 
 ## How later agents should use this
