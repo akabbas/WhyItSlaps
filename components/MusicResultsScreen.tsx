@@ -82,7 +82,8 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
 }
 
 export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownloadPreview, onReset }: Props) {
-  const { track, features, claude: c } = data;
+  const { track, features, analysis, claude: c } = data;
+  const hasFullArc = Boolean(analysis?.sections?.length);
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
   const [shareCardOpen, setShareCardOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
@@ -366,7 +367,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             Sonic Scores
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            Measured from the same short preview clip used for analysis (often ~30s, not the full song). Heuristic meters, not Spotify charts or your personal taste.
+            These meters only. Taken from the label&apos;s ~30s preview (Spotify, else iTunes) — usually a hook snippet they attached, not a random slice we pick, and not the full song. Energy arc and Spotify stats below are separate.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -418,8 +419,13 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
           <section className="border border-white/12 bg-black/20 p-5">
-            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+            <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
               Energy Arc
+            </p>
+            <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+              {hasFullArc
+                ? "Full recording, not the 30s clip. Loudness and tempo by section from Spotify's audio analysis; names (verse, chorus, ...) are written to match that map."
+                : "Sketch of the song’s shape. Spotify’s full-recording analysis was missing, so this is not measured from the 30s preview either — treat the bars as a draft."}
             </p>
             <div className="flex items-end gap-1" style={{ height: "56px" }}>
               {c.energy_arc.map((seg, si) =>
