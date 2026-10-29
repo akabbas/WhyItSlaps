@@ -6,9 +6,11 @@ import type { MusicMatch } from "@/types/analysis";
 
 type Props = {
   music: MusicMatch | null;
+  /** Video results: disambiguate soundtrack ID from Music mode tab. */
+  kicker?: string;
 };
 
-export function MusicCard({ music }: Props) {
+export function MusicCard({ music, kicker = "Music" }: Props) {
   const [albumArt, setAlbumArt] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -47,7 +49,7 @@ export function MusicCard({ music }: Props) {
         ) : null}
         <div className="flex flex-1 items-baseline justify-between gap-6">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/52">Music</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/52">{kicker}</p>
             <h4 className="mt-2 font-serif text-2xl text-paper">{music.title ?? "Untitled cut"}</h4>
             <p className="mt-1 font-mono text-[12px] text-white/74">{music.artist ?? "Unknown artist"}</p>
             {music.album ? <p className="mt-1 font-mono text-[11px] text-white/55">{music.album}</p> : null}
