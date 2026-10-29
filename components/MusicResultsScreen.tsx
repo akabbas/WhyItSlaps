@@ -351,8 +351,11 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Sonic Scores */}
         <section>
-          <p className="mb-4 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
             Sonic Scores
+          </p>
+          <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+            Measured from the same short preview clip used for analysis (often ~30s, not the full song). Heuristic meters, not Spotify charts or your personal taste.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -374,8 +377,11 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Spotify Audio Features mini-bars */}
         {features && (
           <section className="border border-white/12 bg-black/20 p-5">
-            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-              Audio Features
+            <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+              Spotify track stats
+            </p>
+            <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+              From Spotify&apos;s audio features API (energy, danceability, etc.). Separate from preview sonic scores above.
             </p>
             <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />

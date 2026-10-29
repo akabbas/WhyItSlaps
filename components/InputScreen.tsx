@@ -223,14 +223,14 @@ export function InputScreen({
                     onDownload();
                   }}
                 >
-                  Download
+                  Save preview
                 </button>
               </div>
             </div>
 
             {!isMusic ? (
               <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
-                Analyze = full breakdown · Download = file only
+                Analyze = full breakdown · Save preview = ~30s mp3 only
               </p>
             ) : null}
 
