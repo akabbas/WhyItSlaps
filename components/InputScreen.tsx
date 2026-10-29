@@ -64,6 +64,10 @@ export function InputScreen({
   const isStill = mode === "still";
   const isHistory = mode === "history";
   const isInstagramUrl = plat === "IG";
+  const trimmedError = (error ?? "").trim();
+  const urlInputErrorId = "home-url-input-error";
+  const scanNeedsSpotifyUrlHint =
+    isMusic && /no spotify/i.test(trimmedError);
 
   const tabClass = (active: boolean) =>
     `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
@@ -154,9 +158,9 @@ export function InputScreen({
             <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
               jpeg · png · webp · gif · one still · 8 mb
             </p>
-            {(error ?? "").trim() ? (
+            {trimmedError ? (
               <div role="alert" className="mt-5 border-l-2 border-paper/60 pl-4">
-                <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
+                <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{trimmedError}</p>
               </div>
             ) : null}
           </div>
@@ -168,13 +172,19 @@ export function InputScreen({
               onAnalyze();
             }}
           >
+            {isMusic ? (
+              <p className="border-b border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 md:px-8">
+                Have a link
+              </p>
+            ) : null}
             <div className="flex w-full flex-col sm:flex-row sm:items-stretch">
               <div className="relative flex h-14 flex-1 items-center border-b border-white/20 sm:border-b-0 sm:border-r sm:border-white/20">
                 <input
-                  className="h-full w-full min-w-0 border-none bg-transparent py-0 pl-4 pr-12 font-mono text-[13px] leading-none text-white caret-paper outline-none placeholder:text-white/28"
+                  className="h-full w-full min-w-0 border-none bg-transparent py-0 pl-4 pr-12 font-mono text-[13px] leading-none text-white caret-paper outline-none placeholder:text-white/50"
                   value={value}
                   disabled={disabled}
                   spellCheck={false}
+                  aria-describedby={trimmedError ? urlInputErrorId : undefined}
                   placeholder={
                     isMusic ? "https://open.spotify.com/track/…" : "https://youtube.com/watch?v=paste-here…"
                   }
@@ -188,11 +198,11 @@ export function InputScreen({
                 </span>
               </div>
 
-              <div className="flex h-14 w-full shrink-0 border-t border-white/20 sm:w-auto sm:border-t-0">
+              <div className="grid w-full shrink-0 grid-cols-1 border-t border-white/20 min-[360px]:grid-cols-2 sm:w-auto sm:border-t-0 sm:grid-cols-2">
                 <button
                   disabled={disabled || !looksLikeUrl}
                   type="submit"
-                  className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none sm:border-r sm:border-white/20 ${
+                  className={`flex min-h-[44px] w-full items-center justify-center px-4 py-3 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-h-14 sm:min-w-[9.5rem] sm:py-0 sm:border-r sm:border-white/20 ${
                     disabled || !looksLikeUrl
                       ? "cursor-not-allowed bg-white/10 text-white/45"
                       : "bg-paper text-black hover:bg-white"
@@ -203,7 +213,7 @@ export function InputScreen({
                 <button
                   disabled={disabled || !looksLikeUrl}
                   type="button"
-                  className={`flex h-full min-h-0 flex-1 items-center justify-center px-4 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-w-[9.5rem] sm:flex-none ${
+                  className={`flex min-h-[44px] w-full items-center justify-center px-4 py-3 font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.22em] transition sm:min-h-14 sm:min-w-[9.5rem] sm:py-0 ${
                     disabled || !looksLikeUrl
                       ? "cursor-not-allowed bg-black/50 text-white/40"
                       : "bg-[#141414] text-paper hover:bg-white/[0.08] hover:text-white"
@@ -218,15 +228,28 @@ export function InputScreen({
               </div>
             </div>
 
-            <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-                {isMusic
-                  ? "open.spotify.com/track/… · scan uses first ~15s of audio · download saves ~30s preview mp3"
-                  : "tiktok · youtube · x · upload for instagram · max 60s"}
+            {!isMusic ? (
+              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
+                Analyze = full breakdown · Download = file only
               </p>
+            ) : null}
+
+            <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
+              {isMusic ? (
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
+                  open.spotify.com/track/… · download saves ~30s preview mp3
+                </p>
+              ) : (
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
+                  tiktok · youtube · x · upload for instagram · max 60s
+                </p>
+              )}
 
               {isMusic && typeof onUploadMusicScan === "function" ? (
-                <div>
+                <div className="space-y-3 border-t border-white/12 pt-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
+                    Don&apos;t know the track?
+                  </p>
                   <input
                     ref={musicScanInputRef}
                     type="file"
@@ -243,12 +266,12 @@ export function InputScreen({
                     type="button"
                     disabled={disabled}
                     onClick={() => musicScanInputRef.current?.click()}
-                    className="border border-white/25 bg-transparent px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-[44px] border border-white/25 bg-transparent px-4 py-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Scan upload
                   </button>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
-                    mp3 · m4a · short mp4 · max 25 mb · same engine as video soundtrack id
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                    mp3 · m4a · short mp4 · max 25 mb · first 15s of audio
                   </p>
                 </div>
               ) : null}
@@ -275,7 +298,7 @@ export function InputScreen({
                   >
                     Upload clip
                   </button>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/30">
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
                     Instagram: save the reel and upload the file
                   </p>
                 </div>
@@ -287,9 +310,19 @@ export function InputScreen({
                 </p>
               ) : null}
 
-              {(error ?? "").trim() ? (
+              {trimmedError ? (
                 <div role="alert" className="border-l-2 border-paper/60 pl-4">
-                  <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
+                  <p
+                    id={urlInputErrorId}
+                    className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90"
+                  >
+                    {trimmedError}
+                  </p>
+                  {scanNeedsSpotifyUrlHint ? (
+                    <p className="mt-2 font-mono text-[11px] leading-relaxed tracking-wide text-white/55">
+                      Paste an open.spotify.com/track/… URL above, then tap Analyze.
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 

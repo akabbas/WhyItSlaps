@@ -131,6 +131,20 @@ Details: **[techstack/README.md](./techstack/README.md)** · product notes: **[C
 
 ---
 
+## UI agents (Impeccable + Ponytail)
+
+Baseline **Design Health** grades: **[docs/ui-impeccable-grade.md](./docs/ui-impeccable-grade.md)**. Sprint prompts and commands: **[docs/UI_AGENT_PLAYBOOK.md](./docs/UI_AGENT_PLAYBOOK.md)**. Impeccable reads **[PRODUCT.md](./PRODUCT.md)** and **[DESIGN.md](./DESIGN.md)**.
+
+After clone, download the Impeccable engine (skills are in-repo; binary is gitignored):
+
+```bash
+npm run agent:setup
+```
+
+Ponytail skills live under **`.cursor/skills/ponytail*`** (minimal UI diffs; do not cut accessibility). In agent chat: `/impeccable polish …`, `@ponytail`, or the playbook prompt template.
+
+---
+
 ## Implementation notes
 
 - Analyze/download temp dirs live under **`/tmp`** and are removed in `finally` blocks.
