@@ -66,7 +66,7 @@ export function InputScreen({
   const isInstagramUrl = plat === "IG";
 
   const tabClass = (active: boolean) =>
-    `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
+    `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
       active
         ? "bg-paper text-black"
         : "bg-transparent text-white/45 hover:bg-white/[0.04] hover:text-white/70"
@@ -155,7 +155,7 @@ export function InputScreen({
               jpeg · png · webp · gif · one still · 8 mb
             </p>
             {(error ?? "").trim() ? (
-              <div className="mt-5 border-l-2 border-paper/60 pl-4">
+              <div role="alert" className="mt-5 border-l-2 border-paper/60 pl-4">
                 <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
               </div>
             ) : null}
@@ -288,7 +288,7 @@ export function InputScreen({
               ) : null}
 
               {(error ?? "").trim() ? (
-                <div className="border-l-2 border-paper/60 pl-4">
+                <div role="alert" className="border-l-2 border-paper/60 pl-4">
                   <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
                 </div>
               ) : null}
