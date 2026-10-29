@@ -6,6 +6,7 @@
 
 - Background: **`#0A0A0A`** (near-black), grain via `.grain-screen` + SVG turbulence in root layout.
 - Type on dark: white / paper hierarchy; **paper** `#F5F0E8` for primary CTAs and score fills.
+- **Browser mark:** cropped eclipse photograph (`app/icon.png`, `app/apple-icon.png`, `app/opengraph-image.jpg`) — near-black field, warm crescent, light grain. Do not hue-shift the crescent to paper; orange is the mark, paper stays UI type.
 
 ## Typography
 
