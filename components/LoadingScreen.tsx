@@ -38,7 +38,7 @@ const MESSAGES_DOWNLOAD = [
 ] as const;
 
 const MESSAGES_DOWNLOAD_MUSIC = [
-  "fetching spotify preview mp3",
+  "fetching ~30s preview clip",
   "packaging preview for browser save…",
 ] as const;
 

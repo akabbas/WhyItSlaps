@@ -4,7 +4,7 @@ Living product answers plus **numbered, independently spawnable** agent tickets.
 
 **Baseline:** `origin/main` @ `86edbbc` (Sprint 4 polish **#23–#28** merged). Update this file when a ticket ships.
 
-**Out of scope here:** Voice STT (**PR #17** — skip). Full-song download (music download is the ~30s Spotify **preview** only).
+**Out of scope here:** Voice STT (**PR #17** — skip). Full-song download (music save is a ~30s Spotify or iTunes **preview** only).
 
 ---
 

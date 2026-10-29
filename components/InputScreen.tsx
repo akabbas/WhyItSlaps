@@ -68,6 +68,8 @@ export function InputScreen({
   const urlInputErrorId = "home-url-input-error";
   const scanNeedsSpotifyUrlHint =
     isMusic && /no spotify/i.test(trimmedError);
+  const noPreviewClipHint =
+    isMusic && /no ~30s preview|no preview clip for this track/i.test(trimmedError);
 
   const tabClass = (active: boolean) =>
     `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
@@ -228,16 +230,20 @@ export function InputScreen({
               </div>
             </div>
 
-            {!isMusic ? (
+            {isMusic ? (
+              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
+                Analyze = breakdown · Save preview = ~30s clip · never the full song
+              </p>
+            ) : (
               <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
                 Analyze = full breakdown · Save preview = ~30s mp3 only
               </p>
-            ) : null}
+            )}
 
             <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
               {isMusic ? (
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
-                  open.spotify.com/track/… · download saves ~30s preview mp3
+                  open.spotify.com/track/… · save preview = ~30s clip · never the full song
                 </p>
               ) : (
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
@@ -322,6 +328,16 @@ export function InputScreen({
                     <p className="mt-2 font-mono text-[11px] leading-relaxed tracking-wide text-white/55">
                       Paste an open.spotify.com/track/… URL above, then tap Analyze.
                     </p>
+                  ) : null}
+                  {noPreviewClipHint && plat === "SP" && looksLikeUrl ? (
+                    <a
+                      href={value.trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block font-mono text-[11px] uppercase tracking-[0.2em] text-paper underline underline-offset-4 hover:text-white"
+                    >
+                      Open in Spotify
+                    </a>
                   ) : null}
                 </div>
               ) : null}
