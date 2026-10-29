@@ -325,22 +325,22 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 
 | # | Heuristic | Score | Note |
 |---|-----------|-------|------|
-| 1 | Status | 4 | `aria-busy`, rotating messages, pseudo-progress |
-| 2 | Match | 3 | Phase-specific copy |
+| 1 | Status | 4 | `aria-busy`, real stage copy (video/music), idle line otherwise |
+| 2 | Match | 4 | Phase-specific copy tied to pipeline where streamed |
 | 3 | Control | 1 | No cancel |
 | 4 | Consistency | 4 | Same overlay all flows |
 | 5 | Prevention | n/a | |
-| 6 | Recognition | 3 | Message changes every 2s |
+| 6 | Recognition | 4 | One line; no looping 1/4 index |
 | 7 | Flexibility | 1 | Cannot background |
-| 8 | Minimal | 3 | Square ring accents (no rounded orbit) |
+| 8 | Minimal | 3 | Concentric squares plus a paper tick on a square path |
 | 9 | Recovery | 2 | User waits for timeout errors |
 | 10 | Help | n/a | |
 
-**Design Health:** **27/32 — Good** (↑ from 25/32; H5, H10 n/a)  
-**Specificity:** **Strong** — square dashed rings match sharp-corner brand.  
-**Cognitive load:** **0–1 failures** — step index replaces misleading percent.
+**Design Health:** **29/32 — Good** (H5, H10 n/a)  
+**Specificity:** **Strong** — square dashed rings and a square-path tick match sharp-corner brand.  
+**Cognitive load:** **0 failures** — one status line; copy follows a real stage when the server sends one.
 
-**Unfinished:** No cancel on long video analyze. Bar must stay monotonic (see [`WORK_ORDER.md`](./WORK_ORDER.md) W1).
+**Unfinished:** No cancel on long video analyze. Still/scan/download have no stage stream yet.
 
 **Polish (ordered) — Sprint 5:**
 

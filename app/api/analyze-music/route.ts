@@ -3,6 +3,7 @@ import { extractSpotifyTrackId, fetchSpotifyAudioAnalysis, fetchSpotifyTrackData
 import { analyzeMusicWithClaude } from "@/lib/claude-music";
 import { publicFailure } from "@/lib/public-error";
 import { rateLimitResponse } from "@/lib/http-rate-limit";
+import { keepAliveNdjsonResponse } from "@/lib/ndjsonKeepAlive";
 import { scoreTrackAudio } from "@/lib/score-track-audio";
 import { blendSonicScores, scoreFromCatalogSignals } from "@/lib/sonic-scores";
 import type { MusicAnalyzeSuccess, MusicAnalyzeErrorBody } from "@/types/music-analysis";
@@ -45,41 +46,46 @@ export async function POST(req: Request) {
     );
   }
 
-  let track, features;
-  try {
-    ({ track, features } = await fetchSpotifyTrackData(trackId));
-  } catch (err) {
-    return NextResponse.json(
-      {
-        ok: false,
-        ...publicFailure(err, "Could not fetch track data from Spotify."),
-        stage: "spotify",
-      } satisfies MusicAnalyzeErrorBody,
-      { status: 502 },
-    );
-  }
+  return keepAliveNdjsonResponse<MusicAnalyzeSuccess | MusicAnalyzeErrorBody>(async (report) => {
+    report("fetch");
+    let track, features;
+    try {
+      ({ track, features } = await fetchSpotifyTrackData(trackId));
+    } catch (err) {
+      return {
+        status: 502,
+        body: {
+          ok: false,
+          ...publicFailure(err, "Could not fetch track data from Spotify."),
+          stage: "spotify",
+        } satisfies MusicAnalyzeErrorBody,
+      };
+    }
 
-  const [previewScores, analysis] = await Promise.all([
-    scoreTrackAudio(track).catch(() => null),
-    fetchSpotifyAudioAnalysis(trackId),
-  ]);
-  const scores = blendSonicScores(scoreFromCatalogSignals(features, analysis), previewScores);
+    report("catalog");
+    const [previewScores, analysis] = await Promise.all([
+      scoreTrackAudio(track).catch(() => null),
+      fetchSpotifyAudioAnalysis(trackId),
+    ]);
+    const scores = blendSonicScores(scoreFromCatalogSignals(features, analysis), previewScores);
 
-  let claude;
-  try {
-    claude = await analyzeMusicWithClaude(track, features, scores, analysis);
-  } catch (err) {
-    return NextResponse.json(
-      {
-        ok: false,
-        ...publicFailure(err, "Claude could not analyze the track."),
-        stage: "claude",
-        retrySuggested: true,
-      } satisfies MusicAnalyzeErrorBody,
-      { status: 502 },
-    );
-  }
+    report("critique");
+    let claude;
+    try {
+      claude = await analyzeMusicWithClaude(track, features, scores, analysis);
+    } catch (err) {
+      return {
+        status: 502,
+        body: {
+          ok: false,
+          ...publicFailure(err, "Claude could not analyze the track."),
+          stage: "claude",
+          retrySuggested: true,
+        } satisfies MusicAnalyzeErrorBody,
+      };
+    }
 
-  const payload: MusicAnalyzeSuccess = { ok: true, track, features, analysis: analysis ?? null, claude };
-  return NextResponse.json(payload, { status: 200 });
+    const payload: MusicAnalyzeSuccess = { ok: true, track, features, analysis: analysis ?? null, claude };
+    return { status: 200, body: payload };
+  });
 }
