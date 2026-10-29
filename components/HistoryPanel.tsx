@@ -36,11 +36,11 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
     return (
       <div className="border-t border-white/20 px-6 py-10 text-left md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          device-local log · video & music only
+          library on this device · video & music only
         </p>
         <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
-          No analyses saved yet. Video and music only — still breakdowns are not logged here yet. Run a video or
-          music breakdown; entries stay on this device only, like a chat log.
+          No analyses in this library yet. Video and music only — still breakdowns are not saved here yet. Run a
+          video or music breakdown; entries stay on this device only.
         </p>
       </div>
     );
@@ -50,7 +50,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
     <div className="border-t border-white/20 text-left">
       <div className="flex items-center justify-between gap-3 border-b border-white/12 px-6 py-4 md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          {entries.length} saved · device-local · video & music only
+          {entries.length} in this library · this device · video & music only
         </p>
         <button
           type="button"
@@ -88,11 +88,6 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
                   <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/30">
                     {formatHistoryWhen(entry.analyzedAt)}
                   </span>
-                  {typeof entry.score === "number" ? (
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/80">
-                      {Math.round(entry.score)}
-                    </span>
-                  ) : null}
                 </span>
                 <span className="mt-1 block truncate font-mono text-[12px] text-paper">{entry.title}</span>
                 {entry.subtitle ? (

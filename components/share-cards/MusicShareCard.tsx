@@ -18,6 +18,14 @@ export function MusicShareCard({ data, format }: Props) {
   const { width, height } = SHARE_CARD_DIMENSIONS[format];
   const { track, features, claude: c } = data;
   const tags = c.aesthetic_tags.slice(0, 3);
+  const statCells: { label: string; value: string | number }[] = [];
+  if (features) {
+    statCells.push({ label: "BPM", value: features.tempo_bpm });
+    statCells.push({ label: "KEY", value: features.key });
+  }
+  if (c.scores) {
+    statCells.push({ label: "HOOK", value: c.scores.hook_strength });
+  }
 
   return (
     <div
@@ -32,15 +40,6 @@ export function MusicShareCard({ data, format }: Props) {
         boxSizing: "border-box",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 14% 18%, rgba(29,185,84,0.12), transparent 40%), radial-gradient(circle at 86% 82%, rgba(245,240,232,0.06), transparent 36%)",
-        }}
-      />
-
       <div
         style={{
           position: "relative",
@@ -70,7 +69,7 @@ export function MusicShareCard({ data, format }: Props) {
               fontSize: 18,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.50)",
             }}
           >
             Music breakdown
@@ -106,33 +105,6 @@ export function MusicShareCard({ data, format }: Props) {
             </div>
           </div>
 
-          {c.scores ? (
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 20,
-                  letterSpacing: "0.24em",
-                  textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.5)",
-                }}
-              >
-                Overall vibe
-              </p>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  fontFamily: "var(--font-dm-serif), serif",
-                  fontSize: format === "story" ? 160 : 120,
-                  lineHeight: 1,
-                  color: "#F5F0E8",
-                }}
-              >
-                {c.scores.overall_vibe}
-              </p>
-            </div>
-          ) : null}
-
           <p
             style={{
               margin: "0 auto 28px",
@@ -167,33 +139,35 @@ export function MusicShareCard({ data, format }: Props) {
         </div>
 
         <div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 16,
-              marginBottom: 28,
-            }}
-          >
-            {features ? (
-              <>
-                <div style={{ border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.35)", padding: "16px 14px", textAlign: "center" }}>
-                  <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.48)" }}>BPM</p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>{features.tempo_bpm}</p>
+          {statCells.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${statCells.length}, 1fr)`,
+                gap: 16,
+                marginBottom: 28,
+              }}
+            >
+              {statCells.map((cell) => (
+                <div
+                  key={cell.label}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    background: "rgba(0,0,0,0.35)",
+                    padding: "16px 14px",
+                    textAlign: "center",
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.50)" }}>
+                    {cell.label}
+                  </p>
+                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>
+                    {cell.value}
+                  </p>
                 </div>
-                <div style={{ border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.35)", padding: "16px 14px", textAlign: "center" }}>
-                  <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.48)" }}>KEY</p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>{features.key}</p>
-                </div>
-              </>
-            ) : null}
-            {c.scores ? (
-              <div style={{ border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.35)", padding: "16px 14px", textAlign: "center" }}>
-                <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.48)" }}>HOOK</p>
-                <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>{c.scores.hook_strength}</p>
-              </div>
-            ) : null}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           <div
             style={{
@@ -204,7 +178,7 @@ export function MusicShareCard({ data, format }: Props) {
               paddingTop: 20,
             }}
           >
-            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.45)" }}>
+            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
               Analyzed on WhyItSlaps
             </p>
             <p style={{ margin: 0, fontSize: 16, letterSpacing: "0.2em", color: "rgba(245,240,232,0.72)" }}>

@@ -87,7 +87,7 @@ export function InputScreen({
           </h1>
           <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
             {isHistory
-              ? "your past analyses · private log on this device"
+              ? "your analyses on this device · a private library"
               : isStill
                 ? "upload a picture · find out why it slaps"
                 : isMusic

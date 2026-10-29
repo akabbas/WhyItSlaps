@@ -16,7 +16,7 @@ import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
 import { SONIC_SCORE_HINTS, SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
-import { MeterFill } from "./ScoreBars";
+import { MeterFill, ThisPieceQualifier } from "./ScoreBars";
 import { ResultsWordmark } from "./ResultsWordmark";
 
 type Props = {
@@ -82,7 +82,8 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
 }
 
 export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownloadPreview, onReset }: Props) {
-  const { track, features, claude: c } = data;
+  const { track, features, analysis, claude: c } = data;
+  const hasFullArc = Boolean(analysis?.sections?.length);
   const [copyLabel, setCopyLabel] = React.useState<string | null>(null);
   const [shareCardOpen, setShareCardOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<DawId>("ableton");
@@ -227,7 +228,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             onClick={() => setShareCardOpen(true)}
             className="min-h-[44px] border border-white/40 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
           >
-            share card
+            SHARE CARD
           </button>
           <button
             type="button"
@@ -362,18 +363,21 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Sonic Scores */}
         <section>
-          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-            Sonic Scores
+          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">
+            this track&apos;s meters
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five — this track&apos;s contour, not a ranking.
+            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five — this track&apos;s contour, not a ranking. Energy arc and Spotify stats below are separate.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {SONIC_SCORE_ORDER.map((key, index) => (
                 <div key={key} className="space-y-1">
                   <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                    <span>{SONIC_SCORE_LABELS[key]}</span>
+                    <span>
+                      {SONIC_SCORE_LABELS[key]}
+                      {key === "overall_vibe" ? <ThisPieceQualifier /> : null}
+                    </span>
                     <span className="text-white/92">{c.scores?.[key]}</span>
                   </div>
                   <MeterFill value={c.scores?.[key] ?? 0} delayMs={index * 70} />
@@ -395,7 +399,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               Spotify track stats
             </p>
             <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-              Raw Spotify audio-feature values for this catalog track.
+              From Spotify&apos;s audio features API (energy, danceability, etc.). Same full-recording catalog as the meters above; different units (0–1 stats vs 0–100 shape).
             </p>
             <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />
@@ -421,8 +425,13 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         {/* Energy Arc */}
         {c.energy_arc.length > 0 && (
           <section className="border border-white/12 bg-black/20 p-5">
-            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+            <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
               Energy Arc
+            </p>
+            <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
+              {hasFullArc
+                ? "Full recording, not the 30s clip. Loudness and tempo by section from Spotify's audio analysis; names (verse, chorus, ...) are written to match that map."
+                : "Sketch of the song’s shape. Spotify’s full-recording analysis was missing, so this is not measured from the 30s preview either — treat the bars as a draft."}
             </p>
             <div className="flex items-end gap-1" style={{ height: "56px" }}>
               {c.energy_arc.map((seg, si) =>

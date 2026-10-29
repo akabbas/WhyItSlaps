@@ -3,7 +3,7 @@
 import React from "react";
 
 import { ColorPalette } from "./ColorPalette";
-import { MeterFill } from "./ScoreBars";
+import { MeterFill, ThisPieceQualifier } from "./ScoreBars";
 import { WhyItWorks } from "./WhyItWorks";
 import { ResultsWordmark } from "./ResultsWordmark";
 import type { StillAnalyzeSuccess, StillScoreKey } from "@/types/still-analysis";
@@ -75,12 +75,15 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
       </header>
 
       <section className="mt-14 space-y-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">picture read</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">this picture&apos;s meters</p>
         <div className="space-y-4">
           {SCORE_ORDER.map((key, index) => (
             <div key={key} className="space-y-1">
               <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                <span>{SCORE_LABELS[key]}</span>
+                <span>
+                  {SCORE_LABELS[key]}
+                  {key === "overall_vibe" ? <ThisPieceQualifier /> : null}
+                </span>
                 <span className="text-white/92">{c.scores[key]}</span>
               </div>
               <MeterFill value={c.scores[key]} delayMs={index * 70} />
