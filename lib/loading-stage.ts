@@ -22,7 +22,7 @@ export function isLoadingStage(value: string): value is LoadingStageId {
 const IDLE: Record<LoadingPhase, string> = {
   analyze: "starting the video read",
   music: "starting the track read",
-  still: "reading the picture",
+  still: "reading the image",
   scan: "listening for a match",
   download: "fetching the source clip",
   "download-music": "fetching a 30s preview",
@@ -43,7 +43,7 @@ const COPY: Record<LoadingPhase, Partial<Record<LoadingStageId, string>>> = {
     critique: "writing the critique",
   },
   still: {
-    fetch: "reading the picture",
+    fetch: "reading the image",
     palette: "pulling the palette",
     critique: "writing the critique",
   },

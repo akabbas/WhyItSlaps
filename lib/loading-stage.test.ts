@@ -7,6 +7,7 @@ test("status stays on one idle line until a real stage arrives", () => {
   assert.equal(loadingStatus("music", "nope"), "starting the track read");
   assert.equal(loadingStatus("analyze", "fetch"), "fetching the clip");
   assert.equal(loadingStatus("analyze", "critique"), "writing the critique");
+  assert.equal(loadingStatus("still", null), "reading the image");
 });
 
 test("bar never decreases and never claims 100", () => {
