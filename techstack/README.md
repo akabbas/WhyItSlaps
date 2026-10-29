@@ -129,4 +129,4 @@ Long `maxDuration` values require a host that actually honors them (see BOTTLENE
 
 ## Loading UX
 
-`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`still`**, **`download`** (video file), **`download-music`** (~30s preview clip), **`scan`**. Copy is per-media. The bar is elapsed-time and **never decreases**; it does not claim 100% while still waiting.
+`LoadingScreen` phases: **`analyze`** (video), **`music`**, **`still`**, **`download`** (video file), **`download-music`** (~30s preview clip), **`scan`**. Video, upload, and music streams emit `{ type: "stage" }` for real pipeline steps. Copy follows that stage (one line, no looping index). Still/scan/download stay on one idle line. The bar is elapsed-time plus stage floors, **never decreases**, and does not claim 100% while waiting.

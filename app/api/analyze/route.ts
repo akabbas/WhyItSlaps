@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     );
   }
 
-  return keepAliveNdjsonResponse(async (): Promise<AnalyzeWorkResult> => {
+  return keepAliveNdjsonResponse(async (report): Promise<AnalyzeWorkResult> => {
     const runId = uuidv4();
     const workDir = join(ROOT_TMP, `vc-${runId}`);
     const videoPath = join(workDir, "source.mp4");
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
     await mkdir(workDir, { recursive: true });
 
     try {
+      report("fetch");
       try {
         await downloadVideo(urlRaw, videoPath);
       } catch (err) {
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
       let frames: string[] = [];
       let audioPath = join(workDir, "audio.mp3");
 
+      report("frames");
       try {
         const artifact = await extractArtifacts(videoPath, workDir);
         durationSeconds = artifact.durationSeconds;
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
       }
 
       let palette: PaletteSwatch[] = [];
+      report("palette");
       try {
         palette = await paletteFromMiddleFrame(frames);
       } catch {
@@ -124,6 +127,7 @@ export async function POST(req: Request) {
       }
 
       let music: Awaited<ReturnType<typeof analyzeMusic>> = null;
+      report("fingerprint");
       try {
         music = await analyzeMusic(audioPath);
       } catch {
@@ -131,6 +135,7 @@ export async function POST(req: Request) {
       }
 
       let thumbs: string[];
+      report("critique");
       try {
         thumbs = await framesToBase64Jpegs(frames, 14);
         if (!thumbs.length) throw new Error("empty_thumbs");
