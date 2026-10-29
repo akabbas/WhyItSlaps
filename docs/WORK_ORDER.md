@@ -64,7 +64,7 @@ Live path: `ShareCardPanel` + `components/share-cards/MusicShareCard.tsx` (not `
 | **2** | Spotify **audio-analysis** → Claude (full recording sections) | **This PR** | Uses API we already pay for; grounds the essay without ripping audio |
 | **3** | Meter copy: clip character, not rank (CREATIVE_UX **T1**, **T3**) | Open | Stops overselling numbers in history/results |
 | **4** | Music share card polish **T4, T6, T5, T2, T8** | Open | You don’t like the share look; tickets already specified |
-| **5** | Sonic DSP: fixtures + optional clip vs features note; **do not** retune weights yet | Open | Accuracy without a test set is guesswork |
+| **5** | Sonic scores from **full-track** Spotify features + sections; preview DSP only for mix / fallback | Open → implement | Clip-only meters felt random vs the song |
 | **6** | History as library + still logging (T11, DEAD_ENDS) | Open | “Accurate note” of what you scanned |
 | **7** | User-owned longer file for DSP (scan is 15s ID only) | Later | Best legal “more of the song” |
 | **8** | Multimodal **listen** to the preview | Later | Critique hears the clip; new vendor/cost |
@@ -92,10 +92,11 @@ Live path: `ShareCardPanel` + `components/share-cards/MusicShareCard.tsx` (not `
 - **Status:** Open — same as CREATIVE_UX **T1**
 - **Don’t:** Change DSP math in the same PR as copy.
 
-#### W4 — Sonic fixture set
+#### W4 — Catalog-first sonic scores
 
-- **Status:** Open
-- **Do:** 8–12 known previews (hook-forward vs verse-forward). Record scores. Only then retune `OVERALL_WEIGHTS` or hook autocorrelation.
+- **Status:** Shipped on this branch (`scoreFromCatalogSignals` + `blendSonicScores`)
+- **Do not:** Treat remaining preview DSP as the song. Clip path is mix-clarity / fallback only.
+- **Later:** Listeners still will not match “I love this song.” Optional fixtures if we retune weights.
 
 #### W5 — Music share card first wave
 

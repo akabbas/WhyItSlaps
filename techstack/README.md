@@ -63,7 +63,7 @@ flowchart LR
 
 1. Parse **Spotify track ID** from URL (`extractSpotifyTrackId`).
 2. **Client-credentials** token; fetch track + **audio features** + **audio analysis** (sections of the full catalog recording; fail-open) (`lib/spotify.ts`).
-3. **`scoreTrackAudio`** measures a preview (Spotify `preview_url`, otherwise an iTunes Search match) and returns sonic scores. Unreadable audio leaves scores `null`.
+3. **`scoreFromCatalogSignals`** (audio features + analysis sections) blended with **`scoreTrackAudio`** preview DSP (mix clarity / fallback). Unreadable catalog and clip leaves scores `null`.
 4. **`analyzeMusicWithClaude(track, features, scores, analysis)`** → structured JSON per `types/music-analysis.ts`. Clip DSP and full-recording analysis are separate facts.
 5. `maxDuration = 60` on this route (lighter than video).
 

@@ -367,7 +367,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             this track&apos;s meters
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            These meters only. Taken from the label&apos;s ~30s preview (Spotify, else iTunes) — usually a hook snippet they attached, not a random slice we pick, and not the full song. Energy arc and Spotify stats below are separate.
+            Hook, density, range, and impact are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Mix clarity can use that preview waveform. Meters describe this track&apos;s shape, not whether the song is &quot;better.&quot; Energy arc and Spotify stats below are separate.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -396,7 +396,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               Spotify track stats
             </p>
             <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-              From Spotify&apos;s audio features API (energy, danceability, etc.). Separate from preview sonic scores above.
+              From Spotify&apos;s audio features API (energy, danceability, etc.). Same full-recording catalog as the meters above; different units (0–1 stats vs 0–100 shape).
             </p>
             <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
               <FeatureBar label="Energy" value={features.energy} />

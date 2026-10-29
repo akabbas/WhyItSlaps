@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { decodeAudioFileToPcm } from "./decode-audio.ts";
-import { scoreFromPcm } from "./sonic-scores.ts";
+import { blendSonicScores, scoreFromCatalogSignals, scoreFromPcm } from "./sonic-scores.ts";
 
 const SAMPLE_RATE = 22050;
 
@@ -123,4 +123,66 @@ test("ffmpeg decoded audio can be scored", async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+const features = {
+  tempo_bpm: 120,
+  key: "C Major",
+  energy: 0.2,
+  danceability: 0.3,
+  valence: 0.5,
+  acousticness: 0.8,
+  instrumentalness: 0.1,
+  loudness_db: -14,
+  speechiness: 0.05,
+  time_signature: 4,
+};
+
+test("catalog scores track full-recording energy and a chorus loudness lift", () => {
+  const quiet = scoreFromCatalogSignals(features, null);
+  const dense = scoreFromCatalogSignals({ ...features, energy: 0.9, acousticness: 0.05 }, null);
+  assert.ok(quiet);
+  assert.ok(dense);
+  assert.ok(dense.impact > quiet.impact);
+  assert.ok(dense.production_density > quiet.production_density);
+
+  const flat = scoreFromCatalogSignals(features, {
+    duration_s: 200,
+    loudness_db: -8,
+    tempo_bpm: 120,
+    sections: [
+      { start_s: 0, duration_s: 40, loudness_db: -9, tempo_bpm: 120 },
+      { start_s: 40, duration_s: 40, loudness_db: -8.5, tempo_bpm: 120 },
+    ],
+  });
+  const lifted = scoreFromCatalogSignals(features, {
+    duration_s: 200,
+    loudness_db: -8,
+    tempo_bpm: 120,
+    sections: [
+      { start_s: 0, duration_s: 40, loudness_db: -14, tempo_bpm: 120 },
+      { start_s: 40, duration_s: 40, loudness_db: -4, tempo_bpm: 120 },
+    ],
+  });
+  assert.ok(flat);
+  assert.ok(lifted);
+  assert.ok(lifted.hook_strength > flat.hook_strength);
+  assert.ok(lifted.emotional_range > flat.emotional_range);
+});
+
+test("blend keeps catalog hook/impact and preview mix clarity", () => {
+  const catalog = scoreFromCatalogSignals({ ...features, energy: 0.85, acousticness: 0.1 }, null);
+  const preview = scoreFromPcm(noise(4, 0.12), SAMPLE_RATE);
+  assert.ok(catalog);
+  assert.ok(preview);
+  const blended = blendSonicScores(catalog, preview);
+  assert.ok(blended);
+  assert.equal(blended.impact, catalog.impact);
+  assert.equal(blended.hook_strength, catalog.hook_strength);
+  assert.equal(blended.mix_clarity, preview.mix_clarity);
+});
+
+test("catalog and preview both missing yields no scores", () => {
+  assert.equal(scoreFromCatalogSignals(null, null), null);
+  assert.equal(blendSonicScores(null, null), null);
 });
