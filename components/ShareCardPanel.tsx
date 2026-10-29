@@ -86,7 +86,7 @@ export function ShareCardPanel({
       >
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/45">Share card</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/50">Share card</p>
             <h2 className="mt-2 font-serif text-2xl text-paper">Post your breakdown</h2>
           </div>
           <button
@@ -152,7 +152,7 @@ export function ShareCardPanel({
         </div>
 
         <p className="mt-3 min-h-[1rem] font-mono text-[11px] tracking-wide text-white/70">{status}</p>
-        <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-white/40">
+        <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
           Story format is sized for Instagram, TikTok, and Snapchat. Drop it over your clip or use it as a standalone post.
         </p>
       </div>

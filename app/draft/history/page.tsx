@@ -91,7 +91,7 @@ export default function DraftHistoryPage() {
         </div>
       ) : null}
 
-      <p className="mt-12 font-mono text-[9px] uppercase tracking-[0.16em] text-white/30">
+      <p className="mt-12 font-mono text-[9px] uppercase tracking-[0.16em] text-white/50">
         {MOCK_HISTORY.length} entries · ~{Math.round(JSON.stringify(MOCK_HISTORY).length / 1024)}kb mock payload
       </p>
     </main>
