@@ -2,7 +2,7 @@
 
 Ranked list of what’s **doable now**, what’s **next**, and what is a **behemoth**. Product answers live here so we don’t oversell the engine.
 
-Related: [`CREATIVE_UX.md`](./CREATIVE_UX.md) (meters vs rank, share cards, URLs) · [`DEAD_ENDS.md`](./DEAD_ENDS.md) · [`ui-impeccable-grade.md`](./ui-impeccable-grade.md)
+Related: [`CREATIVE_UX.md`](./CREATIVE_UX.md) (meters vs rank, share cards, URLs) · [`MIR_MAPPING.md`](./MIR_MAPPING.md) (Spotify / Essentia meter map) · [`DEAD_ENDS.md`](./DEAD_ENDS.md) · [`ui-impeccable-grade.md`](./ui-impeccable-grade.md)
 
 **Out of scope forever unless product reopens it:** ripping a full Spotify track as MP3 · merging voice STT **#17**.
 

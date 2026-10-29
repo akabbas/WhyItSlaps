@@ -8,6 +8,8 @@ Living product answers plus **numbered, independently spawnable** agent tickets.
 
 **Ranked engine / loading / share work order:** [`WORK_ORDER.md`](./WORK_ORDER.md).
 
+**Meter ↔ Spotify / Essentia map:** [`MIR_MAPPING.md`](./MIR_MAPPING.md).
+
 ---
 
 ## How later agents should use this
