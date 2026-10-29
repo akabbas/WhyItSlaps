@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractSpotifyTrackId, fetchSpotifyTrackData } from "@/lib/spotify";
+import { extractSpotifyTrackId, fetchSpotifyAudioAnalysis, fetchSpotifyTrackData } from "@/lib/spotify";
 import { analyzeMusicWithClaude } from "@/lib/claude-music";
 import { publicFailure } from "@/lib/public-error";
 import { rateLimitResponse } from "@/lib/http-rate-limit";
@@ -58,16 +58,14 @@ export async function POST(req: Request) {
     );
   }
 
-  let scores = null;
-  try {
-    scores = await scoreTrackAudio(track);
-  } catch {
-    scores = null;
-  }
+  const [scores, analysis] = await Promise.all([
+    scoreTrackAudio(track).catch(() => null),
+    fetchSpotifyAudioAnalysis(trackId),
+  ]);
 
   let claude;
   try {
-    claude = await analyzeMusicWithClaude(track, features, scores);
+    claude = await analyzeMusicWithClaude(track, features, scores, analysis);
   } catch (err) {
     return NextResponse.json(
       {
@@ -80,6 +78,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const payload: MusicAnalyzeSuccess = { ok: true, track, features, claude };
+  const payload: MusicAnalyzeSuccess = { ok: true, track, features, analysis: analysis ?? null, claude };
   return NextResponse.json(payload, { status: 200 });
 }

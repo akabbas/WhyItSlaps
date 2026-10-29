@@ -340,11 +340,11 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 **Specificity:** **Strong** — square dashed rings match sharp-corner brand.  
 **Cognitive load:** **0–1 failures** — step index replaces misleading percent.
 
-**Unfinished:** No cancel on long video analyze.
+**Unfinished:** No cancel on long video analyze. Bar must stay monotonic (see [`WORK_ORDER.md`](./WORK_ORDER.md) W1).
 
 **Polish (ordered) — Sprint 5:**
 
-1. ~~`/impeccable clarify`~~ — **DONE** (#25) “step N / total” label.
+1. ~~`/impeccable clarify`~~ — **DONE** (#25) “step N / total” label; wrapping that bar was later replaced with elapsed “working” (W1).
 2. ~~`/impeccable layout`~~ — **DONE** (#25) square loading rings.
 3. `/impeccable harden` — optional cancel for download-only phases only (lower risk than mid-analyze).
 

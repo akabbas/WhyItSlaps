@@ -18,6 +18,8 @@ npm run agent:setup
 
 Ponytail skills ship under `.cursor/skills/ponytail*` and `.agents/skills/ponytail*`.
 
+Engine accuracy, loading overlay, and music share-card check (ranked): [`WORK_ORDER.md`](./WORK_ORDER.md).
+
 ## Sprint order
 
 Work in this order so each PR is reviewable and scores move on the grade doc:
