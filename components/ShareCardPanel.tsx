@@ -3,6 +3,7 @@
 import React from "react";
 import type { ShareCardFormat } from "@/lib/share-image";
 import {
+  SHARE_CARD_DIMENSIONS,
   downloadBlob,
   exportElementToPng,
   shareImageFile,
@@ -29,7 +30,6 @@ export function ShareCardPanel({
   const [format, setFormat] = React.useState<ShareCardFormat>("story");
   const [status, setStatus] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const cardRef = React.useRef<HTMLDivElement | null>(null);
   const exportRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
@@ -74,7 +74,10 @@ export function ShareCardPanel({
 
   if (!open) return null;
 
+  const { width: cardWidth, height: cardHeight } = SHARE_CARD_DIMENSIONS[format];
   const previewScale = format === "story" ? 0.22 : 0.34;
+  const previewWidth = cardWidth * previewScale;
+  const previewHeight = cardHeight * previewScale;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/78 p-4 md:items-center">
@@ -87,7 +90,9 @@ export function ShareCardPanel({
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/50">Share card</p>
-            <h2 className="mt-2 font-serif text-2xl text-paper">Post your breakdown</h2>
+            <h2 className="mt-2 font-serif text-2xl text-paper">
+              {format === "story" ? "Card for Stories" : "Export a still"}
+            </h2>
           </div>
           <button
             type="button"
@@ -115,20 +120,21 @@ export function ShareCardPanel({
           ))}
         </div>
 
-        <div
-          ref={cardRef}
-          className="mt-6 overflow-hidden rounded-sm border border-white/10 bg-black"
-          style={{ height: format === "story" ? 420 : 380 }}
-        >
+        <div className="mt-6 flex justify-center">
           <div
-            style={{
-              transform: `scale(${previewScale})`,
-              transformOrigin: "top left",
-              width: format === "story" ? 1080 : 1080,
-              height: format === "story" ? 1920 : 1080,
-            }}
+            className="overflow-hidden border border-white/10 bg-[#0A0A0A]"
+            style={{ width: previewWidth, height: previewHeight }}
           >
-            {children(format)}
+            <div
+              style={{
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top left",
+                width: cardWidth,
+                height: cardHeight,
+              }}
+            >
+              {children(format)}
+            </div>
           </div>
         </div>
 
@@ -153,7 +159,9 @@ export function ShareCardPanel({
 
         <p className="mt-3 min-h-[1rem] font-mono text-[11px] tracking-wide text-white/70">{status}</p>
         <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-          Story format is sized for Instagram, TikTok, and Snapchat. Drop it over your clip or use it as a standalone post.
+          {format === "story"
+            ? "1080×1920 still — sized for Stories, Reels, and TikTok."
+            : "1080×1080 still — sized for a square post."}
         </p>
       </div>
 

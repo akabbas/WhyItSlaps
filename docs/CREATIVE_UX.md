@@ -39,7 +39,7 @@ Do **not** add user-vote / head-to-head scoring.
 | **Video** meters | Model-assigned 0–100 on five axes (`color_harmony`, `edit_pacing`, `motion_feel`, `subject_framing`, `overall_vibe`) from vision JSON (`lib/claude.ts`). |
 | **Music** sonic scores | DSP on **this track’s preview clip** (`lib/score-track-audio.ts` → `lib/sonic-scores.ts`). `overall_vibe` is a **weighted blend** of the other five (hook 0.3, density 0.2, range 0.15, impact 0.15, mix 0.2). Unreadable audio → `scores: null`, copy `SONIC_SCORE_MISSING`. Separate from Spotify audio-feature bars (energy, danceability, …). |
 | **Still** meters | Model-assigned 0–100 (`composition`, `light`, `color_harmony`, `subject`, `overall_vibe`). |
-| **Share cards** | Hero is a huge serif **Overall vibe** integer (video always; music when `c.scores` exists). No “of this mix” / “not a ranking” language. Filename for video export even uses the number (`video-${overall_vibe}`). |
+| **Share cards** | Live cards (**T2**, this branch) hide the giant overall-vibe hero. Quote, tags, and secondary meters fill the card. Filename for video export still uses the number (`video-${overall_vibe}`). |
 | **History** | Each row shows `entry.score` = `overall_vibe` as a bare paper numeral ([`HistoryPanel.tsx`](../components/HistoryPanel.tsx)) — reads as a ranking chip. |
 | **Copy text** | `lib/share.ts` lists “Scores: … /100” including overall vibe. |
 
@@ -61,7 +61,7 @@ Implement docs/CREATIVE_UX.md ticket T1 only. Follow CONCEPT.md / DESIGN.md. Pon
 
 #### T2 — Share card: de-emphasize or hide overall vibe
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-share-cards-wave-7f1b`
 - **Files:** [`components/share-cards/MusicShareCard.tsx`](../components/share-cards/MusicShareCard.tsx), [`components/share-cards/VideoShareCard.tsx`](../components/share-cards/VideoShareCard.tsx)
 - **Do:** Default **hide** the giant overall-vibe hero **or** shrink it to the same size as HOOK/PACING cells, with kicker “this piece · not a ranking”. Prefer hide if the quote + tags + secondary meters still fill the card. Do not edit `share-graphics/` (archived).
 - **Don’t:** Full template redesign. Add a user toggle unless copy alone can’t land.
@@ -99,11 +99,11 @@ Checked: `ShareCardPanel`, `share-cards/MusicShareCard.tsx`, `share-cards/VideoS
 
 **Concrete polish (not a new system):**
 
-1. **Copy / voice** — Panel kicker “Share card” + headline **“Post your breakdown”** is the same marketing line as the removed experimental section. Editorial alternative: “Export a still” / “Card for Stories”. Footer “Drop it over your clip…” is growth-app, not critique-tool.
-2. **Hierarchy** — Giant overall vibe (120–180px) outranks the quote, tags, and palette. The card sells a number, not why it slaps. (T2/T7.)
-3. **Typeset** — Wordmark 34px / 0.38em tracking is on-brand; secondary kickers at `rgba(255,255,255,0.42–0.50)` are faint on the export (page grain does **not** bake into the PNG). Bump export helper type toward paper/50+.
-4. **Composition (panel)** — Story preview `scale(0.22)` with `transformOrigin: top left` inside a 420px `rounded-sm` well leaves a large empty black field. Center or clip the scaled card. `rounded-sm` is off CONCEPT (sharp corners).
-5. **Composition (card)** — Radial-gradient washes (music includes Spotify green `rgba(29,185,84,0.12)`) are the gradient-mesh pattern CONCEPT forbids. Flatten to `#0A0A0A` + hairline. Music 3-col BPM/KEY/HOOK collapses badly when `features` is missing (HOOK alone in a 3-col grid).
+1. **Copy / voice** — **T4** shipped: panel headline is “Card for Stories” / “Export a still”; helper type ≥ `text-white/50`; footer is format size, not “Drop it over your clip…”.
+2. **Hierarchy** — **T2** shipped: giant overall vibe hidden on live cards. Quote, tags, and secondary meters remain. Remaining hierarchy (quote as middle, meters as footer strip) is **T7**.
+3. **Typeset** — Wordmark 34px / 0.38em tracking is on-brand. Live-card helper type bumped to paper/50+ with T2/T6. Remaining quote-over-meters typeset is **T7**.
+4. **Composition (panel)** — **T5** shipped: scaled story/square preview is centered and clipped to the card bounds; preview well is sharp-cornered. Export stays 1080×1920 / 1080×1080 on the off-screen node.
+5. **Composition (card)** — **T6** shipped: live cards are flat `#0A0A0A` + paper hairline (no radial meshes, no Spotify green). Music BPM/KEY/HOOK grid columns match the number of cells.
 6. **Inconsistent entry** — Video: uppercase **SHARE CARD** (mobile under headline, desktop after long scroll). Music: lowercase **share card** in the top nav with download/copy/new. Still: nothing. Grade already wanted one results-nav pattern (#28 helped; share label still splits).
 7. **Tags** — Video share prefixes `#`; music share does not. Results screens also disagree.
 8. **Two codepaths** — `share-cards/` (live) vs `share-graphics/cards/` (demo). Do not polish the demo except `noindex` / flat chrome already in the grade doc.
@@ -112,7 +112,7 @@ Checked: `ShareCardPanel`, `share-cards/MusicShareCard.tsx`, `share-cards/VideoS
 
 #### T4 — Share panel copy + typeset
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-share-cards-wave-7f1b`
 - **Files:** [`components/ShareCardPanel.tsx`](../components/ShareCardPanel.tsx)
 - **Do:** Replace “Post your breakdown”. Keep mono uppercase chrome. Raise helper contrast to ≥ `text-white/50`. Optional CTA pair: primary “download png”, secondary “share image” (already close).
 - **Don’t:** Restyle the modal as glass. Don’t revive `ShareGraphicsSection` on results.
@@ -124,7 +124,7 @@ Implement docs/CREATIVE_UX.md ticket T4 only. ShareCardPanel copy/typeset: edito
 
 #### T5 — Share preview composition
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-share-cards-wave-7f1b`
 - **Files:** [`components/ShareCardPanel.tsx`](../components/ShareCardPanel.tsx)
 - **Do:** Center the scaled story/square preview; drop `rounded-sm`; reduce empty black. Keep export at 1080×1920 / 1080×1080 via the off-screen node (don’t scale the export node).
 - **Prompt:**
@@ -135,7 +135,7 @@ Implement docs/CREATIVE_UX.md ticket T5 only. Fix ShareCardPanel preview composi
 
 #### T6 — Flatten share-card fills
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-share-cards-wave-7f1b`
 - **Files:** [`components/share-cards/MusicShareCard.tsx`](../components/share-cards/MusicShareCard.tsx), [`components/share-cards/VideoShareCard.tsx`](../components/share-cards/VideoShareCard.tsx)
 - **Do:** Remove radial-gradient overlays (including Spotify green wash). Flat `#0A0A0A` + paper hairline. If the 3-col music stats row has one cell, don’t leave a hole (span or stack).
 - **Don’t:** Add grain SVG into the PNG unless it still exports cleanly; grain is a page overlay today.
@@ -269,11 +269,11 @@ Implement docs/CREATIVE_UX.md ticket T13 only. Still results share/copy parity w
 | Id | Theme | Status | Spawnable now? |
 |----|--------|--------|----------------|
 | T1 | Meter copy | Open | Yes |
-| T2 | Share: hide/shrink overall vibe | Open | Yes |
+| T2 | Share: hide/shrink overall vibe | **Shipped** | No |
 | T3 | History chip | Open | Yes |
-| T4 | Share panel copy | Open | Yes |
-| T5 | Share preview composition | Open | Yes |
-| T6 | Flatten share-card fills | Open | Yes |
+| T4 | Share panel copy | **Shipped** | No |
+| T5 | Share preview composition | **Shipped** | No |
+| T6 | Flatten share-card fills | **Shipped** | No |
 | T7 | Share hierarchy | Open | After T2 (and T6 if touching fills) |
 | T8 | Share CTA parity | Open | Yes |
 | T9 | Wordmark home | **Shipped** | No |
@@ -282,7 +282,7 @@ Implement docs/CREATIVE_UX.md ticket T13 only. Still results share/copy parity w
 | T12 | `/s/:id` share URLs | Deferred | No — needs backend |
 | T13 | Still share | Open | Yes (respect T2) |
 
-**Suggested first wave (parallel, one ticket per agent):** T1, T3, T4, T5, T6, T8. Then T2 → T7. T13 when still share is wanted. T11 anytime. Never T12 without storage. Never merge **#17**.
+**Suggested first wave (parallel, one ticket per agent):** T1, T3, T8 (T2/T4/T5/T6 shipped on `ammr/ux-share-cards-wave-7f1b`). Then T7. T13 when still share is wanted. T11 anytime. Never T12 without storage. Never merge **#17**.
 
 ---
 
