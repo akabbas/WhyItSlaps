@@ -37,8 +37,8 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
       <div className="border-t border-white/20 px-6 py-10 text-left md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">history log</p>
         <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
-          No analyses saved yet. Run a video or music breakdown — it will show up here like a chat log on this
-          browser only.
+          No analyses saved yet. Video and music only — still breakdowns are not logged here yet. Run a video or
+          music breakdown and it will show up on this device like a chat log.
         </p>
       </div>
     );
@@ -60,11 +60,11 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
       </div>
       <ul className="max-h-[min(28rem,60vh)] divide-y divide-white/10 overflow-y-auto">
         {entries.map((entry) => (
-          <li key={entry.id} className="flex items-start gap-3 px-6 py-4 md:px-8">
+          <li key={entry.id} className="flex items-stretch gap-2 px-6 py-2 md:px-8">
             <button
               type="button"
               onClick={() => onOpen(entry)}
-              className="flex min-w-0 flex-1 items-start gap-3 text-left transition hover:opacity-90"
+              className="flex min-h-[44px] min-w-0 flex-1 items-start gap-3 py-3 text-left transition hover:opacity-90 active:opacity-80"
             >
               {entry.artUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -110,7 +110,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
             <button
               type="button"
               onClick={(e) => onDelete(entry.id, e)}
-              className="mt-1 shrink-0 font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center self-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/30 hover:text-white/70"
             >
               del
             </button>
