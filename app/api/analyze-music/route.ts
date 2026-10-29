@@ -4,6 +4,7 @@ import { analyzeMusicWithClaude } from "@/lib/claude-music";
 import { publicFailure } from "@/lib/public-error";
 import { rateLimitResponse } from "@/lib/http-rate-limit";
 import { scoreTrackAudio } from "@/lib/score-track-audio";
+import { blendSonicScores, scoreFromCatalogSignals } from "@/lib/sonic-scores";
 import type { MusicAnalyzeSuccess, MusicAnalyzeErrorBody } from "@/types/music-analysis";
 
 export const runtime = "nodejs";
@@ -58,10 +59,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const [scores, analysis] = await Promise.all([
+  const [previewScores, analysis] = await Promise.all([
     scoreTrackAudio(track).catch(() => null),
     fetchSpotifyAudioAnalysis(trackId),
   ]);
+  const scores = blendSonicScores(scoreFromCatalogSignals(features, analysis), previewScores);
 
   let claude;
   try {
