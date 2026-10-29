@@ -51,9 +51,9 @@ Open PR **#32** (`ammr/music-coherence-copy-7f1b`) clarifies preview-download la
 
 #### T1 — Meter copy: character, not rank
 
-- **Status:** **Shipped** on `ammr/ux-meter-copy-share-cta-7f1b` (kicker `this clip's meters` / `this track's meters` / `this picture's meters`; overall vibe row suffix ` · this piece`)
+- **Status:** **Shipped** on `ammr/ux-meter-copy-share-cta-7f1b` (kicker `this clip's meters` / `this track's meters` / `this image's meters`; overall vibe row suffix ` · this piece`)
 - **Files:** [`components/ScoreBars.tsx`](../components/ScoreBars.tsx), [`components/MusicResultsScreen.tsx`](../components/MusicResultsScreen.tsx) (sonic scores kicker), [`components/StillResultsScreen.tsx`](../components/StillResultsScreen.tsx), optionally [`lib/sonic-scores.ts`](../lib/sonic-scores.ts) labels, [`lib/share.ts`](../lib/share.ts)
-- **Do:** One mono kicker above the meters (“this clip’s meters” / “this track’s meters” / “this picture’s meters”). Keep axis names. Do not rename `overall_vibe` in JSON. Optional: “OVERALL VIBE” → “OVERALL VIBE · this piece” on the last row only.
+- **Do:** One mono kicker above the meters (“this clip’s meters” / “this track’s meters” / “this image’s meters”). Keep axis names. Do not rename `overall_vibe` in JSON. Optional: “OVERALL VIBE” → “OVERALL VIBE · this piece” on the last row only.
 - **Don’t:** Change DSP or model score math. Add `/100` noise on every row unless contrast requires it. Touch share-card layout (that’s T2/T7).
 - **Prompt:**
 
@@ -192,7 +192,7 @@ Trace in [`AnalyzeToolPage.tsx`](../components/AnalyzeToolPage.tsx):
 |------|----------------------------------|
 | Video | `← new video` |
 | Music (paste **or** scan) | `← new track` |
-| Still | `← new picture` |
+| Image | `← new image` |
 
 Wordmark was a dead `<span>` — not a home control. **This PR** makes **WHYITSLAPS** a button (`ResultsWordmark`, `aria-label="Back to WhyItSlaps home"`) on all three results screens, same `onReset` as “new …”.
 

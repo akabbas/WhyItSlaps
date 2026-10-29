@@ -56,7 +56,7 @@
 
 | Route / screen | Reachable on main | How it appears |
 |----------------|-------------------|----------------|
-| `/` | Yes | Home input; mode tabs Video / Music / Picture / History |
+| `/` | Yes | Home input; mode tabs Video / Music / Image / History |
 | `/` (state) | Yes | Video, music, or still **results** replace home after analyze |
 | Loading overlay | Yes | Full-screen while analyze / download / scan |
 | Home inline errors | Yes | Border-left message under form |
@@ -149,14 +149,14 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 
 ---
 
-## `/` — Home (Picture tab)
+## `/` — Home (Image tab)
 
 **What you do:** Upload one image (JPEG/PNG/WebP/GIF, 8 MB); no URL paste.
 
 | # | Heuristic | Score | Note |
 |---|-----------|-------|------|
 | 1 | Status | 3 | Loading phase `still` |
-| 2 | Match | 3 | “Upload a picture” is plain |
+| 2 | Match | 3 | “Upload image” is plain |
 | 3 | Control | 3 | Single primary action |
 | 4 | Consistency | 3 | Same card frame |
 | 5 | Prevention | 3 | Accept list + size in footnote |
@@ -292,7 +292,7 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 |---|-----------|-------|------|
 | 1 | Status | 3 | MeterFill entrance (respects reduced motion) |
 | 2 | Match | 4 | Medium label + photography copy |
-| 3 | Control | 3 | ← new picture |
+| 3 | Control | 3 | ← new image |
 | 4 | Consistency | 4 | Shares palette, meters, WhyItWorks |
 | 5 | Prevention | n/a | Read-only |
 | 6 | Recognition | 3 | Image + headline |

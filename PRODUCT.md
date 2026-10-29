@@ -14,7 +14,7 @@ Creators and curious listeners who paste a **short video link**, a **Spotify tra
 
 1. **VIDEO** — Ingest URL or upload → vision critique, palette, scores, optional soundtrack ID, share/export, optional edit plan.
 2. **MUSIC** — Spotify track URL or audio scan → features + sonic critique, DAW-oriented produce steps.
-3. **PICTURE** — Single picture upload → vision critique, palette, scores (EXIF exposure facts only when present in file). Code path is still `still`.
+3. **IMAGE** — Single image upload → vision critique, palette, scores (EXIF exposure facts only when present in file). Code path is still `still`. Photo is a result medium, not the tab.
 4. **History** — Local device log of past video/music analyses; reopen without re-analyze.
 
 ## Positioning

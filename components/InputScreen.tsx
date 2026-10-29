@@ -89,7 +89,7 @@ export function InputScreen({
             {isHistory
               ? "your analyses on this device · a private library"
               : isStill
-                ? "upload a picture · find out why it slaps"
+                ? "upload an image · find out why it slaps"
                 : isMusic
                   ? "paste a spotify link · or scan audio before you know the track"
                   : "paste a tiktok · find out why it slaps"}
@@ -120,7 +120,7 @@ export function InputScreen({
               onClick={() => onModeChange("still")}
               className={`border-l border-white/20 ${tabClass(mode === "still")}`}
             >
-              Picture
+              Image
             </button>
             <button
               type="button"
@@ -155,10 +155,10 @@ export function InputScreen({
               onClick={() => fileInputRef.current?.click()}
               className="h-14 w-full border border-white/35 bg-paper font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Upload picture
+              Upload image
             </button>
             <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-              jpeg · png · webp · gif · one picture · 8 mb
+              jpeg · png · webp · gif · one image · 8 mb
             </p>
             {trimmedError ? (
               <div role="alert" className="mt-5 border-l-2 border-paper/60 pl-4">

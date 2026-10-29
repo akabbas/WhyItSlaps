@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   if (image.size <= 0) return fail("That file is empty.", 400);
-  if (image.size > MAX_FILE_BYTES) return fail("Picture exceeds the 8 MB limit.", 413);
+  if (image.size > MAX_FILE_BYTES) return fail("Image exceeds the 8 MB limit.", 413);
 
   const ext = mediaType === "image/jpeg" ? "jpg" : mediaType === "image/png" ? "png" : mediaType === "image/webp" ? "webp" : "gif";
   const workDir = join("/tmp", `vc-still-${uuidv4()}`);
@@ -79,9 +79,9 @@ export async function POST(req: Request) {
     const body: StillAnalyzeSuccess = { ok: true, claude, palette };
     return NextResponse.json(body);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Picture analysis failed.";
+    const message = err instanceof Error ? err.message : "Image analysis failed.";
     const missingKey = /ANTHROPIC_API_KEY/i.test(message);
-    return fail(message, missingKey ? 500 : 502, missingKey ? undefined : "Try the picture again.");
+    return fail(message, missingKey ? 500 : 502, missingKey ? undefined : "Try the image again.");
   } finally {
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }
