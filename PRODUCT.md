@@ -33,6 +33,7 @@ One site, three modes, one editorial voice (`lib/dialogue.ts`). Anonymous-first;
 - Still analyses in History tab (not logged today).
 - Share/copy parity on still results vs video/music.
 - Public indexing of `/draft/*` and `/demo/*`.
+- Scores stay **character meters** for this piece, not competitive rank; durable `/s/:id` share URLs wait on a persistence backend. Tracker: [`docs/CREATIVE_UX.md`](./docs/CREATIVE_UX.md).
 
 ## Stack
 

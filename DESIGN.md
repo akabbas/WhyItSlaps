@@ -40,4 +40,4 @@ Score meters and palette swatches ease in sequence on results; prose blocks stat
 
 ## UI quality baseline
 
-See [`docs/ui-impeccable-grade.md`](./docs/ui-impeccable-grade.md) for per-route Design Health scores and ordered polish lists.
+See [`docs/ui-impeccable-grade.md`](./docs/ui-impeccable-grade.md) for per-route Design Health scores and ordered polish lists. Creative UX tickets (meters, share cards, home from results): [`docs/CREATIVE_UX.md`](./docs/CREATIVE_UX.md).

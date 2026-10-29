@@ -101,4 +101,6 @@ Merged UI on `main`: **#21–#25** (grade, tooling, home, video results, history
 
 UI-only work: [`UI_AGENT_PLAYBOOK.md`](./UI_AGENT_PLAYBOOK.md). Do not treat mock draft routes as shipped product when grading or polishing.
 
+Creative UX (numbers as meters, share-card polish, after-scan home, unique URLs) and spawnable tickets: [`CREATIVE_UX.md`](./CREATIVE_UX.md).
+
 *Source: cloud agent dead-ends inventory (Oct 2026).*
