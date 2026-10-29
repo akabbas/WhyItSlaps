@@ -1,7 +1,26 @@
-# local tools / IDE (do not ship)
+# local tools / IDE
 .claude/
-.cursor/
+# Cursor: track agent skills/hooks; ignore local IDE state and Impeccable engine binary
+.cursor/*
+!.cursor/skills/
+!.cursor/agents/
+!.cursor/hooks.json
+.cursor/skills/impeccable/scripts/bin/
 *.tsbuildinfo
+
+# Impeccable ephemeral (see https://github.com/pbakaus/impeccable — track config.json, design.json, critique/*.md)
+.impeccable/*
+!.impeccable/config.json
+!.impeccable/design.json
+!.impeccable/critique/
+!.impeccable/surfaces/
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/*.png
+.impeccable/review/
+.impeccable/questions/
+.impeccable/live/
 
 # dependencies
 /node_modules
