@@ -4,7 +4,7 @@
 
 - **VIDEO** — Why does this **short** hit? Paste a TikTok / YouTube / X link, or **upload a clip** (Instagram: save the reel, then upload). You get palette, pacing, grade, cinematography, edit read, recreation tips, **optional soundtrack ID** from the clip (ACRCloud), plus **Edit my footage** (shot list via `/api/editplan`).
 - **MUSIC** — Why does this **track** hit? Paste a **Spotify track** URL. The app pulls metadata + **audio features** from Spotify, then a **language model** returns a structured sonic critique (`/api/analyze-music`).
-- **STILL** — Why does this **picture** hit? Upload one JPEG, PNG, WebP, or GIF (8 MB). Palette plus a vision critique (`/api/analyze-still`). Focal length, aperture, shutter, and ISO are passed to the critique only when the file contains that tag. Camera and lens are not read.
+- **IMAGE** — Why does this **image** hit? Upload one JPEG, PNG, WebP, or GIF (8 MB). Palette plus a vision critique (`/api/analyze-still`). Focal length, aperture, shutter, and ISO are passed to the critique only when the file contains that tag. Camera and lens are not read.
 
 **Live site:** see [DEPLOY.md](DEPLOY.md) for Railway + Porkbun (`whyitslaps.com`). Website only — no Chrome extension for launch.
 

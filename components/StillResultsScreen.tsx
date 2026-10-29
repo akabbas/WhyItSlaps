@@ -44,7 +44,7 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
           className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 hover:text-paper"
           onClick={onReset}
         >
-          ← new picture
+          ← new image
         </button>
       </nav>
 
@@ -75,7 +75,7 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
       </header>
 
       <section className="mt-14 space-y-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">this picture&apos;s meters</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">this image&apos;s meters</p>
         <div className="space-y-4">
           {SCORE_ORDER.map((key, index) => (
             <div key={key} className="space-y-1">
