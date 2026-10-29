@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://whyitslaps.com"),
   title: "WhyItSlaps. Find out why it slaps",
   description:
-    "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps. Palette, critique, edit plan, or sonic breakdown.",
+    "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps. Palette, critique, edit plan, or sonic breakdown.",
   openGraph: {
     title: "WhyItSlaps. Find out why it slaps",
     description:
-      "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps.",
+      "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps.",
     url: "https://whyitslaps.com",
     siteName: "WhyItSlaps",
     type: "website",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhyItSlaps. Find out why it slaps",
     description:
-      "Paste a TikTok, a Spotify track, or upload a picture and find out why it slaps.",
+      "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps.",
   },
 };
 
