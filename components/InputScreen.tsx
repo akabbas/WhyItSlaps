@@ -37,6 +37,10 @@ type Props = {
   onUploadFile?: (file: File) => void;
   /** Music mode: fingerprint upload via ACRCloud (Shazam-style). */
   onUploadMusicScan?: (file: File) => void;
+  /** Music mode: ~15s mic capture, then the same identify path as upload. */
+  onListenMusic?: () => void;
+  listenArmed?: boolean;
+  listenSecondsLeft?: number | null;
   /** When mode is history, render this instead of the URL form. */
   historyPanel?: React.ReactNode;
 };
@@ -54,6 +58,9 @@ export function InputScreen({
   onRetryAnalysis,
   onUploadFile,
   onUploadMusicScan,
+  onListenMusic,
+  listenArmed = false,
+  listenSecondsLeft = null,
   historyPanel,
 }: Props) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -70,6 +77,7 @@ export function InputScreen({
     isMusic && /no spotify/i.test(trimmedError);
   const noPreviewClipHint =
     isMusic && /no ~30s preview|no preview clip for this track/i.test(trimmedError);
+  const listening = listenArmed || listenSecondsLeft != null;
 
   const tabClass = (active: boolean) =>
     `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
@@ -251,34 +259,72 @@ export function InputScreen({
                 </p>
               )}
 
-              {isMusic && typeof onUploadMusicScan === "function" ? (
+              {isMusic &&
+              (typeof onListenMusic === "function" || typeof onUploadMusicScan === "function") ? (
                 <div className="space-y-3 border-t border-white/12 pt-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
                     Don&apos;t know the track?
                   </p>
-                  <input
-                    ref={musicScanInputRef}
-                    type="file"
-                    accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.webm"
-                    className="hidden"
-                    disabled={disabled}
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      event.target.value = "";
-                      if (file) onUploadMusicScan(file);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => musicScanInputRef.current?.click()}
-                    className="min-h-[44px] border border-white/25 bg-transparent px-4 py-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Scan upload
-                  </button>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                    mp3 · m4a · short mp4 · max 25 mb · first 15s of audio
-                  </p>
+                  {typeof onListenMusic === "function" ? (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      aria-pressed={listening}
+                      aria-live="polite"
+                      aria-label={
+                        listenSecondsLeft != null
+                          ? `Listening, ${listenSecondsLeft} seconds left. Tap to cancel.`
+                          : listening
+                            ? "Waiting for microphone. Tap to cancel."
+                            : "Listen to identify the track"
+                      }
+                      onClick={() => onListenMusic()}
+                      className={`h-14 w-full font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        listening
+                          ? "border border-paper bg-transparent text-paper"
+                          : "border border-white/35 bg-paper text-black hover:bg-white"
+                      }`}
+                    >
+                      {listenSecondsLeft != null
+                        ? `Listening ${listenSecondsLeft}`
+                        : listening
+                          ? "Listening"
+                          : "Listen"}
+                    </button>
+                  ) : null}
+                  {listening ? (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                      hold the speaker to the mic · tap listen to cancel
+                    </p>
+                  ) : (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                      ~15s from the mic · then we match the track
+                    </p>
+                  )}
+                  {typeof onUploadMusicScan === "function" ? (
+                    <>
+                      <input
+                        ref={musicScanInputRef}
+                        type="file"
+                        accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.webm"
+                        className="hidden"
+                        disabled={disabled || listening}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (file) onUploadMusicScan(file);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={disabled || listening}
+                        onClick={() => musicScanInputRef.current?.click()}
+                        className="bg-transparent font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 underline underline-offset-4 hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        or upload a file
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               ) : null}
 

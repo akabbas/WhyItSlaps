@@ -35,7 +35,7 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
   scan: {
     kicker: "scan",
     steps: [
-      "sampling the upload",
+      "sampling the audio",
       "fingerprinting the audio",
       "matching the catalog — still working",
     ],
