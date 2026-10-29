@@ -24,9 +24,9 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
     ],
   },
   still: {
-    kicker: "still",
+    kicker: "image",
     steps: [
-      "reading the picture",
+      "reading the image",
       "pulling the palette",
       "looking at light and frame",
       "writing the critique — still working",

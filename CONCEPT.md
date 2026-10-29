@@ -14,9 +14,9 @@ For setup, see **[README.md](./README.md)**. For architecture, **[techstack/READ
 |------|--------|----------------|
 | **VIDEO** | YT / IG / TikTok / X URL, file upload, or extension-captured MP4 | Vision critique JSON, palette, scores (0–100), optional **ACRCloud** track match on the **clip audio**, share text, MP4 download (URL flow), **Edit my footage** |
 | **MUSIC** | `open.spotify.com/track/...` | Spotify metadata + **audio features**, structured sonic critique (`MusicResultsScreen`) |
-| **STILL** | One uploaded JPEG, PNG, WebP, or GIF (8 MB) | Vision critique, palette, five scores. No URL paste. Focal length, aperture, shutter, and ISO only when the file contains that tag. |
+| **IMAGE** | One uploaded JPEG, PNG, WebP, or GIF (8 MB) | Vision critique, palette, five scores. No URL paste. Focal length, aperture, shutter, and ISO only when the file contains that tag. |
 
-Toggle **VIDEO** / **MUSIC** / **STILL** / **HISTORY** on the home page (`InputScreen`).
+Toggle **VIDEO** / **MUSIC** / **IMAGE** / **HISTORY** on the home page (`InputScreen`). Code still uses `still` (`AppMode`, `/api/analyze-still`). Photo is a medium tag on results, not the mode name.
 
 **Note:** “Music” on the **video** results page (MusicCard) is **fingerprint ID** from the video’s soundtrack, not the same as **MUSIC** mode (Spotify-first pipeline).
 
@@ -110,7 +110,7 @@ Skip yt-dlp, ffmpeg, ACRCloud, and `/api/editplan`. Artwork uses the same path; 
 
 Five scores, so the existing meters still work: composition, light, color harmony, subject, overall vibe. Sections: framing, light, color, exactly four “why it works” points, exactly four how-to steps. A photograph can say how to shoot. A painting or print says how to make one. A screenshot or other degraded copy says how to make the picture you can see. The prompt may use photography rules when the picture supports them, and must skip a rule when it does not: thirds and power points, leading lines, frame within a frame, negative space, symmetry against tension, horizon, foreground / midground / background, light direction and quality, contrast, color temperature, what the eye hits first, isolation, gesture. The model does not guess a lens or a camera. Missing EXIF stays missing. Softness, compression, pixelation, and screen chrome are visible facts, not a lens or a missing exposure setting.
 
-Shipped: types, prompt, one upload route, one results screen, a STILL label on the home toggle. No gallery, no accounts, no URL paste. Focal length, aperture, shutter, and ISO go into the prompt only when the file contains that tag. Camera and lens are not read.
+Shipped: types, prompt, one upload route, one results screen, an IMAGE label on the home toggle. No gallery, no accounts, no URL paste. Focal length, aperture, shutter, and ISO go into the prompt only when the file contains that tag. Camera and lens are not read.
 
 ---
 
