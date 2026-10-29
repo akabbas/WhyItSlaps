@@ -13,7 +13,7 @@ import type {
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
-import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
+import { SONIC_SCORE_HINTS, SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
 import { MeterFill, ThisPieceQualifier } from "./ScoreBars";
@@ -367,7 +367,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             this track&apos;s meters
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            Hook, density, range, and impact are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Mix clarity can use that preview waveform. Meters describe this track&apos;s shape, not whether the song is &quot;better.&quot; Energy arc and Spotify stats below are separate.
+            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five — this track&apos;s contour, not a ranking. Energy arc and Spotify stats below are separate.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -381,6 +381,9 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                     <span className="text-white/92">{c.scores?.[key]}</span>
                   </div>
                   <MeterFill value={c.scores?.[key] ?? 0} delayMs={index * 70} />
+                  <p className="font-mono text-[9px] leading-snug tracking-wide text-white/40">
+                    {SONIC_SCORE_HINTS[key]}
+                  </p>
                 </div>
               ))}
             </div>

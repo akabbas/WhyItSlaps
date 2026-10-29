@@ -7,8 +7,8 @@ import type {
 
 /**
  * Sonic scores prefer Spotify's full-recording signals (audio features +
- * audio-analysis sections). Preview-clip DSP fills mix clarity and is the
- * fallback when the catalog APIs are empty. They are not taste or chart rank.
+ * audio-analysis sections). Preview-clip DSP fills headroom (mix_clarity) and is
+ * the fallback when the catalog APIs are empty. They are not taste or chart rank.
  */
 
 export const SONIC_SCORE_ORDER: MusicScoreKey[] = [
@@ -20,13 +20,24 @@ export const SONIC_SCORE_ORDER: MusicScoreKey[] = [
   "overall_vibe",
 ];
 
+/** Display names. JSON keys stay hook_strength, production_density, etc. */
 export const SONIC_SCORE_LABELS: Record<MusicScoreKey, string> = {
-  hook_strength: "HOOK STRENGTH",
-  production_density: "PRODUCTION DENSITY",
-  emotional_range: "EMOTIONAL RANGE",
-  impact: "IMPACT",
-  mix_clarity: "MIX CLARITY",
-  overall_vibe: "OVERALL VIBE",
+  hook_strength: "CHORUS LIFT",
+  production_density: "DENSITY",
+  emotional_range: "DYNAMICS",
+  impact: "ENERGY",
+  mix_clarity: "HEADROOM",
+  overall_vibe: "SHAPE",
+};
+
+/** One-line measurement definitions (Essentia / Spotify descriptor style). */
+export const SONIC_SCORE_HINTS: Record<MusicScoreKey, string> = {
+  hook_strength: "Loudness jump of the loudest section versus the typical section.",
+  production_density: "How full the recording is versus sparse or acoustic.",
+  emotional_range: "Loudness span from the quietest section to the loudest.",
+  impact: "Spotify energy of the full recording — perceived intensity and activity.",
+  mix_clarity: "How far integrated loudness sits below a dense master; more space is more headroom.",
+  overall_vibe: "Weighted blend of the five measurements — this track's contour, not a ranking.",
 };
 
 export const SONIC_SCORE_MISSING = "Sonic scores couldn't be found for this track.";
@@ -158,7 +169,7 @@ function pulseStrength(envelope: number[], hopSec: number): number {
   return clamp01(best) * (0.35 + 0.65 * variation);
 }
 
-/** How far the loudest stretch sits above the typical level of this clip. */
+/** Preview energy: how far the loudest stretch sits above the typical level of this clip. */
 function impactUnit(envelope: number[]): number {
   if (envelope.length < 4) return 0;
   const sorted = [...envelope].sort((a, b) => a - b);
@@ -191,7 +202,7 @@ function finishScores(partial: Omit<MusicAnalysisScores, "overall_vibe">): Music
   return scores;
 }
 
-/** Chorus-like lift: loudest section vs typical section, full recording. */
+/** Chorus lift: loudest section vs typical section, full recording. */
 function sectionHookUnit(analysis: SpotifyAudioAnalysisSummary): number {
   const louds = analysis.sections.map((s) => s.loudness_db);
   if (louds.length < 2) return 0;
@@ -200,6 +211,7 @@ function sectionHookUnit(analysis: SpotifyAudioAnalysisSummary): number {
   return clamp01((peak - typical) / 12);
 }
 
+/** Dynamics: loudness span across sections of the full recording. */
 function sectionRangeUnit(analysis: SpotifyAudioAnalysisSummary): number {
   const louds = analysis.sections.map((s) => s.loudness_db);
   if (louds.length < 2) return 0;
@@ -228,9 +240,9 @@ export function scoreFromCatalogSignals(
   const range = hasSections
     ? sectionRangeUnit(analysis as SpotifyAudioAnalysisSummary)
     : clamp01(Math.abs(valence - 0.5) * 2);
-  const impact = energy;
+  const impact = energy; // ENERGY meter: Spotify energy of the full recording.
   const density = clamp01(0.55 * (1 - acoustic) + 0.45 * energy);
-  // Integrated loudness: denser/louder masters sit near -5 dB; more headroom near -18.
+  // HEADROOM: denser/louder masters sit near -5 dB; more headroom near -18.
   const mix = clamp01((-loudness - 5) / 14);
 
   return finishScores({
@@ -329,10 +341,12 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
 }
 
 export function formatSonicScoreFacts(scores: MusicAnalysisScores): string {
-  const lines = SONIC_SCORE_ORDER.map((key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100`);
+  const lines = SONIC_SCORE_ORDER.map(
+    (key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100 — ${SONIC_SCORE_HINTS[key]}`,
+  );
   return [
     "These sonic scores are already set for this track.",
-    "Hook, density, range, and impact come from Spotify's full-recording features and section loudness. Mix clarity may use the preview clip waveform.",
+    "Chorus lift, density, dynamics, and energy come from Spotify's full-recording features and section loudness. Headroom may use the preview clip waveform.",
     "They are not a ranking of how good the song is. Do not output a scores object. Write the critique so it agrees with these numbers.",
     "Do not explain how the scores were calculated.",
     ...lines,
