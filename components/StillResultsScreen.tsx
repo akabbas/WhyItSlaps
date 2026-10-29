@@ -51,7 +51,11 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
         {previewUrl ? (
           // The picture is the thing under discussion. The critique text is the name.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt="" className="max-h-[28rem] w-full border border-white/15 object-contain" />
+          <img
+            src={previewUrl}
+            alt={`${MEDIUM_LABEL[c.medium].toLowerCase()} preview`}
+            className="max-h-[28rem] w-full border border-white/15 object-contain"
+          />
         ) : (
           <div className="min-h-40 border border-white/15" />
         )}

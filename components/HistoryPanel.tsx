@@ -35,10 +35,12 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
   if (entries.length === 0) {
     return (
       <div className="border-t border-white/20 px-6 py-10 text-left md:px-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">history log</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
+          device-local log · video & music only
+        </p>
         <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
           No analyses saved yet. Video and music only — still breakdowns are not logged here yet. Run a video or
-          music breakdown and it will show up on this device like a chat log.
+          music breakdown; entries stay on this device only, like a chat log.
         </p>
       </div>
     );
@@ -48,7 +50,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
     <div className="border-t border-white/20 text-left">
       <div className="flex items-center justify-between gap-3 border-b border-white/12 px-6 py-4 md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          {entries.length} saved · this device
+          {entries.length} saved · device-local · video & music only
         </p>
         <button
           type="button"
@@ -68,7 +70,11 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
             >
               {entry.artUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.artUrl} alt="" className="mt-0.5 h-12 w-12 shrink-0 object-cover" />
+                <img
+                  src={entry.artUrl}
+                  alt={entry.title}
+                  className="mt-0.5 h-12 w-12 shrink-0 object-cover"
+                />
               ) : (
                 <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">
                   {entry.platform}

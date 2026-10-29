@@ -70,7 +70,7 @@ export function InputScreen({
     isMusic && /no spotify/i.test(trimmedError);
 
   const tabClass = (active: boolean) =>
-    `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors disabled:opacity-40 ${
+    `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
       active
         ? "bg-paper text-black"
         : "bg-transparent text-white/45 hover:bg-white/[0.04] hover:text-white/70"
@@ -158,9 +158,9 @@ export function InputScreen({
             <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
               jpeg · png · webp · gif · one still · 8 mb
             </p>
-            {(error ?? "").trim() ? (
-              <div className="mt-5 border-l-2 border-paper/60 pl-4">
-                <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{error}</p>
+            {trimmedError ? (
+              <div role="alert" className="mt-5 border-l-2 border-paper/60 pl-4">
+                <p className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90">{trimmedError}</p>
               </div>
             ) : null}
           </div>
@@ -311,12 +311,12 @@ export function InputScreen({
               ) : null}
 
               {trimmedError ? (
-                <div className="border-l-2 border-paper/60 pl-4">
+                <div role="alert" className="border-l-2 border-paper/60 pl-4">
                   <p
                     id={urlInputErrorId}
                     className="font-mono text-[12px] leading-relaxed tracking-wide text-white/90"
                   >
-                    {error}
+                    {trimmedError}
                   </p>
                   {scanNeedsSpotifyUrlHint ? (
                     <p className="mt-2 font-mono text-[11px] leading-relaxed tracking-wide text-white/55">
