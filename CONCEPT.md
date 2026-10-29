@@ -45,7 +45,7 @@ Video names a hold, a cut, or where the eye goes, then what that does to the per
 - **VIDEO:** `/api/analyze`, `/api/analyze-upload`, `/api/download`, `/api/editplan`; `ResultsScreen`; session cache `whyitslaps:last-result`.
 - **MUSIC:** `/api/analyze-music`, `/api/download-music`, `/api/analyze-music/daw-steps`; `MusicResultsScreen`; `lib/spotify.ts`, `lib/claude-music.ts`, `types/music-analysis.ts`.
 - **STILL:** `/api/analyze-still`; `StillResultsScreen`; `lib/claude-still.ts`, `types/still-analysis.ts`. Palette via `node-vibrant`. EXIF focal length, aperture, shutter, and ISO only when the file has the tag.
-- **Music scan:** home **Scan upload** + `/api/identify-audio` (ACRCloud → Spotify breakdown).
+- **Music scan:** home **Listen** (mic ~15s) or file fallback + `/api/identify-audio` (ACRCloud → Spotify breakdown).
 - **History:** home **History** tab — localStorage log of video + music analyses (`lib/analysis-history.ts`).
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
 - **UI agent stack:** [Impeccable](https://github.com/pbakaus/impeccable) + [Ponytail](https://github.com/DietrichGebert/ponytail); grades in **`docs/ui-impeccable-grade.md`**, playbook in **`docs/UI_AGENT_PLAYBOOK.md`**.
@@ -73,7 +73,7 @@ Video names a hold, a cut, or where the eye goes, then what that does to the per
 
 ### Music detect (scan)
 
-Shazam-style **identify before you know the track** — **shipped** on home Music → Scan upload. Spec: **`docs/music-detect-scan.md`**. Still open: mic capture, Spotify fallback when ACR has no `spotify_id`.
+Shazam-style **identify before you know the track** — **shipped** on home Music → **Listen**. Spec: **`docs/music-detect-scan.md`**. Still open: Spotify fallback when ACR has no `spotify_id`.
 
 ### Personal history
 
