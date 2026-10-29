@@ -1,9 +1,14 @@
-import type { MusicAnalysisScores, MusicScoreKey } from "@/types/music-analysis";
+import type {
+  MusicAnalysisScores,
+  MusicScoreKey,
+  SpotifyAudioAnalysisSummary,
+  SpotifyAudioFeatures,
+} from "@/types/music-analysis";
 
 /**
- * Sonic scores are measured from the audio of the track being analyzed.
- * Each song is decoded and scored from its own waveform. There is no
- * shared lookup and no fallback number when the audio cannot be read.
+ * Sonic scores prefer Spotify's full-recording signals (audio features +
+ * audio-analysis sections). Preview-clip DSP fills mix clarity and is the
+ * fallback when the catalog APIs are empty. They are not taste or chart rank.
  */
 
 export const SONIC_SCORE_ORDER: MusicScoreKey[] = [
@@ -173,6 +178,88 @@ function inRange(scores: MusicAnalysisScores): boolean {
   });
 }
 
+function finishScores(partial: Omit<MusicAnalysisScores, "overall_vibe">): MusicAnalysisScores | null {
+  const scores: MusicAnalysisScores = { ...partial, overall_vibe: 0 };
+  const blended =
+    OVERALL_WEIGHTS.hook_strength * scores.hook_strength +
+    OVERALL_WEIGHTS.production_density * scores.production_density +
+    OVERALL_WEIGHTS.emotional_range * scores.emotional_range +
+    OVERALL_WEIGHTS.impact * scores.impact +
+    OVERALL_WEIGHTS.mix_clarity * scores.mix_clarity;
+  scores.overall_vibe = unitToScore(blended / 100);
+  if (!inRange(scores)) return null;
+  return scores;
+}
+
+/** Chorus-like lift: loudest section vs typical section, full recording. */
+function sectionHookUnit(analysis: SpotifyAudioAnalysisSummary): number {
+  const louds = analysis.sections.map((s) => s.loudness_db);
+  if (louds.length < 2) return 0;
+  const peak = Math.max(...louds);
+  const typical = percentile(louds, 0.5);
+  return clamp01((peak - typical) / 12);
+}
+
+function sectionRangeUnit(analysis: SpotifyAudioAnalysisSummary): number {
+  const louds = analysis.sections.map((s) => s.loudness_db);
+  if (louds.length < 2) return 0;
+  return clamp01((Math.max(...louds) - Math.min(...louds)) / 18);
+}
+
+/**
+ * Full-catalog scores from Spotify features + section loudness.
+ * Null when neither payload has enough to measure.
+ */
+export function scoreFromCatalogSignals(
+  features: SpotifyAudioFeatures | null,
+  analysis: SpotifyAudioAnalysisSummary | null,
+): MusicAnalysisScores | null {
+  const hasFeatures = Boolean(features);
+  const hasSections = Boolean(analysis && analysis.sections.length >= 2);
+  if (!hasFeatures && !hasSections) return null;
+
+  const energy = features?.energy ?? 0.5;
+  const acoustic = features?.acousticness ?? 0.5;
+  const dance = features?.danceability ?? 0.5;
+  const valence = features?.valence ?? 0.5;
+  const loudness = features?.loudness_db ?? analysis?.loudness_db ?? -10;
+
+  const hook = hasSections ? sectionHookUnit(analysis as SpotifyAudioAnalysisSummary) : dance;
+  const range = hasSections
+    ? sectionRangeUnit(analysis as SpotifyAudioAnalysisSummary)
+    : clamp01(Math.abs(valence - 0.5) * 2);
+  const impact = energy;
+  const density = clamp01(0.55 * (1 - acoustic) + 0.45 * energy);
+  // Integrated loudness: denser/louder masters sit near -5 dB; more headroom near -18.
+  const mix = clamp01((-loudness - 5) / 14);
+
+  return finishScores({
+    hook_strength: unitToScore(hook),
+    production_density: unitToScore(density),
+    emotional_range: unitToScore(range),
+    impact: unitToScore(impact),
+    mix_clarity: unitToScore(mix),
+  });
+}
+
+/**
+ * Prefer catalog (full recording). Keep preview mix_clarity when we decoded a clip.
+ */
+export function blendSonicScores(
+  catalog: MusicAnalysisScores | null,
+  preview: MusicAnalysisScores | null,
+): MusicAnalysisScores | null {
+  if (!catalog) return preview;
+  if (!preview) return catalog;
+  return finishScores({
+    hook_strength: catalog.hook_strength,
+    production_density: catalog.production_density,
+    emotional_range: catalog.emotional_range,
+    impact: catalog.impact,
+    mix_clarity: preview.mix_clarity,
+  });
+}
+
 /**
  * Score one recording from its mono samples. Returns null when the
  * buffer is too short or too quiet to measure.
@@ -232,31 +319,21 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
   const crestScore = clamp01(1 - Math.abs(crestDb - 12) / 10);
   const balanceScore = clamp01(1 - (mean(imbalance) - 8) / 28);
 
-  const scores: MusicAnalysisScores = {
+  return finishScores({
     hook_strength: unitToScore(pulseStrength(envelope, HOP_SEC)),
     production_density: unitToScore(0.6 * fillRatio + 0.4 * presence),
     emotional_range: unitToScore(rangeLu / 20),
     impact: unitToScore(impactUnit(envelope)),
     mix_clarity: unitToScore(0.55 * crestScore + 0.45 * balanceScore),
-    overall_vibe: 0,
-  };
-
-  const blended =
-    OVERALL_WEIGHTS.hook_strength * scores.hook_strength +
-    OVERALL_WEIGHTS.production_density * scores.production_density +
-    OVERALL_WEIGHTS.emotional_range * scores.emotional_range +
-    OVERALL_WEIGHTS.impact * scores.impact +
-    OVERALL_WEIGHTS.mix_clarity * scores.mix_clarity;
-  scores.overall_vibe = unitToScore(blended / 100);
-  if (!inRange(scores)) return null;
-  return scores;
+  });
 }
 
 export function formatSonicScoreFacts(scores: MusicAnalysisScores): string {
   const lines = SONIC_SCORE_ORDER.map((key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100`);
   return [
     "These sonic scores are already set for this track.",
-    "Do not output a scores object. Write the critique so it agrees with these numbers.",
+    "Hook, density, range, and impact come from Spotify's full-recording features and section loudness. Mix clarity may use the preview clip waveform.",
+    "They are not a ranking of how good the song is. Do not output a scores object. Write the critique so it agrees with these numbers.",
     "Do not explain how the scores were calculated.",
     ...lines,
   ].join("\n");

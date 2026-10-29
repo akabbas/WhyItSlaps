@@ -366,7 +366,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             Sonic Scores
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            Measured from the same short preview clip used for analysis (often ~30s, not the full song). Heuristic meters, not Spotify charts or your personal taste.
+            Hook, density, range, and impact are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Mix clarity can use that preview waveform. Meters describe this track&apos;s shape, not whether the song is &quot;better.&quot;
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
