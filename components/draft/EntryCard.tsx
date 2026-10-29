@@ -40,7 +40,7 @@ export function EntryCard({ entry, footer, onSelect }: Props) {
             {entry.mode}
           </span>
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/50">
           {formatDraftDate(entry.analyzedAt)}
         </span>
       </div>
@@ -71,12 +71,12 @@ export function EntryCard({ entry, footer, onSelect }: Props) {
           ))}
         </div>
         <div className="text-right">
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">vibe score</span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/50">vibe score</span>
           <p className="font-serif text-2xl tracking-wider text-paper">{entry.overallScore}</p>
         </div>
       </div>
 
-      <p className="mt-3 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-white/30">
+      <p className="mt-3 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-white/50">
         {entry.sourceLabel}
       </p>
 

@@ -468,7 +468,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             </p>
             <div className="space-y-4">
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Structure
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -476,7 +476,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 </p>
               </div>
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Density Strategy
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -484,7 +484,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 </p>
               </div>
               <div>
-                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                   Signature Moment
                 </p>
                 <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">
@@ -508,7 +508,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 ] as const
               ).map(([label, val]) => (
                 <div key={label}>
-                  <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">
+                  <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/50">
                     {label}
                   </p>
                   <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/70">{val}</p>
@@ -543,7 +543,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                 ))}
               </div>
             </div>
-            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/50">
               Stock plugins only for {activeDawLabel}
               {activeTab !== "ableton" && !stepsByDaw[activeTab] && loadingDaw === activeTab
                 ? " · loading recipe"
@@ -666,7 +666,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Target Listener */}
         <div className="border-l-2 border-white/12 pl-4">
-          <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+          <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white/50">
             Target Listener
           </p>
           <p className="font-mono text-[12px] leading-relaxed text-white/70">{c.target_listener}</p>
