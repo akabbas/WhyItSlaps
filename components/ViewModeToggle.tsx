@@ -23,7 +23,7 @@ export function ViewModeToggle({ mode, onChange }: Props) {
           className={`px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors ${
             mode === option
               ? "bg-white/[0.1] text-paper"
-              : "bg-transparent text-white/45 hover:text-white/75"
+              : "bg-transparent text-white/50 hover:text-white/75"
           }`}
         >
           {option === "brief" ? "brief" : "full breakdown"}

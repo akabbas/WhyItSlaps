@@ -22,7 +22,7 @@ export default function DraftHubPage() {
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
             Your past video & music breakdowns — private list, reopen any row.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
             open history →
           </span>
         </Link>
@@ -34,7 +34,7 @@ export default function DraftHubPage() {
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
             Opt-in public feed — what people chose to publish, not everything they analyzed.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
             view mock →
           </span>
         </Link>
@@ -46,7 +46,7 @@ export default function DraftHubPage() {
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-white/50">
             Shazam-style fingerprint — upload audio or a short clip on the Music tab.
           </p>
-          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 group-hover:text-white/60">
+          <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/60">
             open music →
           </span>
         </Link>
@@ -111,10 +111,10 @@ export default function DraftHubPage() {
         </p>
       </section>
 
-      <footer className="mt-14 flex flex-wrap gap-6 border-t border-white/12 pt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+      <footer className="mt-14 flex flex-wrap gap-6 border-t border-white/12 pt-8 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
         <Link href="/" className="hover:text-paper">open tool</Link>
         <Link href="/" className="hover:text-paper">home</Link>
-        <span className="text-white/30">spec: docs/draft-history-social.md</span>
+        <span className="text-white/50">spec: docs/draft-history-social.md</span>
       </footer>
     </main>
   );
