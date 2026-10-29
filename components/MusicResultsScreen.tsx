@@ -17,6 +17,7 @@ import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/li
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
 import { MeterFill } from "./ScoreBars";
+import { ResultsWordmark } from "./ResultsWordmark";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -209,9 +210,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
       {/* Nav */}
       <nav className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-5">
-        <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">
-          WHYITSLAPS
-        </span>
+        <ResultsWordmark onHome={onReset} />
         <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
           {typeof onDownloadPreview === "function" ? (
             <button

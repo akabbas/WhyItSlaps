@@ -67,3 +67,4 @@ Overlay cards use transparent PNG export (`exportElementToPng` options overload 
 ## Related docs
 
 - [`docs/draft-history-social.md`](./draft-history-social.md) — history tab / social library prototypes (`/draft/*`).
+- [`docs/CREATIVE_UX.md`](./CREATIVE_UX.md) — live share-card polish tickets (T2, T4–T8); do not revive this section on results.

@@ -51,6 +51,8 @@ Phase 3 — private share URLs (/share/abc)
 Phase 4 — opt-in “Slap library” gallery (no follows/comments yet)
 ```
 
+Do **not** invent live query-string or `/s/:id` URLs before Phase 2 storage. Current session is `/` only; others cannot open your result. Decision + tickets: [`CREATIVE_UX.md`](./CREATIVE_UX.md) §4.
+
 ---
 
 ## Manual test cases (Phase 1)

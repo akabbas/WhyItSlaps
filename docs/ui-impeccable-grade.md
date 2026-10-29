@@ -4,7 +4,7 @@
 
 **Brand guardrail (from [CONCEPT.md](../CONCEPT.md)):** near-black ground, paper type, serif wordmark, mono uppercase UI, grain, sharp corners — no gradient meshes, glass panels, or rounded cards in recommendations.
 
-**Scope:** `origin/main` user-facing surfaces only. **Not graded for rework:** still-mode critique content, EXIF exposure facts, or shared critique voice in `lib/dialogue.ts` (already shipped). **Out of scope:** voice-transcription draft branch (do not merge). **Next steps:** [`UI_AGENT_PLAYBOOK.md`](./UI_AGENT_PLAYBOOK.md) · [`DEAD_ENDS.md`](./DEAD_ENDS.md) (routes, persistence, mocks).
+**Scope:** `origin/main` user-facing surfaces only. **Not graded for rework:** still-mode critique content, EXIF exposure facts, or shared critique voice in `lib/dialogue.ts` (already shipped). **Out of scope:** voice-transcription draft branch (do not merge). **Next steps:** [`UI_AGENT_PLAYBOOK.md`](./UI_AGENT_PLAYBOOK.md) · [`DEAD_ENDS.md`](./DEAD_ENDS.md) (routes, persistence, mocks) · [`CREATIVE_UX.md`](./CREATIVE_UX.md) (meters, share cards, URLs).
 
 **Method:** Local dev server (`npm run dev`) + [whyitslaps.com](https://whyitslaps.com) where noted. `npx impeccable detect app/ components/` (regex scan, 45 files) returned **0** pattern findings; element rules still need a live URL scan for full coverage. Pages marked **source-only** were not fully rendered in this pass (redirects, error boundary, or state-only UI).
 

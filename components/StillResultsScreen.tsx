@@ -5,6 +5,7 @@ import React from "react";
 import { ColorPalette } from "./ColorPalette";
 import { MeterFill } from "./ScoreBars";
 import { WhyItWorks } from "./WhyItWorks";
+import { ResultsWordmark } from "./ResultsWordmark";
 import type { StillAnalyzeSuccess, StillScoreKey } from "@/types/still-analysis";
 
 const SCORE_LABELS: Record<StillScoreKey, string> = {
@@ -37,7 +38,7 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-6xl px-4 pb-24 pt-8 md:px-8">
       <nav className="flex flex-wrap items-start justify-between gap-4 border-b border-white/12 pb-5">
-        <span className="font-serif text-lg tracking-[0.38em] text-paper md:tracking-[0.45em]">WHYITSLAPS</span>
+        <ResultsWordmark onHome={onReset} />
         <button
           type="button"
           className="bg-transparent font-mono text-[11px] uppercase tracking-[0.24em] text-white/88 hover:text-paper"

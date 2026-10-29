@@ -77,7 +77,7 @@ Shazam-style **identify before you know the track** — **shipped** on home Musi
 
 ### Personal history
 
-**Phase 1 shipped** (localStorage History tab). Later: accounts + cloud sync, private share URLs, opt-in Slap library — **`docs/draft-history-social.md`**.
+**Phase 1 shipped** (localStorage History tab). Later: accounts + cloud sync, private share URLs, opt-in Slap library — **`docs/draft-history-social.md`**. Live `/` vs share URLs, and why not to mint a URL per analysis: **`docs/CREATIVE_UX.md`**.
 
 ### More music sources
 
@@ -89,7 +89,7 @@ Post-**video**-analysis prompts for tools like Runway / Kling from tags, grade, 
 
 ### Share / export
 
-Richer share formats; PDF; durable share URLs (today: **video** result cached in `sessionStorage`; **music** session is not persisted the same way — see code).
+Richer share formats; PDF; durable share URLs (today: **video** result cached in `sessionStorage`; **music** session is not persisted the same way — see code). Numbers as **character meters** (not a leaderboard), share-card polish, and spawnable tickets: **`docs/CREATIVE_UX.md`**.
 
 ### Product ideas
 

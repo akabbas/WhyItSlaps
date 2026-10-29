@@ -78,3 +78,6 @@ npx impeccable detect http://127.0.0.1:3000/
 - Re-litigating still prompt, EXIF, or `lib/dialogue.ts` voice
 - `/demo/share-graphics` except `noindex` + flat demo chrome (grade doc)
 - Full social/draft product — mocks stay mocks
+- Inventing public share URLs or a query-string per analysis (see [`CREATIVE_UX.md`](./CREATIVE_UX.md) T10/T12)
+
+Product tickets for meters, share-card polish, and History-as-library: [`CREATIVE_UX.md`](./CREATIVE_UX.md). One ticket id per agent.
