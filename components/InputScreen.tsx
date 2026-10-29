@@ -85,13 +85,13 @@ export function InputScreen({
           <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">
             WHYITSLAPS
           </h1>
-          <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
+          <p className="mx-auto max-w-md text-balance font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
             {isHistory
               ? "your analyses on this device · a private library"
               : isStill
                 ? "upload a picture · find out why it slaps"
                 : isMusic
-                  ? "paste a spotify link · or scan audio before you know the track"
+                  ? "paste a spotify link · find out why it slaps"
                   : "paste a tiktok · find out why it slaps"}
           </p>
         </div>
@@ -174,11 +174,6 @@ export function InputScreen({
               onAnalyze();
             }}
           >
-            {isMusic ? (
-              <p className="border-b border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 md:px-8">
-                Have a link
-              </p>
-            ) : null}
             <div className="flex w-full flex-col sm:flex-row sm:items-stretch">
               <div className="relative flex h-14 flex-1 items-center border-b border-white/20 sm:border-b-0 sm:border-r sm:border-white/20">
                 <input
@@ -231,8 +226,8 @@ export function InputScreen({
             </div>
 
             {isMusic ? (
-              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
-                Analyze = breakdown · Save preview = ~30s clip · never the full song
+              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-pretty text-white/50 md:px-8">
+                Save preview = ~30s clip, never the full song
               </p>
             ) : (
               <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
@@ -241,18 +236,14 @@ export function InputScreen({
             )}
 
             <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
-              {isMusic ? (
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
-                  open.spotify.com/track/… · save preview = ~30s clip · never the full song
-                </p>
-              ) : (
+              {!isMusic ? (
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
                   tiktok · youtube · x · upload for instagram · max 60s
                 </p>
-              )}
+              ) : null}
 
               {isMusic && typeof onUploadMusicScan === "function" ? (
-                <div className="space-y-3 border-t border-white/12 pt-5">
+                <div className="space-y-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
                     Don&apos;t know the track?
                   </p>
@@ -277,7 +268,7 @@ export function InputScreen({
                     Scan upload
                   </button>
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                    mp3 · m4a · short mp4 · max 25 mb · first 15s of audio
+                    mp3 · m4a · mp4 · 25 mb · first 15s
                   </p>
                 </div>
               ) : null}
