@@ -91,7 +91,7 @@ export function StillResultsScreen({ data, previewUrl, onReset }: Props) {
         </section>
       ) : null}
 
-      <section className="mt-16 grid gap-6 md:grid-cols-3">
+      <section className="mt-16 grid gap-6 min-[480px]:grid-cols-3">
         {(
           [
             ["framing", c.framing],
