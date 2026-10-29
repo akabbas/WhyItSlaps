@@ -48,6 +48,7 @@ Video names a hold, a cut, or where the eye goes, then what that does to the per
 - **Music scan:** home **Scan upload** + `/api/identify-audio` (ACRCloud → Spotify breakdown).
 - **History:** home **History** tab — localStorage log of video + music analyses (`lib/analysis-history.ts`).
 - **Chrome extension** (`extension/`) — optional IG CDN → upload API.
+- **UI agent stack:** [Impeccable](https://github.com/pbakaus/impeccable) + [Ponytail](https://github.com/DietrichGebert/ponytail); grades in **`docs/ui-impeccable-grade.md`**, playbook in **`docs/UI_AGENT_PLAYBOOK.md`**.
 - **Legacy redirects:** `/welcome`, `/analyze` → `/`.
 
 ---
