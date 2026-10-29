@@ -54,7 +54,7 @@ You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing comm
 }
 
 Rules:
-- Do NOT output a scores object. The app calculates sonic scores from Spotify audio features and gives them to you as fixed facts.
+- Do NOT output a scores object. The app measures sonic scores from the track preview audio (DSP on the clip) and gives them to you as fixed facts. Spotify audio features are separate metadata; align your prose with the fixed score facts, not those bars.
 - brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
 - vibe_summary: 2–3 sentences expanding on brief_summary. Name a move, then what it does to the listener.
 - section_summaries: ONE sentence each for arrangement (form + density), mix (overall balance), and sonic (dominant textures).
