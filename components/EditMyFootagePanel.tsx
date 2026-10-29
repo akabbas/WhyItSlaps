@@ -27,13 +27,13 @@ function newRow(patch?: Partial<Omit<ClipRow, "id">>): ClipRow {
 
 function formatPlanForClipboard(plan: EditPlan): string {
   const lines: string[] = [];
-  lines.push("YOUR EDIT PLAN — WhyItSlaps");
+  lines.push("YOUR EDIT PLAN. WhyItSlaps");
   lines.push("");
   lines.push(plan.edit_overview);
   lines.push("");
   lines.push("SEQUENCE");
   for (const s of plan.sequence) {
-    lines.push(`— ${s.position}. ${s.clip_label}`);
+    lines.push(`${s.position}. ${s.clip_label}`);
     lines.push(`  In: ${s.in_point} | Hold: ${s.hold_duration}`);
     lines.push(`  Transition in/out: ${s.transition_in} / ${s.transition_out}`);
     lines.push(`  Grade: ${s.color_grade_instructions}`);
@@ -84,7 +84,7 @@ function draftFromAnalysis(a: AnalyzeSuccess): { rows: ClipRow[]; targetDuration
   const d2 = Math.max(5, Math.round(capped * 0.38));
   const target = String(Math.round(capped));
 
-  const desc1 = `${c.edit_style.pacing_badge} — framing / motion cues: ${c.cinematography.framing_composition.slice(0, 220)}${
+  const desc1 = `${c.edit_style.pacing_badge}. Framing / motion cues: ${c.cinematography.framing_composition.slice(0, 220)}${
     c.cinematography.framing_composition.length > 220 ? "…" : ""
   }`.trim();
 
@@ -95,12 +95,12 @@ function draftFromAnalysis(a: AnalyzeSuccess): { rows: ClipRow[]; targetDuration
   return {
     rows: [
       newRow({
-        label: `Clip — ${t1}`,
+        label: `Clip. ${t1}`,
         duration: String(d1),
         description: desc1,
       }),
       newRow({
-        label: `Clip — ${t2}`,
+        label: `Clip. ${t2}`,
         duration: String(d2),
         description: desc2,
       }),
@@ -194,12 +194,12 @@ export function EditMyFootagePanel({ analysis }: Props) {
       if (!data.ok) {
         const parts = [data.error];
         if (data.hint) parts.push(data.hint);
-        setError(parts.join(" — "));
+        setError(parts.join(". "));
         return;
       }
       setPlan(data.plan);
     } catch (err) {
-      setError(timeoutMessage(err, "Network error — could not reach the server."));
+      setError(timeoutMessage(err, "Network error. Could not reach the server."));
     } finally {
       setLoading(false);
     }
@@ -242,7 +242,7 @@ export function EditMyFootagePanel({ analysis }: Props) {
             <p>
               WhyItSlaps does not upload your rushes or render a finished video yet. You describe clips you{" "}
               <span className="text-white">already shot</span> (or rough ideas for what you&apos;ll grab). The edit plan mirrors the{" "}
-              <span className="text-white">reference pacing, grade direction, rhythm, and structure</span> from the breakdown above —
+              <span className="text-white">reference pacing, grade direction, rhythm, and structure</span> from the breakdown above.
               actionable steps inside Premiere Pro or DaVinci Resolve. Use it alongside the{" "}
               <span className="italic text-white/88">HOW TO EDIT LIKE THIS</span> lane for coverage and execution ideas without retyping cues.
             </p>
@@ -379,7 +379,7 @@ export function EditMyFootagePanel({ analysis }: Props) {
                       className="w-full space-y-3 border-l-2 border-paper bg-black/25 pl-4 pr-3 py-4"
                     >
                       <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-paper">
-                        {String(s.position).padStart(2, "0")} — {s.clip_label}
+                        {String(s.position).padStart(2, "0")}. {s.clip_label}
                       </p>
                       <div className="grid gap-2 font-mono text-[12px] leading-relaxed text-white/82 md:grid-cols-2">
                         <p>

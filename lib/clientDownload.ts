@@ -68,7 +68,7 @@ export function arrayBufferToMp4Download(
 ): { ok: true; blob: Blob; filename: string } | { ok: false; message: string } {
   const errJson = tryParseErrorJsonPayload(buf);
   if (errJson) {
-    const glue = errJson.hint ? `${errJson.error} — ${errJson.hint}` : errJson.error;
+    const glue = errJson.hint ? `${errJson.error}. ${errJson.hint}` : errJson.error;
     return { ok: false, message: glue };
   }
 
@@ -102,7 +102,7 @@ export function arrayBufferToMp3Download(
 ): { ok: true; blob: Blob; filename: string } | { ok: false; message: string } {
   const errJson = tryParseErrorJsonPayload(buf);
   if (errJson) {
-    const glue = errJson.hint ? `${errJson.error} — ${errJson.hint}` : errJson.error;
+    const glue = errJson.hint ? `${errJson.error}. ${errJson.hint}` : errJson.error;
     return { ok: false, message: glue };
   }
 

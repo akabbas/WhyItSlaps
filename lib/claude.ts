@@ -7,7 +7,7 @@ export const SYSTEM_PROMPT = `${SPEAKER}
 
 ${VIDEO_CRAFT}
 
-You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
+You MUST output JSON ONLY. No prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
 
 {
   "brief_summary": string,
@@ -51,7 +51,7 @@ You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing 
 
 Rules:
 - All five score fields are integers 0–100 (not floats, not strings). Do NOT include music_sync or any other score key.
-- brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
+- brief_summary: ONE punchy sentence. The TL;DR if someone only reads one line.
 - vibe_summary: 2–3 sentences expanding on brief_summary with more texture.
 - section_summaries: ONE sentence each summarizing cinematography, color_grade, and edit_style (no sub-bullets).
 - aesthetic_tags: 6–12 sharp lowercase tokens (comma-free); target_audience: one conversational sentence naming who this resonates with.
@@ -60,7 +60,7 @@ Rules:
 - cut_pattern and transitions must reflect what you infer from the sampled frames and their implied cadence.
 - why_it_works needs EXACTLY four ordered objects explaining emotional leverage.
 - how_to_edit_like_this needs EXACTLY four imperative editing steps reflecting the inferred workflow.
-- If evidence is uncertain, tuck the caveat inside the paragraph that is ambiguous — never add extra keys outside the schema.`;
+- If evidence is uncertain, tuck the caveat inside the paragraph that is ambiguous. Never add extra keys outside the schema.`;
 
 export function stripJsonFence(text: string): string {
   const trimmed = text.trim();

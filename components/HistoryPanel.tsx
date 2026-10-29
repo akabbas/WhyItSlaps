@@ -39,7 +39,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
           library on this device · video & music only
         </p>
         <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
-          No analyses in this library yet. Video and music only — still breakdowns are not saved here yet. Run a
+          No analyses in this library yet. Video and music only. Picture breakdowns are not saved here yet. Run a
           video or music breakdown; entries stay on this device only.
         </p>
       </div>

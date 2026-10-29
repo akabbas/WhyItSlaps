@@ -6,7 +6,7 @@ export function formatShareSummary(data: AnalyzeSuccess): string {
 
   const lines = [
     "WhyItSlaps breakdown",
-    `— ${c.vibe_summary}`,
+    c.vibe_summary,
     "",
     `Tags: ${chips}`,
     `Audience: ${c.target_audience}`,

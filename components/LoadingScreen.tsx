@@ -11,7 +11,7 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
       "fetching the clip",
       "pulling stills from the cut",
       "reading color and motion",
-      "writing the critique — still working",
+      "still writing the critique",
     ],
   },
   music: {
@@ -20,7 +20,7 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
       "fetching the spotify track",
       "reading catalog stats for the full recording",
       "measuring the preview clip",
-      "writing the critique — still working",
+      "still writing the critique",
     ],
   },
   still: {
@@ -29,7 +29,7 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
       "reading the picture",
       "pulling the palette",
       "looking at light and frame",
-      "writing the critique — still working",
+      "still writing the critique",
     ],
   },
   scan: {
@@ -37,21 +37,21 @@ const PHASE_COPY: Record<Phase, { kicker: string; steps: readonly string[] }> = 
     steps: [
       "sampling the upload",
       "fingerprinting the audio",
-      "matching the catalog — still working",
+      "matching the catalog"
     ],
   },
   download: {
     kicker: "save clip",
     steps: [
       "fetching the source clip",
-      "packaging the file — still working",
+      "packaging the file"
     ],
   },
   "download-music": {
     kicker: "save preview",
     steps: [
       "fetching a ~30s preview clip",
-      "packaging the mp3 — still working",
+      "packaging the mp3"
     ],
   },
 };

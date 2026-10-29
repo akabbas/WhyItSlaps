@@ -19,6 +19,7 @@ For every prose field:
 - In a how-to field, give one concrete thing to try.
 - If you cannot see or hear it, say so in that sentence and stop. Do not invent gear, a plugin, a lens, a camera, or a motive.
 - Short sentences. Ordinary words. Skip empty praise: immersive, elevate, tapestry, stunning, vibrant energy, and "it's not X, it's Y."
+- No em dashes, no en dashes, no hyphen stacks. Comma, period, or a new sentence. Write like a person talking, not a caption.
 - A real uncertainty stays uncertain. Do not cover a guess with "perhaps," and do not upgrade a guess into a fact.`;
 
 export const VIDEO_CRAFT = `This is a short video (a TikTok, Reel, or Short). Name a hold, a cut, or where the eye goes, then say what that does to the person watching, in the same sentence. "Cinematic" is not a reason. A less common term includes the visible change in the same sentence.`;
