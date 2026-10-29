@@ -16,7 +16,7 @@ import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
 import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
-import { MeterFill } from "./ScoreBars";
+import { MeterFill, ThisPieceQualifier } from "./ScoreBars";
 import { ResultsWordmark } from "./ResultsWordmark";
 
 type Props = {
@@ -227,7 +227,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             onClick={() => setShareCardOpen(true)}
             className="min-h-[44px] border border-white/40 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.28em] text-white hover:border-paper hover:text-paper"
           >
-            share card
+            SHARE CARD
           </button>
           <button
             type="button"
@@ -362,8 +362,8 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
 
         {/* Sonic Scores */}
         <section>
-          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-            Sonic Scores
+          <p className="mb-1 border-b border-white/12 pb-3 font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">
+            this track&apos;s meters
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
             Measured from the same short preview clip used for analysis (often ~30s, not the full song). Heuristic meters, not Spotify charts or your personal taste.
@@ -373,7 +373,10 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               {SONIC_SCORE_ORDER.map((key, index) => (
                 <div key={key} className="space-y-1">
                   <div className="flex items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-white/66">
-                    <span>{SONIC_SCORE_LABELS[key]}</span>
+                    <span>
+                      {SONIC_SCORE_LABELS[key]}
+                      {key === "overall_vibe" ? <ThisPieceQualifier /> : null}
+                    </span>
                     <span className="text-white/92">{c.scores?.[key]}</span>
                   </div>
                   <MeterFill value={c.scores?.[key] ?? 0} delayMs={index * 70} />

@@ -49,7 +49,7 @@ Open PR **#32** (`ammr/music-coherence-copy-7f1b`) clarifies preview-download la
 
 #### T1 — Meter copy: character, not rank
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-meter-copy-share-cta-7f1b` (kicker `this clip's meters` / `this track's meters` / `this picture's meters`; overall vibe row suffix ` · this piece`)
 - **Files:** [`components/ScoreBars.tsx`](../components/ScoreBars.tsx), [`components/MusicResultsScreen.tsx`](../components/MusicResultsScreen.tsx) (sonic scores kicker), [`components/StillResultsScreen.tsx`](../components/StillResultsScreen.tsx), optionally [`lib/sonic-scores.ts`](../lib/sonic-scores.ts) labels, [`lib/share.ts`](../lib/share.ts)
 - **Do:** One mono kicker above the meters (“this clip’s meters” / “this track’s meters” / “this picture’s meters”). Keep axis names. Do not rename `overall_vibe` in JSON. Optional: “OVERALL VIBE” → “OVERALL VIBE · this piece” on the last row only.
 - **Don’t:** Change DSP or model score math. Add `/100` noise on every row unless contrast requires it. Touch share-card layout (that’s T2/T7).
@@ -104,7 +104,7 @@ Checked: `ShareCardPanel`, `share-cards/MusicShareCard.tsx`, `share-cards/VideoS
 3. **Typeset** — Wordmark 34px / 0.38em tracking is on-brand. Live-card helper type bumped to paper/50+ with T2/T6. Remaining quote-over-meters typeset is **T7**.
 4. **Composition (panel)** — **T5** shipped: scaled story/square preview is centered and clipped to the card bounds; preview well is sharp-cornered. Export stays 1080×1920 / 1080×1080 on the off-screen node.
 5. **Composition (card)** — **T6** shipped: live cards are flat `#0A0A0A` + paper hairline (no radial meshes, no Spotify green). Music BPM/KEY/HOOK grid columns match the number of cells.
-6. **Inconsistent entry** — Video: uppercase **SHARE CARD** (mobile under headline, desktop after long scroll). Music: lowercase **share card** in the top nav with download/copy/new. Still: nothing. Grade already wanted one results-nav pattern (#28 helped; share label still splits).
+6. **Inconsistent entry** — Video and music share CTAs both read **SHARE CARD** (T8). Video: mobile under-headline + desktop after scroll. Music: clustered in the top nav with download/copy/new. Still: nothing (T13).
 7. **Tags** — Video share prefixes `#`; music share does not. Results screens also disagree.
 8. **Two codepaths** — `share-cards/` (live) vs `share-graphics/cards/` (demo). Do not polish the demo except `noindex` / flat chrome already in the grade doc.
 
@@ -160,7 +160,7 @@ Implement docs/CREATIVE_UX.md ticket T7 only. Live share-cards: make vibe quote 
 
 #### T8 — Share CTA label parity
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-meter-copy-share-cta-7f1b` (music nav label `SHARE CARD` to match video; music share stays in the clustered nav)
 - **Files:** [`components/ResultsScreen.tsx`](../components/ResultsScreen.tsx), [`components/MusicResultsScreen.tsx`](../components/MusicResultsScreen.tsx)
 - **Do:** One label casing (“share card” **or** “SHARE CARD”) and one placement pattern consistent with #28 nav parity. Don’t move music share out of the nav if that regresses the clustered actions — match video’s mobile under-headline row **or** music’s nav, not both dialects.
 - **Prompt:**
@@ -268,21 +268,21 @@ Implement docs/CREATIVE_UX.md ticket T13 only. Still results share/copy parity w
 
 | Id | Theme | Status | Spawnable now? |
 |----|--------|--------|----------------|
-| T1 | Meter copy | Open | Yes |
+| T1 | Meter copy | **Shipped** | No |
 | T2 | Share: hide/shrink overall vibe | **Shipped** | No |
-| T3 | History chip | Open | Yes |
+| T3 | History chip | **Shipped** | No |
 | T4 | Share panel copy | **Shipped** | No |
 | T5 | Share preview composition | **Shipped** | No |
 | T6 | Flatten share-card fills | **Shipped** | No |
 | T7 | Share hierarchy | Open | After T2 (and T6 if touching fills) |
-| T8 | Share CTA parity | Open | Yes |
+| T8 | Share CTA parity | **Shipped** | No |
 | T9 | Wordmark home | **Shipped** | No |
 | T10 | No scan routes | Deferred (guardrail) | No |
 | T11 | History as library | Open | Yes (after or with T3) |
 | T12 | `/s/:id` share URLs | Deferred | No — needs backend |
 | T13 | Still share | Open | Yes (respect T2) |
 
-**Suggested first wave (parallel, one ticket per agent):** T1, T3, T8 (T2/T4/T5/T6 shipped on `ammr/ux-share-cards-wave-7f1b`). Then T7. T13 when still share is wanted. T11 anytime. Never T12 without storage. Never merge **#17**.
+**Suggested first wave (remaining):** **T7** (quote/meters hierarchy). **T13** when still share is wanted. **T11** if history library copy still needs a pass. Never T12 without storage. Never merge **#17**.
 
 ---
 
