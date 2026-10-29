@@ -13,6 +13,7 @@ import type {
 } from "@/types/music-analysis";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { musicBriefHeadline, musicSectionSummaries } from "@/lib/brief";
+import { moodMarkerPercent, moodQuadrant, moodQuadrantAxes, type MoodQuadrant } from "@/lib/mood-quadrant";
 import { SONIC_SCORE_LABELS, SONIC_SCORE_MISSING, SONIC_SCORE_ORDER } from "@/lib/sonic-scores";
 import { ShareCardPanel } from "./ShareCardPanel";
 import { MusicShareCard } from "./share-cards/MusicShareCard";
@@ -78,6 +79,71 @@ function BriefSectionCard({ label, text }: { label: string; text: string }) {
       <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">{label}</p>
       <p className="mt-2 font-mono text-[11px] leading-relaxed text-white/75">{text}</p>
     </div>
+  );
+}
+
+const MOOD_CELLS: MoodQuadrant[] = ["TENSE", "UP", "LOW", "SOFT"];
+
+function MoodBriefLine({ energy, valence }: { energy: number; valence: number }) {
+  const quadrant = moodQuadrant(energy, valence);
+  return (
+    <p
+      className="mt-4 font-mono text-[11px] uppercase tracking-[0.22em] text-paper"
+      aria-label={`Mood ${quadrant}: ${moodQuadrantAxes(quadrant)}. Character, not a ranking.`}
+    >
+      Mood · {quadrant}
+    </p>
+  );
+}
+
+function MoodQuadrantMap({ energy, valence }: { energy: number; valence: number }) {
+  const quadrant = moodQuadrant(energy, valence);
+  const marker = moodMarkerPercent(energy, valence);
+  return (
+    <figure className="min-w-0">
+      <figcaption className="font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">Mood</figcaption>
+      <p className="mt-1 font-mono text-[10px] tracking-wide text-white/50">Character, not a ranking.</p>
+      <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-2">
+        <div className="flex flex-col items-center justify-between py-6 font-mono text-[8px] uppercase tracking-[0.14em] text-white/40">
+          <span>high</span>
+          <span className="[writing-mode:vertical-rl] rotate-180 tracking-[0.18em]">energy</span>
+          <span>low</span>
+        </div>
+        <div>
+          <div className="mb-1 flex justify-between font-mono text-[9px] uppercase tracking-[0.16em]">
+            <span className={quadrant === "TENSE" ? "text-paper" : "text-white/32"}>Tense</span>
+            <span className={quadrant === "UP" ? "text-paper" : "text-white/32"}>Up</span>
+          </div>
+          <div
+            className="relative h-28 w-full border border-white/20 bg-black/30"
+            role="img"
+            aria-label={`Mood ${quadrant}: ${moodQuadrantAxes(quadrant)}`}
+          >
+            <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-2" aria-hidden>
+              {MOOD_CELLS.map((name) => (
+                <div key={name} className={name === quadrant ? "bg-paper/[0.08]" : undefined} />
+              ))}
+            </div>
+            <div className="pointer-events-none absolute inset-0" aria-hidden>
+              <div className="absolute left-1/2 top-0 h-full w-px bg-white/15" />
+              <div className="absolute left-0 top-1/2 h-px w-full bg-white/15" />
+            </div>
+            <div className="pointer-events-none absolute inset-1.5" aria-hidden>
+              <div
+                className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-paper"
+                style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
+              />
+            </div>
+          </div>
+          <div className="mt-1 flex justify-between font-mono text-[9px] uppercase tracking-[0.16em]">
+            <span className={quadrant === "LOW" ? "text-paper" : "text-white/32"}>Low</span>
+            <span className={quadrant === "SOFT" ? "text-paper" : "text-white/32"}>Soft</span>
+          </div>
+          <p className="mt-1 text-center font-mono text-[8px] uppercase tracking-[0.16em] text-white/40">valence</p>
+        </div>
+      </div>
+      <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-paper">{quadrant}</p>
+    </figure>
   );
 }
 
@@ -398,16 +464,25 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
               From Spotify&apos;s audio features API (energy, danceability, etc.). Separate from preview sonic scores above.
             </p>
-            <div className={`grid grid-cols-1 gap-3 ${isBrief ? "md:grid-cols-2" : "md:grid-cols-2"}`}>
-              <FeatureBar label="Energy" value={features.energy} />
-              <FeatureBar label="Danceability" value={features.danceability} />
-              {!isBrief ? (
-                <>
+            {isBrief ? (
+              <>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <FeatureBar label="Energy" value={features.energy} />
+                  <FeatureBar label="Danceability" value={features.danceability} />
+                </div>
+                <MoodBriefLine energy={features.energy} valence={features.valence} />
+              </>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] md:items-start">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <FeatureBar label="Energy" value={features.energy} />
+                  <FeatureBar label="Danceability" value={features.danceability} />
                   <FeatureBar label="Valence" value={features.valence} />
                   <FeatureBar label="Acousticness" value={features.acousticness} />
-                </>
-              ) : null}
-            </div>
+                </div>
+                <MoodQuadrantMap energy={features.energy} valence={features.valence} />
+              </div>
+            )}
           </section>
         )}
 
