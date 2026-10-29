@@ -60,9 +60,9 @@ export async function generateDawProduceSteps(
     .map((step, i) => `${i + 1}. ${step.title}\n${step.body}`)
     .join("\n\n");
 
-  const systemPrompt = `You are WhyItSlaps — a senior music producer localizing a production recipe for ${dawLabel}.
+  const systemPrompt = `You are WhyItSlaps, a senior music producer localizing a production recipe for ${dawLabel}.
 
-Output JSON ONLY — no prose, no Markdown, no fences. Return ONE JSON array of EXACTLY 4 objects:
+Output JSON ONLY. No prose, no Markdown, no fences. Return ONE JSON array of EXACTLY 4 objects:
 [{ "title": string, "body": string }, ...]
 
 Rules:

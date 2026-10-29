@@ -59,13 +59,13 @@ export function ShareCardPanel({
           setStatus("shared.");
         } else if (result === "unsupported") {
           downloadBlob(blob, filename);
-          setStatus("share unavailable — downloaded instead.");
+          setStatus("share unavailable. Downloaded instead.");
         } else {
           setStatus("share cancelled.");
         }
       }
     } catch {
-      setStatus("export failed — try again.");
+      setStatus("export failed. Try again.");
     } finally {
       setBusy(false);
       window.setTimeout(() => setStatus(null), 2800);
@@ -160,8 +160,8 @@ export function ShareCardPanel({
         <p className="mt-3 min-h-[1rem] font-mono text-[11px] tracking-wide text-white/70">{status}</p>
         <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
           {format === "story"
-            ? "1080×1920 still — sized for Stories, Reels, and TikTok."
-            : "1080×1080 still — sized for a square post."}
+            ? "1080×1920 still, sized for Stories, Reels, and TikTok."
+            : "1080×1080 still, sized for a square post."}
         </p>
       </div>
 

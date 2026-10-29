@@ -18,7 +18,13 @@ import { ResultsScreen } from "@/components/ResultsScreen";
 import { MusicResultsScreen } from "@/components/MusicResultsScreen";
 import { StillResultsScreen } from "@/components/StillResultsScreen";
 import { HistoryPanel } from "@/components/HistoryPanel";
-import { pushMusicHistory, pushVideoHistory, type AnalysisHistoryEntry } from "@/lib/analysis-history";
+import {
+  findHistoryBySourceUrl,
+  pushMusicHistory,
+  pushVideoHistory,
+  type AnalysisHistoryEntry,
+} from "@/lib/analysis-history";
+import { readAppLocation, writeAppPath } from "@/lib/app-url";
 
 const STORAGE_KEY = "whyitslaps:last-result";
 /** Extension injector may write after first paint; poll briefly without delaying normal cache read. */
@@ -37,9 +43,9 @@ function networkErrorHint(original: string): string {
     typeof window !== "undefined" &&
     /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
   if (onLocalhost) {
-    return `${original} — Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
+    return `${original}. Try http://127.0.0.1:3000 (not "localhost") with npm run dev running; check the terminal for crashes.`;
   }
-  return `${original} — The connection dropped while the server was still working (not a 60s clip limit). Retry once; if it keeps failing, try Upload clip with a short MP4.`;
+  return `${original}. The connection dropped while the server was still working (not a 60s clip limit). Retry once; if it keeps failing, try Upload clip with a short MP4.`;
 }
 
 type StoredEnvelopeV1 = { v: 1; result: AnalyzeSuccess; url: string };
@@ -93,31 +99,36 @@ export function AnalyzeToolPage() {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
-    const requestedMode = params.get("mode");
-    if (requestedMode === "music" || requestedMode === "history" || requestedMode === "still") {
-      setMode(requestedMode);
-    }
-    const urlParam = params.get("url")?.trim();
-    if (urlParam && /^https?:\/\//i.test(urlParam)) {
-      setUrl(urlParam);
-      if (params.get("analyze") !== "0") {
-        pendingMusicAutoAnalyzeUrl.current = urlParam;
+    const loc = readAppLocation(window.location.search);
+    setMode(loc.mode);
+    if (loc.url) setUrl(loc.url);
+
+    let skipSessionVideo = loc.mode === "history" || loc.mode === "still" || loc.mode === "music";
+    if (loc.url) {
+      if (loc.mode === "music") {
+        const hit = findHistoryBySourceUrl(loc.url, "music");
+        if (hit?.music) {
+          setStoredMusicSourceUrl(loc.url);
+          setMusicResult(hit.music);
+          skipSessionVideo = true;
+        } else if (loc.autoAnalyze) {
+          pendingMusicAutoAnalyzeUrl.current = loc.url;
+        }
+      } else {
+        const hit = findHistoryBySourceUrl(loc.url, "video");
+        if (hit?.video) {
+          setStoredSourceUrl(loc.url);
+          setResult(hit.video);
+          skipSessionVideo = true;
+        }
       }
     }
+
     if (params.has("fresh") || params.has("new")) {
       window.sessionStorage.removeItem(STORAGE_KEY);
       window.sessionStorage.removeItem("whyitslaps_result");
       params.delete("fresh");
       params.delete("new");
-      const q = params.toString();
-      const path = `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`;
-      window.history.replaceState(null, "", path);
-    }
-
-    if (params.has("mode") || params.has("url") || params.has("analyze")) {
-      params.delete("mode");
-      params.delete("url");
-      params.delete("analyze");
       const q = params.toString();
       const path = `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`;
       window.history.replaceState(null, "", path);
@@ -163,7 +174,7 @@ export function AnalyzeToolPage() {
     const tick = (attempt: number) => {
       if (cancelled) return;
       if (tryHydrateFromExtension()) return;
-      if (attempt === 0 && tryHydrateFromSessionCache()) return;
+      if (!skipSessionVideo && attempt === 0 && tryHydrateFromSessionCache()) return;
       if (attempt + 1 < EXT_RESULT_MAX_ATTEMPTS) {
         window.setTimeout(() => tick(attempt + 1), EXT_RESULT_POLL_MS);
       }
@@ -182,6 +193,48 @@ export function AnalyzeToolPage() {
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(body));
   }, [result, storedSourceUrl]);
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPop = () => {
+      const loc = readAppLocation(window.location.search);
+      setMode(loc.mode);
+      setUrl(loc.url);
+      setError(null);
+      if (loc.mode === "history" || loc.mode === "still" || !loc.url) {
+        setResult(null);
+        setMusicResult(null);
+        setStoredSourceUrl("");
+        setStoredMusicSourceUrl("");
+        return;
+      }
+      if (loc.mode === "music") {
+        const hit = findHistoryBySourceUrl(loc.url, "music");
+        setResult(null);
+        setStoredSourceUrl("");
+        if (hit?.music) {
+          setStoredMusicSourceUrl(loc.url);
+          setMusicResult(hit.music);
+        } else {
+          setMusicResult(null);
+          setStoredMusicSourceUrl("");
+        }
+        return;
+      }
+      const hit = findHistoryBySourceUrl(loc.url, "video");
+      setMusicResult(null);
+      setStoredMusicSourceUrl("");
+      if (hit?.video) {
+        setStoredSourceUrl(loc.url);
+        setResult(hit.video);
+      } else {
+        setResult(null);
+        setStoredSourceUrl("");
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   const guessFilename = React.useCallback((rawUrl: string) => {
     try {
       const host = new URL(rawUrl.trim()).hostname.replace(/^www\./, "").replace(/[^a-z0-9]/gi, "-");
@@ -196,7 +249,7 @@ export function AnalyzeToolPage() {
 
     const target = targetUrl.trim();
     if (!target) {
-      setError("No saved link — paste a URL on the previous screen.");
+      setError("No saved link. Paste a URL on the previous screen.");
       return;
     }
     if (!/^https?:\/\//i.test(target)) {
@@ -223,7 +276,7 @@ export function AnalyzeToolPage() {
           const errBody = (await res.json()) as AnalyzeErrorBody;
           msg =
             typeof errBody === "object" && errBody?.error ? errBody.error : `HTTP ${res.status}`;
-          if (typeof errBody === "object" && errBody.hint) msg = `${msg} — ${String(errBody.hint)}`;
+          if (typeof errBody === "object" && errBody.hint) msg = `${msg}. ${String(errBody.hint)}`;
         } catch {
           msg = await res.text().catch(() => "");
           msg = msg || `Download failed (${res.status}).`;
@@ -254,7 +307,7 @@ export function AnalyzeToolPage() {
 
       const target = targetUrl.trim();
       if (!target) {
-        setError("No saved link — paste a Spotify track URL first.");
+        setError("No saved link. Paste a Spotify track URL first.");
         return;
       }
       if (!/^https?:\/\//i.test(target)) {
@@ -280,7 +333,7 @@ export function AnalyzeToolPage() {
           try {
             const errBody = (await res.json()) as MusicAnalyzeErrorBody;
             msg = typeof errBody === "object" && errBody?.error ? errBody.error : `HTTP ${res.status}`;
-            if (typeof errBody === "object" && errBody.hint) msg = `${msg} — ${String(errBody.hint)}`;
+            if (typeof errBody === "object" && errBody.hint) msg = `${msg}. ${String(errBody.hint)}`;
           } catch {
             msg = await res.text().catch(() => "");
             msg = msg || `Download failed (${res.status}).`;
@@ -339,11 +392,12 @@ export function AnalyzeToolPage() {
         pushMusicHistory(musicPayload, target);
         setHistoryRefreshToken((n) => n + 1);
         setMusicResult(musicPayload);
+        writeAppPath("music", target, "push");
         return;
       }
       const err = payload as MusicAnalyzeErrorBody;
       if (err.retrySuggested) setAnalysisRetryHint(true);
-      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+      setError(err.hint ? `${err.error}. ${err.hint}` : err.error);
     } catch (unexpected) {
       setError(caughtError(unexpected, "Unknown network error."));
     } finally {
@@ -395,6 +449,7 @@ export function AnalyzeToolPage() {
         pushVideoHistory(payload, target);
         setHistoryRefreshToken((n) => n + 1);
         setResult(payload);
+        writeAppPath("video", target, "push");
         return;
       }
 
@@ -404,7 +459,7 @@ export function AnalyzeToolPage() {
         setAnalysisRetryHint(true);
       }
 
-      const glue = err.hint ? `${err.error} — ${err.hint}` : err.error;
+      const glue = err.hint ? `${err.error}. ${err.hint}` : err.error;
       setError(glue);
     } catch (unexpected) {
       setError(caughtError(unexpected, "Unknown network error."));
@@ -434,7 +489,7 @@ export function AnalyzeToolPage() {
         if (!res.ok || !payload.ok) {
           const err = payload as IdentifyAudioErrorBody;
           if (err.retrySuggested) setAnalysisRetryHint(true);
-          setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+          setError(err.hint ? `${err.error}. ${err.hint}` : err.error);
           return;
         }
 
@@ -442,7 +497,7 @@ export function AnalyzeToolPage() {
         if (!spotifyUrl) {
           const { title, artist } = payload.match;
           setError(
-            `Found “${title}” by ${artist} — no Spotify link in the match. Paste a track URL to analyze.`,
+            `Found “${title}” by ${artist}. No Spotify link in the match. Paste a track URL to analyze.`,
           );
           return;
         }
@@ -490,12 +545,13 @@ export function AnalyzeToolPage() {
         pushVideoHistory(payload, "");
         setHistoryRefreshToken((n) => n + 1);
         setResult(payload);
+        writeAppPath("video", undefined, "push");
         return;
       }
 
       const err = payload as AnalyzeErrorBody;
       if (err.retrySuggested) setAnalysisRetryHint(true);
-      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+      setError(err.hint ? `${err.error}. ${err.hint}` : err.error);
     } catch (unexpected) {
       setError(caughtError(unexpected, "Unknown network error."));
     } finally {
@@ -550,11 +606,12 @@ export function AnalyzeToolPage() {
           return URL.createObjectURL(file);
         });
         setStillResult(payload);
+        writeAppPath("still", undefined, "push");
         return;
       }
 
       const err = payload as StillAnalyzeErrorBody;
-      setError(err.hint ? `${err.error} — ${err.hint}` : err.error);
+      setError(err.hint ? `${err.error}. ${err.hint}` : err.error);
     } catch (unexpected) {
       setError(caughtError(unexpected, "Unknown network error."));
     } finally {
@@ -571,6 +628,8 @@ export function AnalyzeToolPage() {
       setStoredSourceUrl("");
       setStoredMusicSourceUrl(entry.sourceUrl);
       setMusicResult(entry.music);
+      setMode("music");
+      writeAppPath("music", entry.sourceUrl, "push");
       return;
     }
     if (entry.kind === "video" && entry.video) {
@@ -578,6 +637,8 @@ export function AnalyzeToolPage() {
       setStoredMusicSourceUrl("");
       setStoredSourceUrl(entry.sourceUrl);
       setResult(entry.video);
+      setMode("video");
+      writeAppPath("video", entry.sourceUrl, "push");
     }
   }, [clearStill]);
 
@@ -591,8 +652,9 @@ export function AnalyzeToolPage() {
     setStoredMusicSourceUrl("");
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(STORAGE_KEY);
+      writeAppPath(mode, undefined, "replace");
     }
-  }, [clearStill]);
+  }, [clearStill, mode]);
 
   const loadingUiPhase =
     loadingPhase === "download" ||
@@ -668,6 +730,7 @@ export function AnalyzeToolPage() {
           setError(null);
           setAnalysisRetryHint(false);
           if (next === "history") setHistoryRefreshToken((n) => n + 1);
+          writeAppPath(next, undefined, "push");
         }}
         onRetryAnalysis={runAnalyze}
         onUploadFile={(file) => void (mode === "still" ? runStillAnalyze(file) : runUploadAnalyze(file))}

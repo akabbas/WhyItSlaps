@@ -79,7 +79,7 @@ export async function POST(req: Request) {
           body: {
             ok: false,
             error:
-              "Download finished but no video file was written. The link may be blocked, expired, or over 60 seconds — try another URL or upload a clip under 1 minute.",
+              "Download finished but no video file was written. The link may be blocked, expired, or over 60 seconds. Try another URL or upload a clip under 1 minute.",
             stage: "download",
           } satisfies AnalyzeErrorBody,
         };
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
           status: 422,
           body: {
             ok: false,
-            error: "No keyframes extracted — clip may be unreadable.",
+            error: "No keyframes extracted. The clip may be unreadable.",
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };

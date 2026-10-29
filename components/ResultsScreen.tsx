@@ -102,7 +102,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
 
         {!isBrief && headline !== c.vibe_summary ? (
           <p className="max-w-2xl font-mono text-[11px] leading-relaxed tracking-wide text-white/45">
-            TL;DR — {headline}
+              TL;DR. {headline}
           </p>
         ) : null}
 
