@@ -142,8 +142,7 @@ export function ResultsScreen({ data, downloadError, videoSourceUrl, downloadBus
       </header>
 
       <section className="mt-14 grid gap-10 md:grid-cols-[1.08fr_minmax(0,0.9fr)] md:gap-14">
-        <div className="space-y-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50">motion read</p>
+        <div>
           <ScoreBars scores={c.scores} />
         </div>
 
