@@ -120,7 +120,7 @@ export function InputScreen({
               onClick={() => onModeChange("still")}
               className={`border-l border-white/20 ${tabClass(mode === "still")}`}
             >
-              Still
+              Picture
             </button>
             <button
               type="button"
@@ -158,7 +158,7 @@ export function InputScreen({
               Upload picture
             </button>
             <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-              jpeg · png · webp · gif · one still · 8 mb
+              jpeg · png · webp · gif · one picture · 8 mb
             </p>
             {trimmedError ? (
               <div role="alert" className="mt-5 border-l-2 border-paper/60 pl-4">

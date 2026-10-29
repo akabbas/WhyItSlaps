@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     const body: StillAnalyzeSuccess = { ok: true, claude, palette };
     return NextResponse.json(body);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Still analysis failed.";
+    const message = err instanceof Error ? err.message : "Picture analysis failed.";
     const missingKey = /ANTHROPIC_API_KEY/i.test(message);
     return fail(message, missingKey ? 500 : 502, missingKey ? undefined : "Try the picture again.");
   } finally {

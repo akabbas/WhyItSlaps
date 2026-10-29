@@ -56,7 +56,7 @@
 
 | Route / screen | Reachable on main | How it appears |
 |----------------|-------------------|----------------|
-| `/` | Yes | Home input; mode tabs Video / Music / Still / History |
+| `/` | Yes | Home input; mode tabs Video / Music / Picture / History |
 | `/` (state) | Yes | Video, music, or still **results** replace home after analyze |
 | Loading overlay | Yes | Full-screen while analyze / download / scan |
 | Home inline errors | Yes | Border-left message under form |
@@ -149,7 +149,7 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 
 ---
 
-## `/` — Home (Still tab)
+## `/` — Home (Picture tab)
 
 **What you do:** Upload one image (JPEG/PNG/WebP/GIF, 8 MB); no URL paste.
 
