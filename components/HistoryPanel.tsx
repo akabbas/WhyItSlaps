@@ -28,20 +28,14 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
   };
 
   const onClear = () => {
-    if (!window.confirm("Clear all local analysis history on this device?")) return;
+    if (!window.confirm("Clear saved analyses?")) return;
     setEntries(clearAnalysisHistory());
   };
 
   if (entries.length === 0) {
     return (
       <div className="border-t border-white/20 px-6 py-10 text-left md:px-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          library on this device · video & music only
-        </p>
-        <p className="mt-4 font-mono text-[12px] leading-relaxed text-white/65">
-          No analyses in this library yet. Video and music only. Image breakdowns are not saved here yet. Run a
-          video or music breakdown; entries stay on this device only.
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">0 saved</p>
       </div>
     );
   }
@@ -50,7 +44,7 @@ export function HistoryPanel({ refreshToken = 0, onOpen }: Props) {
     <div className="border-t border-white/20 text-left">
       <div className="flex items-center justify-between gap-3 border-b border-white/12 px-6 py-4 md:px-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-          {entries.length} in this library · this device · video & music only
+          {entries.length} saved
         </p>
         <button
           type="button"
