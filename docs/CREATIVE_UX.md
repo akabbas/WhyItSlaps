@@ -218,19 +218,19 @@ If scan **fails** or has no Spotify id, the user never leaves the home Music tab
 
 **Do not** give every live analysis a new public URL. Others **cannot** see your current result. “Every noise at once” is a **feed / library** job, not query-string chaos.
 
-Keep **`/`** for the live session. Revisit past work via **History** (this browser) now; optional later **`/s/:id`** (or `/share/abc` as in the draft spec) **only after** a persistence backend. Do not mint share URLs that 404 or that only work in one tab.
+Keep **`/`** for the live session. The address bar now follows **mode** and the **source URL** (`/?mode=music&url=…`) so History of a song is bookmarkable on this device. That is the Spotify or video link, not a generated analysis id. Optional later **`/s/:id`** **only after** a persistence backend. Do not mint share URLs that 404.
 
 ### Current truth
 
 | Mechanism | Who sees it | Survives refresh? |
 |-----------|-------------|-------------------|
-| Live UI on `/` (React state) | This tab only | **Video:** yes, `sessionStorage` key `whyitslaps:last-result`. **Music / still:** no — refresh returns home. |
-| `?mode=` `?url=` `?analyze=` | Consumed then **stripped** | Not a shareable analysis URL. |
-| History tab | This **browser** (`localStorage` `whyitslaps:analysis-history:v1`, max 40). Video + music only. Still not logged. | Yes on this device. Open row rehydrates results in-memory. |
-| Cloud / `/s/:id` / `/share/abc` | **None.** Phase 2–3 in [`draft-history-social.md`](./draft-history-social.md). | — |
+| Live UI on `/` (React state) | This tab only | **Video:** yes, `sessionStorage` key `whyitslaps:last-result`. **Music / still:** no stored session unless History has that source URL. |
+| `?mode=` `?url=` | Stays in the bar. History match hydrates the saved critique. No match on music auto-runs analyze. | Bookmark on this device. A friend with the same link gets a **new** critique, not your stored one. |
+| History tab | This **browser** (`localStorage` `whyitslaps:analysis-history:v1`, max 40). Video + music only. Still not logged. | Yes on this device. Open row rehydrates and sets `?mode=&url=`. |
+| Cloud / `/s/:id` / `/share/abc` | **None.** Phase 2–3 in [`draft-history-social.md`](./draft-history-social.md). | Needs backend |
 | `/draft/explore` | Mock community feed | Not real data |
 
-So: send a friend `whyitslaps.com` and they get the **empty home card**, not your breakdown. Video refresh in the **same tab** can restore the last video. Music scan results vanish on refresh unless History saved them (scan→analyze does call music history push when analyze succeeds).
+So: send a friend `/?mode=music&url=spotify…` and they can run **their** breakdown of that track. They do not see your stored prose. Same device, History or that URL, shows the saved one until you Analyze again.
 
 ### Tickets
 
@@ -239,7 +239,7 @@ So: send a friend `whyitslaps.com` and they get the **empty home card**, not you
 - **Status:** Open
 - **Files:** [`components/HistoryPanel.tsx`](../components/HistoryPanel.tsx), [`components/InputScreen.tsx`](../components/InputScreen.tsx) (history tab copy)
 - **Do:** Copy that History is “your analyses on this device” (already close). After T3, rows should feel like a library, not scores. Optional: after reset from results, don’t force the History tab.
-- **Don’t:** Query-string ids. Don’t log still until product says yes (DEAD_ENDS gap 3).
+- **Don’t:** Fake `/s/:id` ids. Source `?url=` is the real Spotify or video link. Don’t log still until product says yes (DEAD_ENDS gap 3).
 - **Prompt:**
 
 ```text

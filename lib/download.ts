@@ -49,7 +49,7 @@ export function assertAllowedVideoUrl(raw: string): URL {
   );
   if (!ok) {
     throw new Error(
-      "That site is not supported. Use YouTube, TikTok, Instagram, or X (Twitter) links — or Upload clip.",
+      "That site is not supported. Use YouTube, TikTok, Instagram, or X (Twitter) links, or Upload clip.",
     );
   }
   return parsed;

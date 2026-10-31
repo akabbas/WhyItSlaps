@@ -23,11 +23,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whyitslaps.com"),
-  title: "WhyItSlaps — find out why it slaps",
+  title: "WhyItSlaps. Find out why it slaps",
   description:
-    "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps — palette, critique, edit plan, or sonic breakdown.",
+    "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps. Palette, critique, edit plan, or sonic breakdown.",
   openGraph: {
-    title: "WhyItSlaps — find out why it slaps",
+    title: "WhyItSlaps. Find out why it slaps",
     description:
       "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps.",
     url: "https://whyitslaps.com",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "WhyItSlaps — find out why it slaps",
+    title: "WhyItSlaps. Find out why it slaps",
     description:
       "Paste a TikTok, a Spotify track, or upload an image and find out why it slaps.",
   },

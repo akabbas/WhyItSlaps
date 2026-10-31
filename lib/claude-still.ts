@@ -10,7 +10,7 @@ const STILL_SYSTEM_PROMPT = `${SPEAKER}
 
 ${STILL_CRAFT}
 
-You MUST output JSON ONLY — no prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
+You MUST output JSON ONLY. No prose, Markdown, headings, fences, or trailing commentary. Respond with ONE JSON object obeying exactly this schema and key names:
 
 {
   "vibe_summary": string,

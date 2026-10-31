@@ -63,7 +63,7 @@ export function formatAudioAnalysisFacts(summary: SpotifyAudioAnalysisSummary): 
   const rows = summary.sections
     .map(
       (s, i) =>
-        `${i + 1}. ${s.start_s}s–${Math.round((s.start_s + s.duration_s) * 10) / 10}s · ${s.loudness_db} dB · ${s.tempo_bpm || "—"} BPM`,
+        `${i + 1}. ${s.start_s}s to ${Math.round((s.start_s + s.duration_s) * 10) / 10}s · ${s.loudness_db} dB · ${s.tempo_bpm || "n/a"} BPM`,
     )
     .join("\n");
   return `${head}\nSections:\n${rows}`;

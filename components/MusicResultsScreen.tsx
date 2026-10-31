@@ -202,7 +202,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         const payload = (await res.json()) as DawStepsSuccess | DawStepsErrorBody;
         if (!res.ok || !payload.ok) {
           const err = payload as DawStepsErrorBody;
-          throw new Error(err.hint ? `${err.error} — ${err.hint}` : err.error);
+          throw new Error(err.hint ? `${err.error}. ${err.hint}` : err.error);
         }
         setStepsByDaw((prev) => ({ ...prev, [payload.daw]: payload.steps }));
       } catch (err) {
@@ -239,7 +239,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
   const handleShare = () => {
     const produceSteps = activeSteps.length > 0 ? activeSteps : c.how_to_produce;
     const lines = [
-      `WHYITSLAPS — MUSIC`,
+      `WHYITSLAPS MUSIC`,
       `${track.title} by ${track.artist}`,
       ``,
       c.vibe_summary,
@@ -254,10 +254,10 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         : [SONIC_SCORE_MISSING]),
       ``,
       `WHY IT SLAPS:`,
-      ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title} — ${w.detail}`),
+      ...c.why_it_works.map((w, i) => `  ${i + 1}. ${w.title}. ${w.detail}`),
       ``,
       `HOW TO PRODUCE (${activeDawLabel}):`,
-      ...produceSteps.map((step, i) => `  ${i + 1}. ${step.title} — ${step.body}`),
+      ...produceSteps.map((step, i) => `  ${i + 1}. ${step.title}. ${step.body}`),
     ];
     const text = lines.join("\n");
 
@@ -408,7 +408,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
           </p>
           {!isBrief && headline !== c.vibe_summary ? (
             <p className="mt-3 font-mono text-[10px] leading-relaxed tracking-wide text-white/40">
-              TL;DR — {headline}
+              TL;DR. {headline}
             </p>
           ) : null}
         </div>
@@ -433,7 +433,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             this track&apos;s meters
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
-            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness — not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five — this track&apos;s contour, not a ranking. Energy arc and Spotify stats below are separate.
+            Chorus lift, density, dynamics, and energy are from Spotify&apos;s full-recording stats and section loudness, not the 30s clip. Headroom can use that preview waveform. Shape is the blend of the five. This track&apos;s contour, not a ranking. Energy arc and Spotify stats below are separate.
           </p>
           {c.scores ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -506,7 +506,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
             <p className="mb-4 font-mono text-[10px] leading-relaxed tracking-wide text-white/50">
               {hasFullArc
                 ? "Full recording, not the 30s clip. Loudness and tempo by section from Spotify's audio analysis; names (verse, chorus, ...) are written to match that map."
-                : "Sketch of the song’s shape. Spotify’s full-recording analysis was missing, so this is not measured from the 30s preview either — treat the bars as a draft."}
+                : "Sketch of the song’s shape. Spotify’s full-recording analysis was missing, so this is not measured from the 30s preview either. Treat the bars as a draft."}
             </p>
             <div className="flex items-end gap-1" style={{ height: "56px" }}>
               {c.energy_arc.map((seg, si) =>
@@ -743,7 +743,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
                   className="border-l-2 border-paper pl-4 font-mono text-[11px] leading-relaxed text-white/75"
                 >
                   <span className="font-semibold text-paper">{step.title}</span>
-                  {" — "}
+                  {". "}
                   {step.body.split(/(?<=[.!?])\s+/)[0]}
                 </li>
               ))}
@@ -759,7 +759,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
               Open in Spotify
             </p>
             <p className="mt-0.5 truncate font-mono text-[12px] font-semibold text-paper">
-              {track.title} — {track.artist}
+              {track.title} · {track.artist}
             </p>
           </div>
           <a
@@ -786,7 +786,7 @@ export function MusicResultsScreen({ data, downloadError, downloadBusy, onDownlo
         open={shareCardOpen}
         onClose={() => setShareCardOpen(false)}
         filenameBase={`${track.artist}-${track.title}`}
-        shareTitle={`WhyItSlaps — ${track.title}`}
+        shareTitle={`WhyItSlaps ${track.title}`}
         shareText={c.vibe_summary}
       >
         {(format) => <MusicShareCard data={data} format={format} />}

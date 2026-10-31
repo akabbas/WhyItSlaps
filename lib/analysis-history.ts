@@ -84,6 +84,15 @@ export function listAnalysisHistory(): AnalysisHistoryEntry[] {
   return readRaw();
 }
 
+export function findHistoryBySourceUrl(
+  sourceUrl: string,
+  kind?: HistoryKind,
+): AnalysisHistoryEntry | undefined {
+  const target = sourceUrl.trim();
+  if (!target) return undefined;
+  return readRaw().find((e) => e.sourceUrl === target && (!kind || e.kind === kind));
+}
+
 export function removeAnalysisHistoryEntry(id: string): AnalysisHistoryEntry[] {
   const next = readRaw().filter((e) => e.id !== id);
   writeRaw(next);
@@ -126,7 +135,7 @@ export function pushMusicHistory(result: MusicAnalyzeSuccess, sourceUrl: string)
     id: newId(),
     kind: "music",
     platform: "SP",
-    title: artist ? `${trackTitle} — ${artist}` : trackTitle,
+    title: artist ? `${trackTitle} · ${artist}` : trackTitle,
     subtitle: result.claude.vibe_summary?.trim() || result.claude.brief_summary?.trim() || "",
     sourceUrl: sourceUrl.trim() || result.track.spotify_url || "",
     analyzedAt: new Date().toISOString(),

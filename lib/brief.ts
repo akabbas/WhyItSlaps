@@ -28,7 +28,7 @@ export function videoSectionSummaries(c: ClaudeAnalysis): {
       s?.color_grade?.trim() || firstSentence(c.color_grade.palette_mood) || c.color_grade.palette_mood,
     edit_style:
       s?.edit_style?.trim() ||
-      `${c.edit_style.pacing_badge} — ${firstSentence(c.edit_style.cut_pattern)}`,
+      `${c.edit_style.pacing_badge}. ${firstSentence(c.edit_style.cut_pattern)}`,
   };
 }
 

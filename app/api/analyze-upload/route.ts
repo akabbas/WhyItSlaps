@@ -120,7 +120,7 @@ export async function POST(req: Request) {
           body: {
             ok: false,
             error:
-              "This clip is over 60 seconds — WhyItSlaps only analyzes clips under 1 minute. Grab a shorter cut and try again.",
+              "This clip is over 60 seconds. WhyItSlaps only analyzes clips under 1 minute. Grab a shorter cut and try again.",
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
           status: 422,
           body: {
             ok: false,
-            error: "No keyframes extracted — clip may be unreadable.",
+            error: "No keyframes extracted. The clip may be unreadable.",
             stage: "frames",
           } satisfies AnalyzeErrorBody,
         };

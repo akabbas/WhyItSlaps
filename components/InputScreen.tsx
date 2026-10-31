@@ -199,7 +199,7 @@ export function InputScreen({
                   className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] leading-none tracking-[0.25em] text-white/54"
                   aria-hidden
                 >
-                  {plat ?? "—"}
+                  {plat ?? "·"}
                 </span>
               </div>
 
@@ -349,7 +349,7 @@ export function InputScreen({
 
               {isInstagramUrl ? (
                 <p className="font-mono text-[11px] leading-relaxed tracking-wide text-white/55">
-                  Instagram links often fail here — save the reel and use Upload clip instead.
+                  Instagram links often fail here. Save the reel and use Upload clip instead.
                 </p>
               ) : null}
 

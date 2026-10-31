@@ -18,7 +18,7 @@ const MUSIC_SYSTEM_PROMPT = `${SPEAKER}
 
 ${MUSIC_CRAFT}
 
-You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing commentary. Respond with ONE JSON object obeying this schema exactly:
+You MUST output JSON ONLY. No prose, no Markdown, no fences, no trailing commentary. Respond with ONE JSON object obeying this schema exactly:
 
 {
   "brief_summary": string,
@@ -57,7 +57,7 @@ You MUST output JSON ONLY — no prose, no Markdown, no fences, no trailing comm
 
 Rules:
 - Do NOT output a scores object. The app measures sonic scores from the track preview audio (DSP on the clip) and gives them to you as fixed facts. Spotify audio features are separate metadata; align your prose with the fixed score facts, not those bars.
-- brief_summary: ONE punchy sentence — the TL;DR if someone only reads one line.
+- brief_summary: ONE punchy sentence. The TL;DR if someone only reads one line.
 - vibe_summary: 2–3 sentences expanding on brief_summary. Name a move, then what it does to the listener.
 - section_summaries: ONE sentence each for arrangement (form + density), mix (overall balance), and sonic (dominant textures).
 - aesthetic_tags: 6–10 sharp lowercase tokens describing the sonic identity of this track.

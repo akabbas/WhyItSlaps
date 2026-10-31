@@ -32,5 +32,5 @@ test("formatAudioAnalysisFacts tells the model this is the full recording", () =
   });
   assert.match(text, /full catalog recording/);
   assert.match(text, /not the 30s preview/);
-  assert.match(text, /0s–20s/);
+  assert.match(text, /0s to 20s/);
 });

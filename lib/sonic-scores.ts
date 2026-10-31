@@ -35,9 +35,9 @@ export const SONIC_SCORE_HINTS: Record<MusicScoreKey, string> = {
   hook_strength: "Loudness jump of the loudest section versus the typical section.",
   production_density: "How full the recording is versus sparse or acoustic.",
   emotional_range: "Loudness span from the quietest section to the loudest.",
-  impact: "Spotify energy of the full recording — perceived intensity and activity.",
+  impact: "Spotify energy of the full recording. Perceived intensity and activity.",
   mix_clarity: "How far integrated loudness sits below a dense master; more space is more headroom.",
-  overall_vibe: "Weighted blend of the five measurements — this track's contour, not a ranking.",
+  overall_vibe: "Weighted blend of the five measurements. This track's contour, not a ranking.",
 };
 
 export const SONIC_SCORE_MISSING = "Sonic scores couldn't be found for this track.";
@@ -342,7 +342,7 @@ export function scoreFromPcm(samples: Float32Array, sampleRate: number): MusicAn
 
 export function formatSonicScoreFacts(scores: MusicAnalysisScores): string {
   const lines = SONIC_SCORE_ORDER.map(
-    (key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100 — ${SONIC_SCORE_HINTS[key]}`,
+    (key) => `${SONIC_SCORE_LABELS[key]}: ${scores[key]}/100. ${SONIC_SCORE_HINTS[key]}`,
   );
   return [
     "These sonic scores are already set for this track.",

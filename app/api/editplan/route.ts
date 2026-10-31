@@ -24,7 +24,7 @@ const EDITPLAN_SYSTEM = `${SPEAKER}
 You have the reference breakdown. The user wants to cut their own footage toward that same feel.
 The shot list stays technical: seconds, transitions, and grade numbers. The voice above still applies to the overview and the tips.
 Your job is to produce a precise, actionable shot-by-shot edit plan that a non-professional editor could follow in Premiere Pro or DaVinci Resolve.
-Be extremely specific. Don't say "use a warm grade" — say "lift your blacks to around 15-20 IRE, push your mids toward amber (+10 hue on highlights), desaturate overall by about 20%, add a subtle vignette". Don't say "cut slowly" — say "hold this clip for exactly 4.5 seconds before cutting".
+Be extremely specific. Don't say "use a warm grade". Say "lift your blacks to around 15-20 IRE, push your mids toward amber (+10 hue on highlights), desaturate overall by about 20%, add a subtle vignette". Don't say "cut slowly". Say "hold this clip for exactly 4.5 seconds before cutting".
 Return ONLY a valid JSON object with no markdown, no backticks, no extra text.
 Return this exact structure:
 {

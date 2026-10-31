@@ -29,7 +29,7 @@ export function MusicCard({ music, kicker = "Music" }: Props) {
       <div className="border border-white/12 bg-black/25 p-6 font-mono text-[12px] leading-relaxed tracking-wide text-white/75">
         <p className="text-[10px] uppercase tracking-[0.3em] text-white/45">audio fingerprint</p>
         <p className="mt-3 text-[13px] text-white/92">
-          No confident match for the opening 10-second sample — louder bed, clearer mix, or ACR credits may improve hits.
+          No confident match for the opening 10-second sample. A louder bed, a clearer mix, or ACR credits may improve hits.
         </p>
       </div>
     );
