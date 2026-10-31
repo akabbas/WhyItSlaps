@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 3000",
     "lint": "next lint",
-    "test": "node --experimental-strip-types --experimental-detect-module --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/still-exif.test.ts lib/preview-match.test.ts lib/spotify-analysis.test.ts lib/sonic-scores.test.ts lib/mood-quadrant.test.ts lib/loading-stage.test.ts lib/clientNdjson.test.ts",
+    "test": "node --experimental-strip-types --experimental-detect-module --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/still-exif.test.ts lib/preview-match.test.ts lib/spotify-analysis.test.ts lib/sonic-scores.test.ts lib/mood-quadrant.test.ts lib/record-mic.test.ts lib/loading-stage.test.ts lib/clientNdjson.test.ts",
     "test:sonic-scores": "node --experimental-strip-types --test lib/sonic-scores.test.ts lib/preview-match.test.ts lib/cleanup.test.ts",
     "agent:setup": "npx --yes impeccable install --providers=cursor --scope=project --yes"
   },

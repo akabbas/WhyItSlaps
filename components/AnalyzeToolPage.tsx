@@ -8,6 +8,7 @@ import type { IdentifyAudioErrorBody, IdentifyAudioSuccess } from "@/types/ident
 import type { StillAnalyzeErrorBody, StillAnalyzeSuccess } from "@/types/still-analysis";
 
 import { fetchWithTimeout, TIMEOUT_MS, timeoutMessage } from "@/lib/client-fetch";
+import { LISTEN_SECONDS, micErrorMessage, recordMicClip } from "@/lib/record-mic";
 import { arrayBufferToMp3Download, arrayBufferToMp4Download, saveAudioBlobToDevice, saveVideoBlobToDevice } from "@/lib/clientDownload";
 import { readAnalyzeResponse } from "@/lib/clientNdjson";
 
@@ -82,6 +83,9 @@ export function AnalyzeToolPage() {
   const busy = loadingPhase !== null;
   const onLoadingStage = React.useCallback((stage: string) => setLoadingStage(stage), []);
   const pendingMusicAutoAnalyzeUrl = React.useRef<string | null>(null);
+  const listenAbortRef = React.useRef<AbortController | null>(null);
+  const [listenArmed, setListenArmed] = React.useState(false);
+  const [listenSecondsLeft, setListenSecondsLeft] = React.useState<number | null>(null);
 
   const [error, setError] = React.useState<string | null>(null);
   const [analysisRetryHint, setAnalysisRetryHint] = React.useState(false);
@@ -462,6 +466,50 @@ export function AnalyzeToolPage() {
     [runMusicAnalyze],
   );
 
+  const stopMusicListen = React.useCallback(() => {
+    listenAbortRef.current?.abort();
+    listenAbortRef.current = null;
+    setListenArmed(false);
+    setListenSecondsLeft(null);
+  }, []);
+
+  const runMusicListen = React.useCallback(async () => {
+    if (listenAbortRef.current) {
+      stopMusicListen();
+      return;
+    }
+
+    const ac = new AbortController();
+    listenAbortRef.current = ac;
+    setError(null);
+    setAnalysisRetryHint(false);
+    setListenArmed(true);
+    setListenSecondsLeft(null);
+
+    try {
+      const file = await recordMicClip({
+        durationMs: LISTEN_SECONDS * 1000,
+        onTick: (left) => {
+          if (!ac.signal.aborted) setListenSecondsLeft(left);
+        },
+        signal: ac.signal,
+      });
+      if (listenAbortRef.current === ac) listenAbortRef.current = null;
+      setListenArmed(false);
+      setListenSecondsLeft(null);
+      await runMusicScan(file);
+    } catch (unexpected) {
+      if (listenAbortRef.current === ac) listenAbortRef.current = null;
+      setListenArmed(false);
+      setListenSecondsLeft(null);
+      if (ac.signal.aborted) return;
+      const message = micErrorMessage(unexpected);
+      if (message) setError(message);
+    }
+  }, [runMusicScan, stopMusicListen]);
+
+  React.useEffect(() => () => listenAbortRef.current?.abort(), []);
+
   const runUploadAnalyze = React.useCallback(async (file: File) => {
     setError(null);
     setAnalysisRetryHint(false);
@@ -668,6 +716,7 @@ export function AnalyzeToolPage() {
           void (mode === "music" ? triggerDownloadForMusicUrl(url) : triggerDownloadForUrl(url))
         }
         onModeChange={(next) => {
+          stopMusicListen();
           setMode(next);
           if (next !== "history") setUrl("");
           setError(null);
@@ -677,6 +726,9 @@ export function AnalyzeToolPage() {
         onRetryAnalysis={runAnalyze}
         onUploadFile={(file) => void (mode === "still" ? runStillAnalyze(file) : runUploadAnalyze(file))}
         onUploadMusicScan={(file) => void runMusicScan(file)}
+        onListenMusic={() => void runMusicListen()}
+        listenArmed={listenArmed}
+        listenSecondsLeft={listenSecondsLeft}
         historyPanel={
           <HistoryPanel refreshToken={historyRefreshToken} onOpen={openHistoryEntry} />
         }
