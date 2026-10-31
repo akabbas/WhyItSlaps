@@ -14,7 +14,9 @@ export default {
       animation: {
         "fade-spin": "fadeSpin 8s linear infinite",
         "bar-fill": "barFill 0.95s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "stagger": "staggerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
+        stagger: "staggerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "square-orbit": "squareOrbit 11s linear infinite",
+        "eclipse-breathe": "eclipseBreathe 4.8s ease-in-out infinite",
       },
       keyframes: {
         fadeSpin: {
@@ -28,6 +30,13 @@ export default {
         staggerIn: {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        squareOrbit: {
+          to: { offsetDistance: "100%" },
+        },
+        eclipseBreathe: {
+          "0%, 100%": { opacity: "0.14", transform: "scale(0.88)" },
+          "50%": { opacity: "0.4", transform: "scale(1)" },
         },
       },
     },

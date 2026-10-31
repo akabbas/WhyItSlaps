@@ -40,7 +40,7 @@
 | Surface | Prior (initial grade) | Re-grade | Band |
 |---------|----------------------|----------|------|
 | Home — Video tab | 28/40 | **30/40** | Good |
-| Home — Music tab | 26/40 | **28/40** | Good |
+| Home — Music tab | 26/40 | **29/40** | Good (copy distill after 28/40) |
 | Home — History tab | 26/40 | **28/40** | Good |
 | Video results | 31/40 | **33/40** | Good |
 | Loading overlay | 25/32 | **27/32** | Good |
@@ -119,32 +119,32 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 
 ## `/` — Home (Music tab)
 
-**What you do:** Paste Spotify track URL, **Scan upload**, or download preview MP3.
+**What you do:** Paste Spotify track URL, **Scan upload**, or save a ~30s preview clip (never the full song).
 
 | # | Heuristic | Score | Note |
 |---|-----------|-------|------|
 | 1 | Status | 3 | Scan uses same loading overlay as analyze |
 | 2 | Match | 3 | Spotify-first language |
 | 3 | Control | 3 | Tab switch clears URL |
-| 4 | Consistency | 3 | Same shell as video |
+| 4 | Consistency | 3 | Same shell as video; kicker matches Video/Still rhythm |
 | 5 | Prevention | 2 | Scan accepts broad file types; failures happen late |
 | 6 | Recognition | 3 | Scan upload is visible |
 | 7 | Flexibility | 2 | No mic capture (known roadmap) |
-| 8 | Minimal | 3 | Link vs scan grouped with dividers |
+| 8 | Minimal | 4 | One kicker, one helper under the URL row; 30s-clip fact once |
 | 9 | Recovery | 3 | Errors with hints from API |
-| 10 | Help | 3 | Preview + scan limits in footnotes |
+| 10 | Help | 3 | Save preview 30s fact once + scan limits; no duplicate footnotes |
 
-**Design Health:** **28/40 — Good** (↑ from 26/40)  
+**Design Health:** **29/40 — Good** (↑ from 28/40)  
 **Specificity:** **Strong** on shell; scan CTA is still generic “upload” pattern.  
-**Cognitive load:** **2 failures** — URL vs scan vs download (structure clearer, still three actions).
+**Cognitive load:** **1 failure** — Analyze / Save preview / Scan stay three actions; stacked help text is gone.
 
-**Unfinished:** Scan vs video upload limit copy still split across micro-lines (cosmetic).
+**Unfinished:** Scan vs video upload limit copy still split across micro-lines (cosmetic). Mic capture still a parallel PR.
 
 **Polish (ordered):**
 
-1. ~~`/impeccable layout`~~ — **DONE** (#24) “Have a link” / “Don’t know the track?” sections.
-2. ~~`/impeccable clarify`~~ — **DONE** (#24) aligned scan footnote (15s / 25 MB).
-3. ~~`/impeccable typeset`~~ — **DONE** (#24) scan button at `text-[12px]`.
+1. ~~`/impeccable layout`~~ — **DONE** (#24) section grouping; **distill** cut “Have a link” + duplicate 30s line.
+2. ~~`/impeccable clarify`~~ — **DONE** (#24, copy pass) one helper: Save preview = ~30s clip, never the full song.
+3. ~~`/impeccable typeset`~~ — **DONE** (#24) scan button at `text-[12px]`; kicker aligned with Video/Still.
 4. ~~`/impeccable onboard`~~ — **DONE** (#24) post-scan Spotify URL hint in error block.
 
 ---
@@ -325,22 +325,22 @@ Heuristics **7** (flexibility) and **10** (help/docs) are **`n/a`** on pure mark
 
 | # | Heuristic | Score | Note |
 |---|-----------|-------|------|
-| 1 | Status | 4 | `aria-busy`, rotating messages, pseudo-progress |
-| 2 | Match | 3 | Phase-specific copy |
+| 1 | Status | 4 | `aria-busy`, real stage copy (video/music), idle line otherwise |
+| 2 | Match | 4 | Phase-specific copy tied to pipeline where streamed |
 | 3 | Control | 1 | No cancel |
 | 4 | Consistency | 4 | Same overlay all flows |
 | 5 | Prevention | n/a | |
-| 6 | Recognition | 3 | Message changes every 2s |
+| 6 | Recognition | 4 | One line; no looping 1/4 index |
 | 7 | Flexibility | 1 | Cannot background |
-| 8 | Minimal | 3 | Square ring accents (no rounded orbit) |
+| 8 | Minimal | 3 | Concentric squares plus a paper tick on a square path |
 | 9 | Recovery | 2 | User waits for timeout errors |
 | 10 | Help | n/a | |
 
-**Design Health:** **27/32 — Good** (↑ from 25/32; H5, H10 n/a)  
-**Specificity:** **Strong** — square dashed rings match sharp-corner brand.  
-**Cognitive load:** **0–1 failures** — step index replaces misleading percent.
+**Design Health:** **29/32 — Good** (H5, H10 n/a)  
+**Specificity:** **Strong** — square dashed rings and a square-path tick match sharp-corner brand.  
+**Cognitive load:** **0 failures** — one status line; copy follows a real stage when the server sends one.
 
-**Unfinished:** No cancel on long video analyze. Bar must stay monotonic (see [`WORK_ORDER.md`](./WORK_ORDER.md) W1).
+**Unfinished:** No cancel on long video analyze. Still/scan/download have no stage stream yet.
 
 **Polish (ordered) — Sprint 5:**
 

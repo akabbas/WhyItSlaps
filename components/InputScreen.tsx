@@ -37,6 +37,10 @@ type Props = {
   onUploadFile?: (file: File) => void;
   /** Music mode: fingerprint upload via ACRCloud (Shazam-style). */
   onUploadMusicScan?: (file: File) => void;
+  /** Music mode: ~15s mic capture, then the same identify path as upload. */
+  onListenMusic?: () => void;
+  listenArmed?: boolean;
+  listenSecondsLeft?: number | null;
   /** When mode is history, render this instead of the URL form. */
   historyPanel?: React.ReactNode;
 };
@@ -54,6 +58,9 @@ export function InputScreen({
   onRetryAnalysis,
   onUploadFile,
   onUploadMusicScan,
+  onListenMusic,
+  listenArmed = false,
+  listenSecondsLeft = null,
   historyPanel,
 }: Props) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -70,6 +77,7 @@ export function InputScreen({
     isMusic && /no spotify/i.test(trimmedError);
   const noPreviewClipHint =
     isMusic && /no ~30s preview|no preview clip for this track/i.test(trimmedError);
+  const listening = listenArmed || listenSecondsLeft != null;
 
   const tabClass = (active: boolean) =>
     `h-11 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-paper/90 disabled:opacity-40 ${
@@ -85,13 +93,13 @@ export function InputScreen({
           <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">
             WHYITSLAPS
           </h1>
-          <p className="mx-auto max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
+          <p className="mx-auto max-w-md text-balance font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
             {isHistory
               ? "your analyses on this device · a private library"
               : isStill
                 ? "upload an image · find out why it slaps"
                 : isMusic
-                  ? "paste a spotify link · or scan audio before you know the track"
+                  ? "paste a spotify link · find out why it slaps"
                   : "paste a tiktok · find out why it slaps"}
           </p>
         </div>
@@ -174,11 +182,6 @@ export function InputScreen({
               onAnalyze();
             }}
           >
-            {isMusic ? (
-              <p className="border-b border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 md:px-8">
-                Have a link
-              </p>
-            ) : null}
             <div className="flex w-full flex-col sm:flex-row sm:items-stretch">
               <div className="relative flex h-14 flex-1 items-center border-b border-white/20 sm:border-b-0 sm:border-r sm:border-white/20">
                 <input
@@ -231,8 +234,8 @@ export function InputScreen({
             </div>
 
             {isMusic ? (
-              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
-                Analyze = breakdown · Save preview = ~30s clip · never the full song
+              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-pretty text-white/50 md:px-8">
+                Save preview = ~30s clip, never the full song
               </p>
             ) : (
               <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
@@ -241,44 +244,78 @@ export function InputScreen({
             )}
 
             <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
-              {isMusic ? (
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
-                  open.spotify.com/track/… · save preview = ~30s clip · never the full song
-                </p>
-              ) : (
+              {!isMusic ? (
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
                   tiktok · youtube · x · upload for instagram · max 60s
                 </p>
-              )}
+              ) : null}
 
-              {isMusic && typeof onUploadMusicScan === "function" ? (
-                <div className="space-y-3 border-t border-white/12 pt-5">
+              {isMusic &&
+              (typeof onListenMusic === "function" || typeof onUploadMusicScan === "function") ? (
+                <div className="space-y-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
                     Don&apos;t know the track?
                   </p>
-                  <input
-                    ref={musicScanInputRef}
-                    type="file"
-                    accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.webm"
-                    className="hidden"
-                    disabled={disabled}
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      event.target.value = "";
-                      if (file) onUploadMusicScan(file);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => musicScanInputRef.current?.click()}
-                    className="min-h-[44px] border border-white/25 bg-transparent px-4 py-3 font-mono text-[12px] font-semibold uppercase tracking-[0.2em] text-paper transition hover:border-white/45 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Scan upload
-                  </button>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                    mp3 · m4a · short mp4 · max 25 mb · first 15s of audio
-                  </p>
+                  {typeof onListenMusic === "function" ? (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      aria-pressed={listening}
+                      aria-live="polite"
+                      aria-label={
+                        listenSecondsLeft != null
+                          ? `Listening, ${listenSecondsLeft} seconds left. Tap to cancel.`
+                          : listening
+                            ? "Waiting for microphone. Tap to cancel."
+                            : "Listen to identify the track"
+                      }
+                      onClick={() => onListenMusic()}
+                      className={`h-14 w-full font-mono text-[11px] font-semibold uppercase tracking-[0.22em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        listening
+                          ? "border border-paper bg-transparent text-paper"
+                          : "border border-white/35 bg-paper text-black hover:bg-white"
+                      }`}
+                    >
+                      {listenSecondsLeft != null
+                        ? `Listening ${listenSecondsLeft}`
+                        : listening
+                          ? "Listening"
+                          : "Listen"}
+                    </button>
+                  ) : null}
+                  {listening ? (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                      hold the speaker to the mic · tap listen to cancel
+                    </p>
+                  ) : (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                      ~15s from the mic · then we match the track
+                    </p>
+                  )}
+                  {typeof onUploadMusicScan === "function" ? (
+                    <>
+                      <input
+                        ref={musicScanInputRef}
+                        type="file"
+                        accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.webm"
+                        className="hidden"
+                        disabled={disabled || listening}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (file) onUploadMusicScan(file);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={disabled || listening}
+                        onClick={() => musicScanInputRef.current?.click()}
+                        className="bg-transparent font-mono text-[11px] uppercase tracking-[0.2em] text-white/50 underline underline-offset-4 hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        or upload a file
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               ) : null}
 

@@ -89,16 +89,18 @@ export async function POST(req: Request) {
 
   const buf = Buffer.from(await video.arrayBuffer());
 
-  return keepAliveNdjsonResponse(async (): Promise<AnalyzeWorkResult> => {
+  return keepAliveNdjsonResponse(async (report): Promise<AnalyzeWorkResult> => {
     const runId = uuidv4();
     const workDir = join("/tmp", `vc-upload-${runId}`);
     const videoPath = join(workDir, "source.mp4");
 
     try {
+      report("fetch");
       await mkdir(workDir, { recursive: true });
       await writeFile(videoPath, buf);
 
       let durationSeconds = 0;
+      report("frames");
       try {
         durationSeconds = await probeVideoDurationSeconds(videoPath);
       } catch (err) {
@@ -155,6 +157,7 @@ export async function POST(req: Request) {
       }
 
       let palette: PaletteSwatch[] = [];
+      report("palette");
       try {
         palette = await paletteFromMiddleFrame(frames);
       } catch {
@@ -162,6 +165,7 @@ export async function POST(req: Request) {
       }
 
       let music: Awaited<ReturnType<typeof analyzeMusic>> = null;
+      report("fingerprint");
       try {
         music = await analyzeMusic(audioPath);
       } catch {
@@ -169,6 +173,7 @@ export async function POST(req: Request) {
       }
 
       let thumbs: string[];
+      report("critique");
       try {
         thumbs = await framesToBase64Jpegs(frames, 14);
         if (!thumbs.length) throw new Error("empty_thumbs");
