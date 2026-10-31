@@ -60,7 +60,7 @@ Live path: `ShareCardPanel` + `components/share-cards/MusicShareCard.tsx` (not `
 
 | # | Item | Status | Why this rank |
 |---|------|--------|----------------|
-| **1** | Loading overlay: bar never goes backwards; copy is per media and honest | **This PR** | Feels broken every analyze |
+| **1** | Loading overlay: real pipeline stages; no 1/4 loop; hypnotic wait | **This PR** | Fake step carousel felt broken |
 | **2** | Spotify **audio-analysis** → Claude (full recording sections) | **This PR** | Uses API we already pay for; grounds the essay without ripping audio |
 | **3** | Meter copy: clip character, not rank (CREATIVE_UX **T1**, **T3**) | Open | Stops overselling numbers in history/results |
 | **4** | Music share card polish **T4, T6, T5, T2, T8** | Open | You don’t like the share look; tickets already specified |
@@ -75,11 +75,11 @@ Live path: `ShareCardPanel` + `components/share-cards/MusicShareCard.tsx` (not `
 
 ## Agent tickets (engine)
 
-#### W1 — Loading: monotonic bar + per-media copy
+#### W1 — Loading: honest stages + hypnotic wait
 
 - **Status:** Shipped on this branch
-- **Files:** [`components/LoadingScreen.tsx`](../components/LoadingScreen.tsx)
-- **Do:** Time-based bar **8→90%**, never decreases, never claims 100% while waiting. Messages **advance once and hold**. Kickers: video / music / still / scan / save. Copy must not pretend every cycle is a real pipeline step.
+- **Files:** [`components/LoadingScreen.tsx`](../components/LoadingScreen.tsx), [`lib/loading-stage.ts`](../lib/loading-stage.ts), [`lib/ndjsonKeepAlive.ts`](../lib/ndjsonKeepAlive.ts)
+- **Do:** No fake 1/4→2→3→4 loop. Video/upload/music streams `{ type: "stage" }` when that work actually starts. Copy follows the stage; idle line if the route has no stream (still, scan, download). Bar 8→90, never decreases, never 100. Wait graphic is concentric squares + a paper tick on a square orbit.
 
 #### W2 — Spotify audio-analysis into critique
 

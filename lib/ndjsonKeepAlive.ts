@@ -3,22 +3,31 @@ import { publicFailure } from "@/lib/public-error";
 
 export type AnalyzeJsonBody = AnalyzeSuccess | AnalyzeErrorBody;
 
-export type AnalyzeWorkResult = {
+export type AnalyzeWorkResult<T extends { ok: boolean } = AnalyzeJsonBody> = {
   status: number;
-  body: AnalyzeJsonBody;
+  body: T;
 };
+
+export type ReportLoadingStage = (stage: string) => void;
 
 /**
  * Stream NDJSON with periodic pings so Railway's edge does not kill long
- * video jobs that otherwise send zero bytes until the end.
+ * jobs that otherwise send zero bytes until the end. `report` emits a real
+ * pipeline stage when the worker actually reaches it.
  */
-export function keepAliveNdjsonResponse(work: () => Promise<AnalyzeWorkResult>): Response {
+export function keepAliveNdjsonResponse<T extends { ok: boolean }>(
+  work: (report: ReportLoadingStage) => Promise<AnalyzeWorkResult<T>>,
+): Response {
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const write = (obj: Record<string, unknown>) => {
         controller.enqueue(encoder.encode(`${JSON.stringify(obj)}\n`));
+      };
+
+      const report: ReportLoadingStage = (stage) => {
+        write({ type: "stage", stage });
       };
 
       write({ type: "ping" });
@@ -32,7 +41,7 @@ export function keepAliveNdjsonResponse(work: () => Promise<AnalyzeWorkResult>):
       }, 10_000);
 
       try {
-        const { status, body } = await work();
+        const { status, body } = await work(report);
         write({
           type: body.ok ? "result" : "error",
           status,
