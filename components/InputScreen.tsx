@@ -93,15 +93,15 @@ export function InputScreen({
           <h1 className="font-serif text-[clamp(1.65rem,5.5vw,3rem)] uppercase tracking-[0.38em] text-paper md:tracking-[0.48em]">
             WHYITSLAPS
           </h1>
-          <p className="mx-auto max-w-md text-balance font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
-            {isHistory
-              ? "your analyses on this device · a private library"
-              : isStill
+          {isHistory ? null : (
+            <p className="mx-auto max-w-md text-balance font-mono text-[11px] uppercase leading-relaxed tracking-[0.28em] text-white/62">
+              {isStill
                 ? "upload an image · find out why it slaps"
                 : isMusic
                   ? "paste a spotify link · find out why it slaps"
                   : "paste a tiktok · find out why it slaps"}
-          </p>
+            </p>
+          )}
         </div>
 
         {onModeChange ? (
