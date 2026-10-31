@@ -233,29 +233,10 @@ export function InputScreen({
               </div>
             </div>
 
-            {isMusic ? (
-              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-pretty text-white/50 md:px-8">
-                Save preview = ~30s clip, never the full song
-              </p>
-            ) : (
-              <p className="border-t border-white/12 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50 md:px-8">
-                Analyze = full breakdown · Save preview = ~30s mp3 only
-              </p>
-            )}
-
             <div className="space-y-5 border-t border-white/12 px-6 py-5 md:px-8">
-              {!isMusic ? (
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
-                  tiktok · youtube · x · upload for instagram · max 60s
-                </p>
-              ) : null}
-
               {isMusic &&
               (typeof onListenMusic === "function" || typeof onUploadMusicScan === "function") ? (
                 <div className="space-y-3">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/50">
-                    Don&apos;t know the track?
-                  </p>
                   {typeof onListenMusic === "function" ? (
                     <button
                       type="button"
@@ -285,13 +266,9 @@ export function InputScreen({
                   ) : null}
                   {listening ? (
                     <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                      hold the speaker to the mic · tap listen to cancel
+                      tap listen to cancel
                     </p>
-                  ) : (
-                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                      ~15s from the mic · then we match the track
-                    </p>
-                  )}
+                  ) : null}
                   {typeof onUploadMusicScan === "function" ? (
                     <>
                       <input
@@ -341,9 +318,6 @@ export function InputScreen({
                   >
                     Upload clip
                   </button>
-                  <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                    Instagram: save the reel and upload the file
-                  </p>
                 </div>
               ) : null}
 
