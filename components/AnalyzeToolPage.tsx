@@ -78,7 +78,9 @@ export function AnalyzeToolPage() {
   const [loadingPhase, setLoadingPhase] = React.useState<
     null | "analyze" | "music" | "still" | "download" | "download-music" | "scan"
   >(null);
+  const [loadingStage, setLoadingStage] = React.useState<string | null>(null);
   const busy = loadingPhase !== null;
+  const onLoadingStage = React.useCallback((stage: string) => setLoadingStage(stage), []);
   const pendingMusicAutoAnalyzeUrl = React.useRef<string | null>(null);
 
   const [error, setError] = React.useState<string | null>(null);
@@ -204,6 +206,7 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    setLoadingStage(null);
     setLoadingPhase("download");
 
     try {
@@ -262,6 +265,7 @@ export function AnalyzeToolPage() {
         return;
       }
 
+      setLoadingStage(null);
       setLoadingPhase("download-music");
 
       try {
@@ -315,6 +319,7 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    setLoadingStage(null);
     setLoadingPhase("music");
     try {
       const res = await fetchWithTimeout(
@@ -326,13 +331,9 @@ export function AnalyzeToolPage() {
         },
         TIMEOUT_MS.music,
       );
-      const text = await res.text();
-      let payload: MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
-      try {
-        payload = JSON.parse(text) as MusicAnalyzeSuccess | MusicAnalyzeErrorBody;
-      } catch {
-        throw new Error(text || `HTTP ${res.status}`);
-      }
+      const payload = await readAnalyzeResponse<MusicAnalyzeSuccess | MusicAnalyzeErrorBody>(res, {
+        onStage: onLoadingStage,
+      });
       if ("ok" in payload && payload.ok) {
         const musicPayload = payload as MusicAnalyzeSuccess;
         setStoredMusicSourceUrl(target);
@@ -349,7 +350,7 @@ export function AnalyzeToolPage() {
     } finally {
       setLoadingPhase(null);
     }
-  }, []);
+  }, [onLoadingStage]);
 
   React.useEffect(() => {
     const pending = pendingMusicAutoAnalyzeUrl.current;
@@ -375,6 +376,7 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    setLoadingStage(null);
     setLoadingPhase("analyze");
 
     try {
@@ -388,7 +390,7 @@ export function AnalyzeToolPage() {
         TIMEOUT_MS.video,
       );
 
-      const payload = await readAnalyzeResponse(res);
+      const payload = await readAnalyzeResponse(res, { onStage: onLoadingStage });
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl(target);
@@ -411,12 +413,13 @@ export function AnalyzeToolPage() {
     } finally {
       setLoadingPhase(null);
     }
-  }, [url, mode, runMusicAnalyze]);
+  }, [url, mode, runMusicAnalyze, onLoadingStage]);
 
   const runMusicScan = React.useCallback(
     async (file: File) => {
       setError(null);
       setAnalysisRetryHint(false);
+      setLoadingStage(null);
       setLoadingPhase("scan");
 
       try {
@@ -468,6 +471,7 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    setLoadingStage(null);
     setLoadingPhase("analyze");
 
     try {
@@ -483,7 +487,7 @@ export function AnalyzeToolPage() {
         TIMEOUT_MS.video,
       );
 
-      const payload = await readAnalyzeResponse(res);
+      const payload = await readAnalyzeResponse(res, { onStage: onLoadingStage });
 
       if ("ok" in payload && payload.ok) {
         setStoredSourceUrl("");
@@ -501,7 +505,7 @@ export function AnalyzeToolPage() {
     } finally {
       setLoadingPhase(null);
     }
-  }, []);
+  }, [onLoadingStage]);
 
 
   const clearStill = React.useCallback(() => {
@@ -522,6 +526,7 @@ export function AnalyzeToolPage() {
       return;
     }
 
+    setLoadingStage(null);
     setLoadingPhase("still");
 
     try {
@@ -606,7 +611,7 @@ export function AnalyzeToolPage() {
   if (stillResult) {
     return (
       <>
-        <LoadingScreen active={busy} phase={loadingUiPhase} />
+        <LoadingScreen active={busy} phase={loadingUiPhase} stage={loadingStage} />
         <StillResultsScreen data={stillResult} previewUrl={stillPreview} onReset={handleReset} />
       </>
     );
@@ -615,7 +620,7 @@ export function AnalyzeToolPage() {
   if (musicResult) {
     return (
       <>
-        <LoadingScreen active={busy} phase={loadingUiPhase} />
+        <LoadingScreen active={busy} phase={loadingUiPhase} stage={loadingStage} />
         <MusicResultsScreen
           data={musicResult}
           downloadError={error}
@@ -632,7 +637,7 @@ export function AnalyzeToolPage() {
   if (result) {
     return (
       <>
-        <LoadingScreen active={busy} phase={loadingUiPhase} />
+        <LoadingScreen active={busy} phase={loadingUiPhase} stage={loadingStage} />
         <ResultsScreen
           data={result}
           downloadError={error}
@@ -647,7 +652,7 @@ export function AnalyzeToolPage() {
 
   return (
     <main className="relative">
-      <LoadingScreen active={busy} phase={loadingUiPhase} />
+      <LoadingScreen active={busy} phase={loadingUiPhase} stage={loadingStage} />
       <InputScreen
         error={error}
         value={url}
