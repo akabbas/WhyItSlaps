@@ -68,30 +68,28 @@ export function VideoShareCard({ data, format }: Props) {
               fontSize: 18,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "rgba(255,255,255,0.72)",
             }}
           >
             Video breakdown
           </p>
         </div>
 
-        <div style={{ textAlign: "center" }}>
+        <div>
           <p
             style={{
-              margin: "0 auto",
+              margin: "0 auto 28px",
               maxWidth: 820,
               fontFamily: "var(--font-dm-serif), serif",
               fontSize: format === "story" ? 34 : 28,
               lineHeight: 1.35,
+              textAlign: "center",
               color: "rgba(245,240,232,0.92)",
             }}
           >
             &ldquo;{truncate(c.vibe_summary, format === "story" ? 120 : 90)}&rdquo;
           </p>
-        </div>
-
-        <div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: topPalette.length > 0 ? 28 : 0 }}>
             {tags.map((tag) => (
               <span
                 key={tag}
@@ -117,7 +115,7 @@ export function VideoShareCard({ data, format }: Props) {
                   fontSize: 14,
                   letterSpacing: "0.24em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.50)",
+                  color: "rgba(255,255,255,0.72)",
                 }}
               >
                 Palette
@@ -136,43 +134,16 @@ export function VideoShareCard({ data, format }: Props) {
               </div>
             </div>
           ) : null}
+        </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 16,
-              marginBottom: 28,
-            }}
-          >
+        <div>
+          <div style={{ display: "flex", gap: 36, marginBottom: 22 }}>
             {(["color_harmony", "edit_pacing", "motion_feel"] as const).map((key) => (
-              <div
-                key={key}
-                style={{
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  background: "rgba(0,0,0,0.35)",
-                  padding: "16px 14px",
-                }}
-              >
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    letterSpacing: "0.14em",
-                    color: "rgba(255,255,255,0.50)",
-                  }}
-                >
+              <div key={key}>
+                <p style={{ margin: 0, fontSize: 13, letterSpacing: "0.18em", color: "rgba(255,255,255,0.72)" }}>
                   {SCORE_LABELS[key]}
                 </p>
-                <p
-                  style={{
-                    margin: "8px 0 0",
-                    fontFamily: "var(--font-dm-serif), serif",
-                    fontSize: 42,
-                    lineHeight: 1,
-                    color: "#F5F0E8",
-                  }}
-                >
+                <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 28, lineHeight: 1 }}>
                   {c.scores[key]}
                 </p>
               </div>
@@ -190,10 +161,10 @@ export function VideoShareCard({ data, format }: Props) {
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
+              <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.72)" }}>
                 Pace · {c.edit_style.pacing_badge}
               </p>
-              <p style={{ margin: "6px 0 0", fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
+              <p style={{ margin: "6px 0 0", fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.72)" }}>
                 {data.video_duration_seconds}s clip
               </p>
             </div>

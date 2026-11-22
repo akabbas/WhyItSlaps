@@ -69,7 +69,7 @@ export function MusicShareCard({ data, format }: Props) {
               fontSize: 18,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "rgba(255,255,255,0.72)",
             }}
           >
             Music breakdown
@@ -132,7 +132,7 @@ export function MusicShareCard({ data, format }: Props) {
                   color: "#F5F0E8",
                 }}
               >
-                {tag}
+                #{tag.replace(/^#/, "")}
               </span>
             ))}
           </div>
@@ -140,28 +140,13 @@ export function MusicShareCard({ data, format }: Props) {
 
         <div>
           {statCells.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${statCells.length}, 1fr)`,
-                gap: 16,
-                marginBottom: 28,
-              }}
-            >
+            <div style={{ display: "flex", gap: 36, marginBottom: 22 }}>
               {statCells.map((cell) => (
-                <div
-                  key={cell.label}
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(0,0,0,0.35)",
-                    padding: "16px 14px",
-                    textAlign: "center",
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.50)" }}>
+                <div key={cell.label}>
+                  <p style={{ margin: 0, fontSize: 13, letterSpacing: "0.18em", color: "rgba(255,255,255,0.72)" }}>
                     {cell.label}
                   </p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>
+                  <p style={{ margin: "6px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 28, lineHeight: 1 }}>
                     {cell.value}
                   </p>
                 </div>
@@ -178,7 +163,7 @@ export function MusicShareCard({ data, format }: Props) {
               paddingTop: 20,
             }}
           >
-            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
+            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.72)" }}>
               Analyzed on WhyItSlaps
             </p>
             <p style={{ margin: 0, fontSize: 16, letterSpacing: "0.2em", color: "rgba(245,240,232,0.72)" }}>
