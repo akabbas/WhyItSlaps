@@ -3,6 +3,12 @@
 import type { MusicAnalyzeSuccess } from "@/types/music-analysis";
 import type { ShareCardFormat } from "@/lib/share-image";
 import { SHARE_CARD_DIMENSIONS } from "@/lib/share-image";
+import {
+  formatShareTags,
+  musicShareMeters,
+  MUSIC_SHARE_METER_KICKER,
+} from "@/lib/share-card-copy";
+import { ShareMeterStrip } from "./ShareMeterStrip";
 
 type Props = {
   data: MusicAnalyzeSuccess;
@@ -17,15 +23,10 @@ function truncate(text: string, max: number): string {
 export function MusicShareCard({ data, format }: Props) {
   const { width, height } = SHARE_CARD_DIMENSIONS[format];
   const { track, features, claude: c } = data;
-  const tags = c.aesthetic_tags.slice(0, 3);
-  const statCells: { label: string; value: string | number }[] = [];
-  if (features) {
-    statCells.push({ label: "BPM", value: features.tempo_bpm });
-    statCells.push({ label: "KEY", value: features.key });
-  }
-  if (c.scores) {
-    statCells.push({ label: "HOOK", value: c.scores.hook_strength });
-  }
+  const story = format === "story";
+  const tags = formatShareTags(c.aesthetic_tags, false);
+  const meters = musicShareMeters(features, c.scores);
+  const artSize = story ? 120 : 88;
 
   return (
     <div
@@ -46,8 +47,7 @@ export function MusicShareCard({ data, format }: Props) {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
-          padding: format === "story" ? "72px 64px 80px" : "56px 56px 64px",
+          padding: story ? "72px 64px 64px" : "56px 56px 48px",
           border: "2px solid rgba(245,240,232,0.18)",
         }}
       >
@@ -69,32 +69,52 @@ export function MusicShareCard({ data, format }: Props) {
               fontSize: 18,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "rgba(255,255,255,0.55)",
             }}
           >
             Music breakdown
           </p>
         </div>
 
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 32 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            minHeight: 0,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: story ? 36 : 24 }}>
             {track.album_art_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={track.album_art_url}
                 alt=""
                 crossOrigin="anonymous"
-                style={{ width: 120, height: 120, objectFit: "cover", border: "1px solid rgba(255,255,255,0.18)" }}
+                style={{
+                  width: artSize,
+                  height: artSize,
+                  objectFit: "cover",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                }}
               />
             ) : (
-              <div style={{ width: 120, height: 120, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.04)" }} />
+              <div
+                style={{
+                  width: artSize,
+                  height: artSize,
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  background: "rgba(255,255,255,0.04)",
+                }}
+              />
             )}
             <div style={{ minWidth: 0, flex: 1 }}>
               <p
                 style={{
                   margin: 0,
                   fontFamily: "var(--font-dm-serif), serif",
-                  fontSize: 34,
+                  fontSize: story ? 34 : 28,
                   lineHeight: 1.15,
                   color: "#F5F0E8",
                 }}
@@ -107,67 +127,49 @@ export function MusicShareCard({ data, format }: Props) {
 
           <p
             style={{
-              margin: "0 auto 28px",
+              margin: "0 auto",
               maxWidth: 820,
               fontFamily: "var(--font-dm-serif), serif",
-              fontSize: format === "story" ? 30 : 24,
-              lineHeight: 1.35,
+              fontSize: story ? 36 : 28,
+              lineHeight: 1.32,
               textAlign: "center",
-              color: "rgba(245,240,232,0.92)",
+              color: "rgba(245,240,232,0.94)",
             }}
           >
-            &ldquo;{truncate(c.vibe_summary, format === "story" ? 110 : 80)}&rdquo;
+            &ldquo;{truncate(c.vibe_summary, story ? 110 : 80)}&rdquo;
           </p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center", marginBottom: 28 }}>
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                style={{
-                  border: "1px solid rgba(245,240,232,0.55)",
-                  padding: "8px 14px",
-                  fontSize: 16,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  color: "#F5F0E8",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          {statCells.length > 0 ? (
+          {tags.length > 0 ? (
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${statCells.length}, 1fr)`,
-                gap: 16,
-                marginBottom: 28,
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 12,
+                justifyContent: "center",
+                marginTop: story ? 28 : 20,
               }}
             >
-              {statCells.map((cell) => (
-                <div
-                  key={cell.label}
+              {tags.map((tag) => (
+                <span
+                  key={tag}
                   style={{
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(0,0,0,0.35)",
-                    padding: "16px 14px",
-                    textAlign: "center",
+                    border: "1px solid rgba(245,240,232,0.55)",
+                    padding: "8px 14px",
+                    fontSize: 16,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    color: "#F5F0E8",
                   }}
                 >
-                  <p style={{ margin: 0, fontSize: 12, letterSpacing: "0.14em", color: "rgba(255,255,255,0.50)" }}>
-                    {cell.label}
-                  </p>
-                  <p style={{ margin: "8px 0 0", fontFamily: "var(--font-dm-serif), serif", fontSize: 42, lineHeight: 1 }}>
-                    {cell.value}
-                  </p>
-                </div>
+                  {tag}
+                </span>
               ))}
             </div>
           ) : null}
+        </div>
+
+        <div>
+          <ShareMeterStrip cells={meters} kicker={MUSIC_SHARE_METER_KICKER} format={format} />
 
           <div
             style={{
@@ -175,10 +177,11 @@ export function MusicShareCard({ data, format }: Props) {
               justifyContent: "space-between",
               alignItems: "center",
               borderTop: "1px solid rgba(255,255,255,0.12)",
-              paddingTop: 20,
+              paddingTop: 18,
+              marginTop: meters.length > 0 ? 22 : 0,
             }}
           >
-            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.50)" }}>
+            <p style={{ margin: 0, fontSize: 14, letterSpacing: "0.18em", color: "rgba(255,255,255,0.55)" }}>
               Analyzed on WhyItSlaps
             </p>
             <p style={{ margin: 0, fontSize: 16, letterSpacing: "0.2em", color: "rgba(245,240,232,0.72)" }}>

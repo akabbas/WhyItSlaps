@@ -41,7 +41,7 @@ Do **not** add user-vote / head-to-head scoring.
 | **Video** meters | Model-assigned 0–100 on five axes (`color_harmony`, `edit_pacing`, `motion_feel`, `subject_framing`, `overall_vibe`) from vision JSON (`lib/claude.ts`). |
 | **Music** sonic scores | DSP on **this track’s preview clip** (`lib/score-track-audio.ts` → `lib/sonic-scores.ts`). `overall_vibe` is a **weighted blend** of the other five (hook 0.3, density 0.2, range 0.15, impact 0.15, mix 0.2). Unreadable audio → `scores: null`, copy `SONIC_SCORE_MISSING`. Separate from Spotify audio-feature bars (energy, danceability, …). |
 | **Still** meters | Model-assigned 0–100 (`composition`, `light`, `color_harmony`, `subject`, `overall_vibe`). |
-| **Share cards** | Live cards (**T2**, this branch) hide the giant overall-vibe hero. Quote, tags, and secondary meters fill the card. Filename for video export still uses the number (`video-${overall_vibe}`). |
+| **Share cards** | Live cards hide overall-vibe hero (**T2**). Quote + tags sit in the middle; meters are a footer strip (**T7**). Filename for video export still uses the number (`video-${overall_vibe}`). |
 | **History** | Each row shows `entry.score` = `overall_vibe` as a bare paper numeral ([`HistoryPanel.tsx`](../components/HistoryPanel.tsx)) — reads as a ranking chip. |
 | **Copy text** | `lib/share.ts` lists “Scores: … /100” including overall vibe. |
 
@@ -102,8 +102,8 @@ Checked: `ShareCardPanel`, `share-cards/MusicShareCard.tsx`, `share-cards/VideoS
 **Concrete polish (not a new system):**
 
 1. **Copy / voice** — **T4** shipped: panel headline is “Card for Stories” / “Export a still”; helper type ≥ `text-white/50`; footer is format size, not “Drop it over your clip…”.
-2. **Hierarchy** — **T2** shipped: giant overall vibe hidden on live cards. Quote, tags, and secondary meters remain. Remaining hierarchy (quote as middle, meters as footer strip) is **T7**.
-3. **Typeset** — Wordmark 34px / 0.38em tracking is on-brand. Live-card helper type bumped to paper/50+ with T2/T6. Remaining quote-over-meters typeset is **T7**.
+2. **Hierarchy** — **T2** shipped: giant overall vibe hidden. **T7** shipped: quote + tags (palette / album row) in the middle; meters as a footer strip.
+3. **Typeset** — Wordmark 34px / 0.38em tracking is on-brand. Live-card helper type ≥ paper/50. Quote leads; meter numerals sit in the footer strip (**T7**).
 4. **Composition (panel)** — **T5** shipped: scaled story/square preview is centered and clipped to the card bounds; preview well is sharp-cornered. Export stays 1080×1920 / 1080×1080 on the off-screen node.
 5. **Composition (card)** — **T6** shipped: live cards are flat `#0A0A0A` + paper hairline (no radial meshes, no Spotify green). Music BPM/KEY/HOOK grid columns match the number of cells.
 6. **Inconsistent entry** — Video and music share CTAs both read **SHARE CARD** (T8). Video: mobile under-headline + desktop after scroll. Music: clustered in the top nav with download/copy/new. Still: nothing (T13).
@@ -149,9 +149,9 @@ Implement docs/CREATIVE_UX.md ticket T6 only. Flatten live share-card background
 
 #### T7 — Share card hierarchy (quote over number)
 
-- **Status:** Open
+- **Status:** **Shipped** on `ammr/ux-share-cards-t7-7f1b`
 - **Depends:** Prefer after T2 (hide/shrink vibe) and T6 (flat fill).
-- **Files:** both live `share-cards/*`
+- **Files:** both live `share-cards/*`, [`lib/share-card-copy.ts`](../lib/share-card-copy.ts)
 - **Do:** Quote + tags (+ palette on video, album row on music) as the middle; meters as a footer strip; wordmark stays top. Align tag `#` treatment with results. Bump faint kickers.
 - **Don’t:** New templates, overlay stickers, or merging `share-graphics/`.
 - **Prompt:**
@@ -276,7 +276,7 @@ Implement docs/CREATIVE_UX.md ticket T13 only. Still results share/copy parity w
 | T4 | Share panel copy | **Shipped** | No |
 | T5 | Share preview composition | **Shipped** | No |
 | T6 | Flatten share-card fills | **Shipped** | No |
-| T7 | Share hierarchy | Open | After T2 (and T6 if touching fills) |
+| T7 | Share hierarchy | **Shipped** | No |
 | T8 | Share CTA parity | **Shipped** | No |
 | T9 | Wordmark home | **Shipped** | No |
 | T10 | No scan routes | Deferred (guardrail) | No |
@@ -284,7 +284,7 @@ Implement docs/CREATIVE_UX.md ticket T13 only. Still results share/copy parity w
 | T12 | `/s/:id` share URLs | Deferred | No — needs backend |
 | T13 | Still share | Open | Yes (respect T2) |
 
-**Suggested first wave (remaining):** **T7** (quote/meters hierarchy). **T13** when still share is wanted. **T11** if history library copy still needs a pass. Never T12 without storage. Never merge **#17**.
+**Suggested first wave (remaining):** **T13** when still share is wanted. **T11** if history library copy still needs a pass. Never T12 without storage. Never merge **#17**.
 
 ---
 
