@@ -198,7 +198,7 @@ export async function analyzeMusicWithClaude(
 Title: ${track.title}
 Artist: ${track.artist}
 Album: ${track.album}${track.release_year ? ` (${track.release_year})` : ""}
-Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}${featuresBlock}${scoreBlock}`;
+Duration: ${durationMin}:${String(durationSec).padStart(2, "0")}${track.explicit ? "\nExplicit: yes" : ""}${featuresBlock}${scoreBlock}${analysisBlock}`;
 
   const resp = await anthropic.messages.create({
     model,
